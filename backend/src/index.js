@@ -12,6 +12,7 @@ const errorHandler = require("./middleware/errorHandler");
 const { generalLimiter } = require("./middleware/rateLimit");
 const logger = require("./utils/logger");
 const { sendSuccess } = require("./utils/response");
+const authRoutes = require("./routes/auth");
 
 validateEnv();
 
@@ -40,6 +41,8 @@ if (process.env.NODE_ENV !== "production") {
 app.get("/api/health", (req, res) => {
   return sendSuccess(res, 200, { status: "healthy", uptime: process.uptime() }, "Server is running");
 });
+
+app.use("/api/auth", authRoutes);
 
 app.use(errorHandler);
 
