@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import ExampleRow from "../components/problem-editor/ExampleRow";
+import TestCaseRow from "../components/problem-editor/TestCaseRow";
 import toast from "react-hot-toast";
 
 function ProblemEditor() {
@@ -14,6 +15,12 @@ function ProblemEditor() {
   const [allowedLanguages, setAllowedLanguages] = useState(["javascript"]);
   const [visibleExamples, setVisibleExamples] = useState([
     { input: "", output: "", explanation: "" },
+  ]);
+  const [hiddenTestCases, setHiddenTestCases] = useState([
+    { input: "", expectedOutput: "" },
+    { input: "", expectedOutput: "" },
+    { input: "", expectedOutput: "" },
+    { input: "", expectedOutput: "" },
   ]);
 
   const handleExampleChange = (index, updatedExample) => {
@@ -36,6 +43,28 @@ function ProblemEditor() {
     }
   };
 
+  const handleTestCaseChange = (index, updatedTestCase) => {
+    const updated = [...hiddenTestCases];
+    updated[index] = updatedTestCase;
+    setHiddenTestCases(updated);
+  };
+
+  const handleAddTestCase = () => {
+    setHiddenTestCases([
+      ...hiddenTestCases,
+      { input: "", expectedOutput: "" },
+    ]);
+  };
+
+  const handleRemoveTestCase = (index) => {
+    if (hiddenTestCases.length > 4) {
+      const updated = hiddenTestCases.filter((_, i) => i !== index);
+      setHiddenTestCases(updated);
+    } else {
+      toast.error("A minimum of 4 hidden test cases is required");
+    }
+  };
+
   const handleLanguageToggle = (lang) => {
     if (allowedLanguages.includes(lang)) {
       if (allowedLanguages.length > 1) {
@@ -47,6 +76,33 @@ function ProblemEditor() {
       setAllowedLanguages([...allowedLanguages, lang]);
     }
   };
+
+  const validateForm = () => {
+    const errors = [];
+    if (!title.trim()) errors.push("Problem Title is required.");
+    if (!statement.trim()) errors.push("Problem Statement details are required.");
+    
+    const hasValidVisibleExample = visibleExamples.some(ex => ex.input.trim() && ex.output.trim());
+    if (!hasValidVisibleExample) {
+      errors.push("At least 1 visible Example with complete input/output is required.");
+    }
+
+    if (hiddenTestCases.length < 4) {
+      errors.push(`A minimum of 4 test cases is required (currently have ${hiddenTestCases.length}).`);
+    }
+
+    const incompleteTestCases = hiddenTestCases.some(
+      (tc) => !tc.input.trim() || !tc.expectedOutput.trim()
+    );
+    if (incompleteTestCases) {
+      errors.push("All defined test cases must have complete input and expected output.");
+    }
+
+    return errors;
+  };
+
+  const validationErrors = validateForm();
+  const isValid = validationErrors.length === 0;
 
   return (
     <div className="min-height-100vh flex flex-col bg-bg-primary font-sans text-text-primary">
@@ -86,7 +142,7 @@ function ProblemEditor() {
               Create Coding Challenge
             </h1>
             <p className="text-xs text-text-secondary">
-              Step 1: Write the challenge statement and provide example cases.
+              Step 1: Write the challenge statement, visible examples, and hidden test cases.
             </p>
           </div>
 
@@ -212,6 +268,75 @@ function ProblemEditor() {
                 ))}
               </div>
             </div>
+
+            <div className="flex flex-col gap-3 mt-4">
+              <div className="flex justify-between items-center">
+                <div>
+                  <label className="block text-sm font-medium text-text-secondary">
+                    Hidden Test Cases
+                  </label>
+                  <span className="text-[10px] text-text-muted block mt-0.5">
+                    Opponents run code against these. Minimum 4 required.
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleAddTestCase}
+                  className="flex items-center gap-1.5 text-xs text-primary font-semibold hover:text-primary-hover transition-colors duration-150"
+                >
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                  </svg>
+                  Add Case
+                </button>
+              </div>
+
+              <div className="flex flex-col gap-4">
+                {hiddenTestCases.map((testCase, idx) => (
+                  <TestCaseRow
+                    key={idx}
+                    index={idx}
+                    testCase={testCase}
+                    onChange={handleTestCaseChange}
+                    onRemove={handleRemoveTestCase}
+                    canRemove={hiddenTestCases.length > 4}
+                  />
+                ))}
+              </div>
+            </div>
+
+            <div className="mt-6 border-t border-border-default pt-6 flex flex-col gap-4">
+              {!isValid && (
+                <div className="p-4 bg-error-muted border border-error rounded-xl flex flex-col gap-2 animate-fade-in text-xs text-error font-sans leading-relaxed">
+                  <span className="font-bold uppercase tracking-wider text-[10px]">
+                    Action Required Before Submission:
+                  </span>
+                  <ul className="list-disc pl-4 flex flex-col gap-1">
+                    {validationErrors.map((err, idx) => (
+                      <li key={idx}>{err}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              <button
+                type="button"
+                disabled={!isValid}
+                className={`w-full py-3.5 rounded-xl text-sm font-bold tracking-wide uppercase transition-all duration-200 ${
+                  isValid
+                    ? "bg-primary text-text-primary hover:brightness-110 active:scale-[0.99] cursor-pointer"
+                    : "bg-bg-surface border border-border-default text-text-muted cursor-not-allowed"
+                }`}
+              >
+                Proceed to Validate Reference Solution
+              </button>
+            </div>
           </div>
         </section>
 
@@ -261,11 +386,11 @@ function ProblemEditor() {
               )}
             </div>
 
-            {visibleExamples.some((ex) => ex.input || ex.output) && (
+            {visibleExamples.some((ex) => ex.input.trim() || ex.output.trim()) && (
               <div className="flex flex-col gap-4 mt-2">
                 <h3 className="text-sm font-bold text-text-primary">Examples</h3>
                 {visibleExamples.map((ex, idx) => {
-                  if (!ex.input && !ex.output) return null;
+                  if (!ex.input.trim() && !ex.output.trim()) return null;
                   return (
                     <div
                       key={idx}
