@@ -6,6 +6,7 @@ import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
+import ProblemEditor from "./pages/ProblemEditor";
 
 const TOAST_OPTIONS = {
   duration: 4000,
@@ -44,6 +45,14 @@ function App() {
           element={
             <ProtectedRoute>
               <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/room/:roomId/edit"
+          element={
+            <ProtectedRoute>
+              <ProblemEditor />
             </ProtectedRoute>
           }
         />

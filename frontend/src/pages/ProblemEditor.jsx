@@ -1,0 +1,305 @@
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import ExampleRow from "../components/problem-editor/ExampleRow";
+import toast from "react-hot-toast";
+
+function ProblemEditor() {
+  const { roomId } = useParams();
+  const navigate = useNavigate();
+
+  const [title, setTitle] = useState("");
+  const [statement, setStatement] = useState("");
+  const [difficulty, setDifficulty] = useState("easy");
+  const [timeLimit, setTimeLimit] = useState(10);
+  const [allowedLanguages, setAllowedLanguages] = useState(["javascript"]);
+  const [visibleExamples, setVisibleExamples] = useState([
+    { input: "", output: "", explanation: "" },
+  ]);
+
+  const handleExampleChange = (index, updatedExample) => {
+    const updated = [...visibleExamples];
+    updated[index] = updatedExample;
+    setVisibleExamples(updated);
+  };
+
+  const handleAddExample = () => {
+    setVisibleExamples([
+      ...visibleExamples,
+      { input: "", output: "", explanation: "" },
+    ]);
+  };
+
+  const handleRemoveExample = (index) => {
+    if (visibleExamples.length > 1) {
+      const updated = visibleExamples.filter((_, i) => i !== index);
+      setVisibleExamples(updated);
+    }
+  };
+
+  const handleLanguageToggle = (lang) => {
+    if (allowedLanguages.includes(lang)) {
+      if (allowedLanguages.length > 1) {
+        setAllowedLanguages(allowedLanguages.filter((l) => l !== lang));
+      } else {
+        toast.error("At least one language must be allowed");
+      }
+    } else {
+      setAllowedLanguages([...allowedLanguages, lang]);
+    }
+  };
+
+  return (
+    <div className="min-height-100vh flex flex-col bg-bg-primary font-sans text-text-primary">
+      <header className="border-b border-border-default bg-bg-surface px-6 py-4 flex items-center justify-between sticky top-0 z-50">
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => navigate("/dashboard")}
+            className="flex items-center gap-2 text-text-secondary hover:text-text-primary transition-colors duration-150 text-sm font-medium"
+          >
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+            </svg>
+            Dashboard
+          </button>
+          <div className="h-4 w-px bg-border-default" />
+          <span className="text-sm font-semibold text-secondary tracking-wide uppercase">
+            Room: {roomId}
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="px-3 py-1.5 rounded-full bg-primary-muted border border-primary text-xs font-semibold text-primary font-mono animate-pulse-glow">
+            Lobby Setup Mode
+          </div>
+        </div>
+      </header>
+
+      <main className="flex-1 grid grid-cols-1 lg:grid-cols-2 overflow-hidden h-[calc(100vh-69px)]">
+        <section className="p-6 overflow-y-auto border-r border-border-default flex flex-col gap-6">
+          <div className="flex flex-col gap-1">
+            <h1 className="text-xl font-bold tracking-tight text-text-primary">
+              Create Coding Challenge
+            </h1>
+            <p className="text-xs text-text-secondary">
+              Step 1: Write the challenge statement and provide example cases.
+            </p>
+          </div>
+
+          <div className="flex flex-col gap-4">
+            <div>
+              <label className="block text-sm font-medium text-text-secondary mb-1">
+                Challenge Title
+              </label>
+              <input
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="e.g. Two Sum"
+                className="w-full bg-bg-surface border border-border-default rounded-xl px-4 py-2.5 text-sm text-text-primary placeholder-text-muted focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all duration-200"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-text-secondary mb-1">
+                  Difficulty
+                </label>
+                <select
+                  value={difficulty}
+                  onChange={(e) => setDifficulty(e.target.value)}
+                  className="w-full bg-bg-surface border border-border-default rounded-xl px-3 py-2.5 text-sm text-text-primary focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all duration-200"
+                >
+                  <option value="easy">Easy</option>
+                  <option value="medium">Medium</option>
+                  <option value="hard">Hard</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-text-secondary mb-1">
+                  Time Limit (minutes)
+                </label>
+                <select
+                  value={timeLimit}
+                  onChange={(e) => setTimeLimit(Number(e.target.value))}
+                  className="w-full bg-bg-surface border border-border-default rounded-xl px-3 py-2.5 text-sm text-text-primary focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all duration-200"
+                >
+                  <option value={5}>5 mins (Blitz)</option>
+                  <option value={10}>10 mins</option>
+                  <option value={15}>15 mins</option>
+                  <option value={20}>20 mins</option>
+                  <option value={30}>30 mins</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-text-secondary mb-1.5">
+                Allowed Programming Languages
+              </label>
+              <div className="flex gap-3">
+                {["javascript", "python", "cpp"].map((lang) => {
+                  const isActive = allowedLanguages.includes(lang);
+                  return (
+                    <button
+                      key={lang}
+                      type="button"
+                      onClick={() => handleLanguageToggle(lang)}
+                      className={`px-4 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider border transition-all duration-150 ${
+                        isActive
+                          ? "bg-primary border-primary text-text-primary"
+                          : "bg-bg-surface border-border-default text-text-secondary hover:border-border-hover hover:text-text-primary"
+                      }`}
+                    >
+                      {lang === "cpp" ? "C++" : lang}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-text-secondary mb-1">
+                Problem Statement (Markdown Supported)
+              </label>
+              <textarea
+                value={statement}
+                onChange={(e) => setStatement(e.target.value)}
+                placeholder="Write the details of the problem here. Explain the constraints, input formats, and requirements..."
+                rows="8"
+                className="w-full bg-bg-surface border border-border-default rounded-xl px-4 py-3 text-sm text-text-primary placeholder-text-muted focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all duration-200 font-mono"
+              />
+            </div>
+
+            <div className="flex flex-col gap-3">
+              <div className="flex justify-between items-center">
+                <label className="block text-sm font-medium text-text-secondary">
+                  Visible Example Cases
+                </label>
+                <button
+                  type="button"
+                  onClick={handleAddExample}
+                  className="flex items-center gap-1.5 text-xs text-primary font-semibold hover:text-primary-hover transition-colors duration-150"
+                >
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                  </svg>
+                  Add Example
+                </button>
+              </div>
+
+              <div className="flex flex-col gap-4">
+                {visibleExamples.map((example, idx) => (
+                  <ExampleRow
+                    key={idx}
+                    index={idx}
+                    example={example}
+                    onChange={handleExampleChange}
+                    onRemove={handleRemoveExample}
+                    canRemove={visibleExamples.length > 1}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="bg-[#0e0e15] p-6 overflow-y-auto flex flex-col gap-6 select-none">
+          <div className="flex justify-between items-center border-b border-border-default pb-3">
+            <h2 className="text-sm font-bold uppercase tracking-wider text-text-secondary">
+              Live Preview
+            </h2>
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-success animate-pulse" />
+              <span className="text-xs font-medium text-text-secondary font-mono">Syncing Live</span>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-4 bg-bg-surface border border-border-default rounded-xl p-5 shadow-xl">
+            <div className="flex justify-between items-start gap-4">
+              <div>
+                <h2 className="text-2xl font-bold tracking-tight text-text-primary">
+                  {title || "Untitled Challenge"}
+                </h2>
+                <div className="flex gap-2 mt-2">
+                  <span
+                    className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
+                      difficulty === "easy"
+                        ? "bg-success-muted text-success"
+                        : difficulty === "medium"
+                        ? "bg-warning-muted text-warning"
+                        : "bg-error-muted text-error"
+                    }`}
+                  >
+                    {difficulty}
+                  </span>
+                  <span className="px-2 py-0.5 rounded bg-bg-elevated text-[10px] font-bold uppercase tracking-wider text-text-secondary">
+                    {timeLimit} Mins
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="h-px bg-border-default" />
+
+            <div className="prose max-w-none text-sm text-text-secondary leading-relaxed whitespace-pre-wrap min-h-24">
+              {statement || (
+                <span className="italic text-text-muted">
+                  Type a description in the editor statement panel on the left to see it render here...
+                </span>
+              )}
+            </div>
+
+            {visibleExamples.some((ex) => ex.input || ex.output) && (
+              <div className="flex flex-col gap-4 mt-2">
+                <h3 className="text-sm font-bold text-text-primary">Examples</h3>
+                {visibleExamples.map((ex, idx) => {
+                  if (!ex.input && !ex.output) return null;
+                  return (
+                    <div
+                      key={idx}
+                      className="bg-bg-primary border border-border-default rounded-xl p-4 flex flex-col gap-2 font-mono text-xs"
+                    >
+                      <div className="font-semibold text-secondary text-[10px] uppercase tracking-wider">
+                        Example {idx + 1}
+                      </div>
+                      <div className="text-text-secondary">
+                        <span className="text-text-muted select-none">Input:</span>{" "}
+                        {ex.input || <span className="italic text-text-muted">none</span>}
+                      </div>
+                      <div className="text-text-secondary">
+                        <span className="text-text-muted select-none">Output:</span>{" "}
+                        {ex.output || <span className="italic text-text-muted">none</span>}
+                      </div>
+                      {ex.explanation && (
+                        <div className="text-text-secondary font-sans leading-relaxed border-t border-border-default pt-2 mt-1">
+                          <span className="text-text-muted font-mono text-[10px] uppercase tracking-wider select-none block mb-0.5">
+                            Explanation:
+                          </span>
+                          {ex.explanation}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </section>
+      </main>
+    </div>
+  );
+}
+
+export default ProblemEditor;
