@@ -13,6 +13,7 @@ const { generalLimiter } = require("./middleware/rateLimit");
 const logger = require("./utils/logger");
 const { sendSuccess } = require("./utils/response");
 const authRoutes = require("./routes/auth");
+const roomRoutes = require("./routes/rooms");
 
 validateEnv();
 
@@ -43,6 +44,7 @@ app.get("/api/health", (req, res) => {
 });
 
 app.use("/api/auth", authRoutes);
+app.use("/api/rooms", roomRoutes);
 
 app.use(errorHandler);
 
