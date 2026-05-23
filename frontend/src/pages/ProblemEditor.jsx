@@ -2,7 +2,36 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import ExampleRow from "../components/problem-editor/ExampleRow";
 import TestCaseRow from "../components/problem-editor/TestCaseRow";
+import CodeEditor from "../components/ui/CodeEditor";
+import { roomAPI } from "../services/api";
 import toast from "react-hot-toast";
+
+const STARTER_CODES = {
+  javascript: `const fs = require('fs');
+const input = fs.readFileSync(0, 'utf-8').trim();
+
+// Solve the challenge here and print the result!
+console.log(input);`,
+
+  python: `import sys
+input_data = sys.stdin.read().strip()
+
+# Solve the challenge here and print the result!
+print(input_data)`,
+
+  cpp: `#include <iostream>
+#include <string>
+using namespace std;
+
+int main() {
+    string input_data;
+    if (getline(cin, input_data)) {
+        // Solve the challenge here and print the result!
+        cout << input_data << endl;
+    }
+    return 0;
+}`,
+};
 
 function ProblemEditor() {
   const { roomId } = useParams();
@@ -13,6 +42,9 @@ function ProblemEditor() {
   const [difficulty, setDifficulty] = useState("easy");
   const [timeLimit, setTimeLimit] = useState(10);
   const [allowedLanguages, setAllowedLanguages] = useState(["javascript"]);
+  const [activeLanguage, setActiveLanguage] = useState("javascript");
+  const [referenceSolution, setReferenceSolution] = useState(STARTER_CODES.javascript);
+
   const [visibleExamples, setVisibleExamples] = useState([
     { input: "", output: "", explanation: "" },
   ]);
@@ -22,6 +54,15 @@ function ProblemEditor() {
     { input: "", expectedOutput: "" },
     { input: "", expectedOutput: "" },
   ]);
+
+  const [isValidating, setIsValidating] = useState(false);
+  const [validationResults, setValidationResults] = useState([]);
+  const [isValidated, setIsValidated] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    setReferenceSolution(STARTER_CODES[activeLanguage] || "");
+  }, [activeLanguage]);
 
   const handleExampleChange = (index, updatedExample) => {
     const updated = [...visibleExamples];
@@ -47,6 +88,8 @@ function ProblemEditor() {
     const updated = [...hiddenTestCases];
     updated[index] = updatedTestCase;
     setHiddenTestCases(updated);
+    setIsValidated(false);
+    setValidationResults([]);
   };
 
   const handleAddTestCase = () => {
@@ -54,12 +97,16 @@ function ProblemEditor() {
       ...hiddenTestCases,
       { input: "", expectedOutput: "" },
     ]);
+    setIsValidated(false);
+    setValidationResults([]);
   };
 
   const handleRemoveTestCase = (index) => {
     if (hiddenTestCases.length > 4) {
       const updated = hiddenTestCases.filter((_, i) => i !== index);
       setHiddenTestCases(updated);
+      setIsValidated(false);
+      setValidationResults([]);
     } else {
       toast.error("A minimum of 4 hidden test cases is required");
     }
@@ -69,6 +116,10 @@ function ProblemEditor() {
     if (allowedLanguages.includes(lang)) {
       if (allowedLanguages.length > 1) {
         setAllowedLanguages(allowedLanguages.filter((l) => l !== lang));
+        if (activeLanguage === lang) {
+          const nextLang = allowedLanguages.find((l) => l !== lang);
+          setActiveLanguage(nextLang);
+        }
       } else {
         toast.error("At least one language must be allowed");
       }
@@ -102,7 +153,64 @@ function ProblemEditor() {
   };
 
   const validationErrors = validateForm();
-  const isValid = validationErrors.length === 0;
+  const isFormValid = validationErrors.length === 0;
+
+  const handleValidateReferenceSolution = async () => {
+    if (!isFormValid) return;
+    setIsValidating(true);
+    setValidationResults([]);
+    setIsValidated(false);
+
+    try {
+      const results = await roomAPI.validateProblem(roomId, {
+        sourceCode: referenceSolution,
+        language: activeLanguage,
+        testCases: hiddenTestCases,
+      });
+
+      setValidationResults(results.data);
+      setIsValidated(true);
+
+      const allPassed = results.data.every((r) => r.passed);
+      if (allPassed) {
+        toast.success("Validation successful! All test cases passed!");
+      } else {
+        toast.error("Validation failed. Some test cases returned errors or mismatched output.");
+      }
+    } catch (err) {
+      toast.error(err.message || "Failed to validate code execution");
+    } finally {
+      setIsValidating(false);
+    }
+  };
+
+  const handleSubmitProblem = async () => {
+    const allPassed = validationResults.length > 0 && validationResults.every((r) => r.passed);
+    if (!isFormValid || !isValidated || !allPassed) return;
+
+    setIsSubmitting(true);
+    try {
+      await roomAPI.submitProblem(roomId, {
+        title,
+        statement,
+        visibleExamples: visibleExamples.filter(ex => ex.input.trim() && ex.output.trim()),
+        hiddenTestCases,
+        timeLimit,
+        difficulty,
+        allowedLanguages,
+        referenceSolution,
+      });
+
+      toast.success("Room created and challenge activated! Redirecting to Dashboard.");
+      navigate("/dashboard");
+    } catch (err) {
+      toast.error(err.message || "Failed to submit challenge and create room");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const allPassed = validationResults.length > 0 && validationResults.every((r) => r.passed);
 
   return (
     <div className="min-height-100vh flex flex-col bg-bg-primary font-sans text-text-primary">
@@ -311,8 +419,125 @@ function ProblemEditor() {
               </div>
             </div>
 
+            <div className="flex flex-col gap-3 mt-6 border-t border-border-default pt-6">
+              <div className="flex justify-between items-center mb-1">
+                <div>
+                  <h3 className="text-sm font-bold text-text-primary">
+                    Reference Solution Validator
+                  </h3>
+                  <span className="text-[10px] text-text-muted block mt-0.5">
+                    Write code that passes 100% of your own test cases above.
+                  </span>
+                </div>
+                <div className="flex gap-2">
+                  {allowedLanguages.map((lang) => (
+                    <button
+                      key={lang}
+                      type="button"
+                      onClick={() => setActiveLanguage(lang)}
+                      className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase transition-colors duration-150 ${
+                        activeLanguage === lang
+                          ? "bg-secondary text-bg-primary"
+                          : "bg-bg-surface border border-border-default text-text-secondary hover:border-border-hover"
+                      }`}
+                    >
+                      {lang === "cpp" ? "C++" : lang}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="h-[300px] w-full">
+                <CodeEditor
+                  value={referenceSolution}
+                  onChange={setReferenceSolution}
+                  language={activeLanguage}
+                  height="300px"
+                />
+              </div>
+
+              <button
+                type="button"
+                onClick={handleValidateReferenceSolution}
+                disabled={!isFormValid || isValidating}
+                className={`py-3 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all duration-200 mt-2 ${
+                  isFormValid && !isValidating
+                    ? "bg-bg-surface border border-primary text-primary hover:bg-primary hover:text-text-primary active:scale-[0.99] cursor-pointer"
+                    : "bg-bg-surface border border-border-default text-text-muted cursor-not-allowed"
+                }`}
+              >
+                {isValidating ? "Validating Execution Sandbox..." : "Validate Reference Solution"}
+              </button>
+
+              {isValidated && validationResults.length > 0 && (
+                <div className="p-4 bg-bg-surface border border-border-default rounded-xl flex flex-col gap-3 mt-2 animate-fade-in">
+                  <div className="flex justify-between items-center">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-text-secondary">
+                      Validator Execution Report
+                    </span>
+                    <span
+                      className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
+                        allPassed
+                          ? "bg-success-muted text-success"
+                          : "bg-error-muted text-error"
+                      }`}
+                    >
+                      {allPassed ? "100% Passed" : "Failed Cases"}
+                    </span>
+                  </div>
+
+                  <div className="flex flex-col gap-2">
+                    {validationResults.map((res, idx) => (
+                      <div
+                        key={idx}
+                        className="p-3 bg-bg-primary border border-border-default rounded-lg flex flex-col gap-1.5 font-mono text-xs"
+                      >
+                        <div className="flex justify-between items-center">
+                          <span className="text-text-secondary font-sans font-semibold">
+                            Test Case #{idx + 1}
+                          </span>
+                          <span
+                            className={`font-semibold ${
+                              res.passed ? "text-success" : "text-error"
+                            }`}
+                          >
+                            {res.passed ? "🟢 PASS" : "🔴 FAIL"}
+                          </span>
+                        </div>
+                        {res.error ? (
+                          <div className="text-error bg-error-muted/20 p-2 rounded border border-error/20 overflow-x-auto whitespace-pre-wrap">
+                            {res.error}
+                          </div>
+                        ) : (
+                          <>
+                            <div className="grid grid-cols-2 gap-4 mt-1 border-t border-border-default pt-2 text-[10px] text-text-secondary">
+                              <div>
+                                <span className="text-text-muted">Expected:</span>{" "}
+                                <span className="block mt-0.5 bg-bg-surface px-2 py-1 rounded truncate">
+                                  {res.expectedOutput || <span className="italic">none</span>}
+                                </span>
+                              </div>
+                              <div>
+                                <span className="text-text-muted">Actual Output:</span>{" "}
+                                <span className="block mt-0.5 bg-bg-surface px-2 py-1 rounded truncate">
+                                  {res.output || <span className="italic">none</span>}
+                                </span>
+                              </div>
+                            </div>
+                            <div className="text-[9px] text-text-muted text-right mt-1">
+                              Time: {res.executionTime}ms
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
             <div className="mt-6 border-t border-border-default pt-6 flex flex-col gap-4">
-              {!isValid && (
+              {!isFormValid && (
                 <div className="p-4 bg-error-muted border border-error rounded-xl flex flex-col gap-2 animate-fade-in text-xs text-error font-sans leading-relaxed">
                   <span className="font-bold uppercase tracking-wider text-[10px]">
                     Action Required Before Submission:
@@ -325,16 +550,23 @@ function ProblemEditor() {
                 </div>
               )}
 
+              {isFormValid && !allPassed && (
+                <div className="p-3 bg-warning-muted border border-warning rounded-xl text-xs text-warning leading-relaxed font-sans">
+                  ⚠️ Your reference solution must compile and pass **all hidden test cases** before you can activate the lobby match!
+                </div>
+              )}
+
               <button
                 type="button"
-                disabled={!isValid}
+                onClick={handleSubmitProblem}
+                disabled={!isFormValid || !isValidated || !allPassed || isSubmitting}
                 className={`w-full py-3.5 rounded-xl text-sm font-bold tracking-wide uppercase transition-all duration-200 ${
-                  isValid
+                  isFormValid && isValidated && allPassed && !isSubmitting
                     ? "bg-primary text-text-primary hover:brightness-110 active:scale-[0.99] cursor-pointer"
                     : "bg-bg-surface border border-border-default text-text-muted cursor-not-allowed"
                 }`}
               >
-                Proceed to Validate Reference Solution
+                {isSubmitting ? "Activating Room Lobby..." : "Validate & Activate Lobby Room"}
               </button>
             </div>
           </div>

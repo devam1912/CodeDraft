@@ -27,4 +27,10 @@ export const authAPI = {
   getMe: () => api.get("/auth/me"),
 };
 
+export const roomAPI = {
+  createRoom: (data) => api.post("/rooms", data),
+  validateProblem: (roomId, data) => api.post(`/rooms/${roomId}/validate`, data),
+  submitProblem: (roomId, data) => api.post(`/rooms/${roomId}/problem`, data),
+};
+
 export default api;
