@@ -29,6 +29,7 @@ export const authAPI = {
 
 export const roomAPI = {
   createRoom: (data) => api.post("/rooms", data),
+  getRoomDetails: (roomId) => api.get(`/rooms/${roomId}`),
   validateProblem: (roomId, data) => api.post(`/rooms/${roomId}/validate`, data),
   submitProblem: (roomId, data) => api.post(`/rooms/${roomId}/problem`, data),
 };
