@@ -3,6 +3,8 @@ const jwt = require("jsonwebtoken");
 const cookie = require("cookie");
 const logger = require("../utils/logger");
 
+const registerMatchHandlers = require("../sockets/matchHandler");
+
 const configureSockets = (server) => {
   const io = new Server(server, {
     cors: {
@@ -36,6 +38,8 @@ const configureSockets = (server) => {
 
   io.on("connection", (socket) => {
     logger.info(`New authenticated socket connection: ${socket.id} (User: ${socket.userId})`);
+
+    registerMatchHandlers(io, socket);
 
     socket.on("disconnect", () => {
       logger.info(`Socket disconnected: ${socket.id} (User: ${socket.userId})`);
