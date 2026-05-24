@@ -16,6 +16,7 @@ function Lobby() {
   const [room, setRoom] = useState(null);
   const [players, setPlayers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [countdown, setCountdown] = useState(null);
 
   useEffect(() => {
     const fetchRoom = async () => {
@@ -46,6 +47,16 @@ function Lobby() {
       }
     });
 
+    socket.on("room:countdown", ({ count }) => {
+      setCountdown(count);
+    });
+
+    socket.on("room:ready", ({ problem }) => {
+      setCountdown(null);
+      toast.success("Battle started! Releasing problem statement...");
+      navigate(`/room/${roomId}/battle`, { state: { problem } });
+    });
+
     socket.on("error", ({ message }) => {
       toast.error(message);
       navigate("/dashboard");
@@ -53,9 +64,16 @@ function Lobby() {
 
     return () => {
       socket.off("room:playerJoined");
+      socket.off("room:countdown");
+      socket.off("room:ready");
       socket.off("error");
     };
   }, [socket, room, roomId, navigate, user._id]);
+
+  const handleStartBattle = () => {
+    if (!socket || !canStart) return;
+    socket.emit("room:start", { roomId });
+  };
 
   if (isLoading) {
     return (
@@ -76,8 +94,26 @@ function Lobby() {
   };
 
   return (
-    <div className="min-height-100vh flex flex-col bg-bg-primary font-sans text-text-primary">
-      <header className="border-b border-border-default bg-bg-surface px-6 py-4 flex items-center justify-between sticky top-0 z-50">
+    <div className="min-height-100vh flex flex-col bg-bg-primary font-sans text-text-primary relative">
+      {countdown !== null && (
+        <div className="absolute inset-0 bg-bg-primary/90 backdrop-blur-md flex items-center justify-center z-50 animate-fade-in select-none">
+          <div className="flex flex-col items-center gap-6">
+            <span className="text-xs font-bold tracking-widest text-secondary uppercase font-sans">
+              Battle starting in
+            </span>
+            <div className="w-36 h-36 rounded-full border-4 border-primary flex items-center justify-center bg-bg-surface shadow-2xl animate-pulse-glow">
+              <span className="text-6xl font-extrabold font-mono text-primary animate-scale">
+                {countdown}
+              </span>
+            </div>
+            <span className="text-[10px] text-text-muted uppercase tracking-wider font-mono">
+              Get ready to code
+            </span>
+          </div>
+        </div>
+      )}
+
+      <header className="border-b border-border-default bg-bg-surface px-6 py-4 flex items-center justify-between sticky top-0 z-40">
         <div className="flex items-center gap-4">
           <button
             onClick={() => navigate("/dashboard")}
@@ -200,6 +236,7 @@ function Lobby() {
           <div className="flex flex-col gap-3 w-full mt-auto">
             {isCreator ? (
               <button
+                onClick={handleStartBattle}
                 disabled={!canStart}
                 type="button"
                 className={`w-full py-4 rounded-xl text-sm font-bold tracking-wide uppercase transition-all duration-200 shadow-xl ${

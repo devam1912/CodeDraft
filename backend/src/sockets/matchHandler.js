@@ -80,6 +80,71 @@ const registerMatchHandlers = (io, socket) => {
     }
   });
 
+  socket.on("room:start", async ({ roomId }) => {
+    try {
+      if (!roomId) {
+        return socket.emit("error", { message: "Room ID is required" });
+      }
+
+      const room = await Room.findOne({ roomId });
+      if (!room) {
+        return socket.emit("error", { message: "Room not found" });
+      }
+
+      if (room.creatorId.toString() !== socket.userId.toString()) {
+        return socket.emit("error", { message: "Only the room host can launch the battle" });
+      }
+
+      if (room.status !== "waiting_for_players") {
+        return socket.emit("error", { message: "Lobby is not ready to start" });
+      }
+
+      const maxPlayers = room.battleFormat === "2v2" ? 4 : 2;
+      if (room.players.length < maxPlayers) {
+        return socket.emit("error", { message: "Minimum competitors required to start the battle have not joined" });
+      }
+
+      if (!activeRooms.has(roomId)) {
+        return socket.emit("error", { message: "Room active state not tracked" });
+      }
+
+      const roomState = activeRooms.get(roomId);
+      roomState.status = "active";
+
+      let count = 3;
+      io.to(roomId).emit("room:countdown", { count });
+
+      const countdownInterval = setInterval(async () => {
+        count--;
+        if (count > 0) {
+          io.to(roomId).emit("room:countdown", { count });
+        } else {
+          clearInterval(countdownInterval);
+
+          room.status = "active";
+          room.startedAt = new Date();
+          await room.save();
+
+          io.to(roomId).emit("room:ready", {
+            problem: {
+              title: room.problem.title,
+              statement: room.problem.statement,
+              visibleExamples: room.problem.visibleExamples,
+              timeLimit: room.problem.timeLimit,
+              difficulty: room.problem.difficulty,
+              allowedLanguages: room.problem.allowedLanguages,
+            },
+          });
+
+          logger.info(`Synchronized countdown finished. Battle active for Room ${roomId}`);
+        }
+      }, 1000);
+    } catch (error) {
+      logger.error(`Error in socket room:start: ${error.message}`);
+      socket.emit("error", { message: "Failed to start the battle arena" });
+    }
+  });
+
   socket.on("disconnect", () => {
     try {
       const { roomId, userId } = socket;
