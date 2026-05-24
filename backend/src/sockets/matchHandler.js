@@ -14,8 +14,12 @@ const registerMatchHandlers = (io, socket) => {
         return socket.emit("error", { message: "Lobby not found" });
       }
 
-      if (room.status === "expired") {
-        return socket.emit("error", { message: "This room lobby has expired" });
+      if (room.status === "expired" || (room.status === "setting_up" && room.setupExpiresAt <= new Date())) {
+        if (room.status !== "expired") {
+          room.status = "expired";
+          await room.save();
+        }
+        return socket.emit("error", { message: "Room has expired" });
       }
 
       if (room.status === "finished") {

@@ -220,8 +220,36 @@ const submitProblem = async (req, res, next) => {
   }
 };
 
+const getRoom = async (req, res, next) => {
+  try {
+    const { roomId } = req.params;
+
+    const room = await Room.findOne({ roomId })
+      .populate("creatorId", "username eloRating college avatar")
+      .populate("players", "username eloRating college avatar");
+
+    if (!room) {
+      return sendError(res, 404, "Room not found.");
+    }
+
+    if (room.status === "expired" || (room.status === "setting_up" && room.setupExpiresAt <= new Date())) {
+      if (room.status !== "expired") {
+        room.status = "expired";
+        await room.save();
+      }
+      return sendError(res, 400, "Room has expired");
+    }
+
+    return sendSuccess(res, 200, room, "Room details retrieved successfully");
+  } catch (error) {
+    logger.error(`Error in getRoom: ${error.message}`);
+    next(error);
+  }
+};
+
 module.exports = {
   createRoom,
   validateReferenceSolution,
   submitProblem,
+  getRoom,
 };
