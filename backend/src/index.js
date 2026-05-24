@@ -1,10 +1,12 @@
 require("dotenv").config();
 
 const express = require("express");
+const http = require("http");
 const cors = require("cors");
 const helmet = require("helmet");
 const cookieParser = require("cookie-parser");
 const morgan = require("morgan");
+const configureSockets = require("./config/socket");
 
 const connectDB = require("./config/db");
 const validateEnv = require("./config/validateEnv");
@@ -18,6 +20,9 @@ const roomRoutes = require("./routes/rooms");
 validateEnv();
 
 const app = express();
+const server = http.createServer(app);
+const io = configureSockets(server);
+app.set("io", io);
 
 app.use(helmet());
 app.use(
@@ -54,7 +59,7 @@ const startServer = async () => {
   try {
     await connectDB();
 
-    app.listen(PORT, () => {
+    server.listen(PORT, () => {
       logger.info(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
     });
   } catch (error) {
