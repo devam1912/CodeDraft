@@ -9,6 +9,7 @@ import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import ProblemEditor from "./pages/ProblemEditor";
 import Lobby from "./pages/Lobby";
+import BattleArena from "./pages/BattleArena";
 
 const TOAST_OPTIONS = {
   duration: 4000,
@@ -64,6 +65,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <Lobby />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/room/:roomId/battle"
+            element={
+              <ProtectedRoute>
+                <BattleArena />
               </ProtectedRoute>
             }
           />
