@@ -149,6 +149,30 @@ const registerMatchHandlers = (io, socket) => {
     }
   });
 
+  socket.on("battle:progress", ({ roomId, passedCount, totalCount }) => {
+    try {
+      if (!roomId) return;
+      socket.to(roomId).emit("battle:progress", {
+        userId: socket.userId.toString(),
+        passedCount,
+        totalCount,
+      });
+    } catch (error) {
+      logger.error(`Error in socket battle:progress: ${error.message}`);
+    }
+  });
+
+  socket.on("battle:keystroke", ({ roomId }) => {
+    try {
+      if (!roomId) return;
+      socket.to(roomId).emit("battle:typing", {
+        userId: socket.userId.toString(),
+      });
+    } catch (error) {
+      logger.error(`Error in socket battle:keystroke: ${error.message}`);
+    }
+  });
+
   socket.on("disconnect", () => {
     try {
       const { roomId, userId } = socket;

@@ -29,6 +29,12 @@ function BattleArena() {
   const [runResults, setRunResults] = useState(null);
   const [timeRemaining, setTimeRemaining] = useState(null);
 
+  const [opponentProgress, setOpponentProgress] = useState(null);
+  const [opponentTyping, setOpponentTyping] = useState(false);
+
+  const lastTypingEmit = useRef(0);
+  const opponentTypingTimeoutRef = useRef(null);
+
   useEffect(() => {
     const fetchRoom = async () => {
       try {
@@ -55,15 +61,38 @@ function BattleArena() {
 
     socket.emit("room:join", { roomId });
 
+    socket.on("battle:progress", ({ userId, passedCount, totalCount }) => {
+      if (userId !== user._id) {
+        setOpponentProgress({ passedCount, totalCount });
+      }
+    });
+
+    socket.on("battle:typing", ({ userId }) => {
+      if (userId !== user._id) {
+        setOpponentTyping(true);
+        if (opponentTypingTimeoutRef.current) {
+          clearTimeout(opponentTypingTimeoutRef.current);
+        }
+        opponentTypingTimeoutRef.current = setTimeout(() => {
+          setOpponentTyping(false);
+        }, 1500);
+      }
+    });
+
     socket.on("error", ({ message }) => {
       toast.error(message);
       navigate("/dashboard");
     });
 
     return () => {
+      socket.off("battle:progress");
+      socket.off("battle:typing");
       socket.off("error");
+      if (opponentTypingTimeoutRef.current) {
+        clearTimeout(opponentTypingTimeoutRef.current);
+      }
     };
-  }, [socket, room, roomId, navigate]);
+  }, [socket, room, roomId, navigate, user._id]);
 
   useEffect(() => {
     if (!room || !room.startedAt) return;
@@ -98,6 +127,15 @@ function BattleArena() {
     setSourceCode(CODE_TEMPLATES[lang] || "");
   };
 
+  const handleEditorChange = (val) => {
+    setSourceCode(val);
+    const now = Date.now();
+    if (socket && now - lastTypingEmit.current > 1000) {
+      lastTypingEmit.current = now;
+      socket.emit("battle:keystroke", { roomId });
+    }
+  };
+
   const handleRunCode = async () => {
     if (isRunning) return;
     setIsRunning(true);
@@ -115,6 +153,16 @@ function BattleArena() {
       });
 
       setRunResults(res.data);
+      const passedCount = res.data.filter((r) => r.passed).length;
+
+      if (socket) {
+        socket.emit("battle:progress", {
+          roomId,
+          passedCount,
+          totalCount: testCases.length,
+        });
+      }
+
       const allPassed = res.data.every((r) => r.passed);
       if (allPassed) {
         toast.success("All visible examples passed successfully!");
@@ -137,6 +185,8 @@ function BattleArena() {
   }
 
   if (!room) return null;
+
+  const opponentUser = room.players.find((p) => p && (p._id || p) !== user._id);
 
   return (
     <div className="min-h-screen flex flex-col bg-bg-primary font-sans text-text-primary overflow-hidden">
@@ -190,6 +240,54 @@ function BattleArena() {
               {room.problem?.allowedLanguages?.join(", ") || "javascript"}
             </p>
           </div>
+
+          {opponentUser && (
+            <Card className="flex flex-col gap-3 p-4 bg-bg-surface border border-border-default rounded-xl">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-primary-muted border border-primary flex items-center justify-center font-mono font-bold text-xs text-primary shadow-inner">
+                    {opponentUser.avatar || opponentUser.username.slice(0, 2).toUpperCase()}
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-text-primary">
+                      {opponentUser.username}
+                    </h4>
+                    <span className="text-[10px] text-text-muted font-mono uppercase">
+                      ELO: {opponentUser.eloRating || 1000} | {opponentUser.college || "Independent Coder"}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-1.5">
+                  <span className={`w-2 h-2 rounded-full ${opponentTyping ? "bg-success animate-ping" : "bg-text-muted"}`} />
+                  <span className={`text-[10px] uppercase font-mono ${opponentTyping ? "text-success font-bold" : "text-text-muted"}`}>
+                    {opponentTyping ? "Active Coding..." : "Idle"}
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-1 mt-1">
+                <div className="flex items-center justify-between text-[10px] font-mono text-text-secondary">
+                  <span>Examples Passed:</span>
+                  <span className="font-bold">
+                    {opponentProgress ? `${opponentProgress.passedCount} / ${opponentProgress.totalCount}` : `0 / ${room.problem?.visibleExamples?.length || 0}`}
+                  </span>
+                </div>
+                <div className="w-full h-1.5 bg-bg-elevated rounded-full overflow-hidden border border-border-default">
+                  <div
+                    className="h-full bg-gradient-to-r from-primary to-secondary transition-all duration-300"
+                    style={{
+                      width: `${
+                        opponentProgress
+                          ? (opponentProgress.passedCount / opponentProgress.totalCount) * 100
+                          : 0
+                      }%`,
+                    }}
+                  />
+                </div>
+              </div>
+            </Card>
+          )}
 
           <Card className="flex flex-col gap-4 p-5 bg-bg-surface border border-border-default rounded-xl">
             <div className="text-sm text-text-primary whitespace-pre-wrap font-sans leading-relaxed">
@@ -270,7 +368,7 @@ function BattleArena() {
           <div className="flex-1 relative overflow-hidden bg-bg-surface min-h-[350px]">
             <CodeEditor
               value={sourceCode}
-              onChange={setSourceCode}
+              onChange={handleEditorChange}
               language={selectedLanguage}
               height="100%"
             />
