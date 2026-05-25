@@ -29,14 +29,18 @@ function BattleArena() {
   const [runResults, setRunResults] = useState(null);
   const [timeRemaining, setTimeRemaining] = useState(null);
 
-  const [opponentProgress, setOpponentProgress] = useState(null);
-  const [opponentTyping, setOpponentTyping] = useState(false);
+  const [playerProgress, setPlayerProgress] = useState({});
+  const [coderTypingState, setCoderTypingState] = useState({});
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [battleFinishedState, setBattleFinishedState] = useState(null);
 
+  const [hasVoted, setHasVoted] = useState(null);
+  const [votePercentages, setVotePercentages] = useState({});
+  const [totalVotes, setTotalVotes] = useState(0);
+
   const lastTypingEmit = useRef(0);
-  const opponentTypingTimeoutRef = useRef(null);
+  const typingTimeoutRefs = useRef({});
 
   useEffect(() => {
     const fetchRoom = async () => {
@@ -65,21 +69,28 @@ function BattleArena() {
     socket.emit("room:join", { roomId });
 
     socket.on("battle:progress", ({ userId, passedCount, totalCount }) => {
-      if (userId !== user._id) {
-        setOpponentProgress({ passedCount, totalCount });
-      }
+      setPlayerProgress((prev) => ({
+        ...prev,
+        [userId]: { passedCount, totalCount },
+      }));
     });
 
     socket.on("battle:typing", ({ userId }) => {
-      if (userId !== user._id) {
-        setOpponentTyping(true);
-        if (opponentTypingTimeoutRef.current) {
-          clearTimeout(opponentTypingTimeoutRef.current);
-        }
-        opponentTypingTimeoutRef.current = setTimeout(() => {
-          setOpponentTyping(false);
-        }, 1500);
+      setCoderTypingState((prev) => ({
+        ...prev,
+        [userId]: true,
+      }));
+
+      if (typingTimeoutRefs.current[userId]) {
+        clearTimeout(typingTimeoutRefs.current[userId]);
       }
+
+      typingTimeoutRefs.current[userId] = setTimeout(() => {
+        setCoderTypingState((prev) => ({
+          ...prev,
+          [userId]: false,
+        }));
+      }, 1500);
     });
 
     socket.on("battle:submitResult", ({ success, results }) => {
@@ -96,6 +107,11 @@ function BattleArena() {
       setBattleFinishedState({ winnerId, eloChanges });
     });
 
+    socket.on("spectator:voteUpdate", ({ percentages, totalVotes }) => {
+      setVotePercentages(percentages);
+      setTotalVotes(totalVotes);
+    });
+
     socket.on("error", ({ message }) => {
       toast.error(message);
       navigate("/dashboard");
@@ -106,10 +122,10 @@ function BattleArena() {
       socket.off("battle:typing");
       socket.off("battle:submitResult");
       socket.off("battle:finished");
+      socket.off("spectator:voteUpdate");
       socket.off("error");
-      if (opponentTypingTimeoutRef.current) {
-        clearTimeout(opponentTypingTimeoutRef.current);
-      }
+
+      Object.values(typingTimeoutRefs.current).forEach((t) => clearTimeout(t));
     };
   }, [socket, room, roomId, navigate, user._id]);
 
@@ -174,6 +190,11 @@ function BattleArena() {
       setRunResults(res.data);
       const passedCount = res.data.filter((r) => r.passed).length;
 
+      setPlayerProgress((prev) => ({
+        ...prev,
+        [user._id]: { passedCount, totalCount: testCases.length },
+      }));
+
       if (socket) {
         socket.emit("battle:progress", {
           roomId,
@@ -205,6 +226,13 @@ function BattleArena() {
     });
   };
 
+  const handleVoteCast = (coderId) => {
+    if (!socket || hasVoted) return;
+    setHasVoted(coderId);
+    socket.emit("spectator:voteCast", { roomId, coderId });
+    toast.success("Prediction recorded successfully!");
+  };
+
   if (isLoading) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center bg-bg-primary text-text-secondary font-mono animate-pulse text-sm">
@@ -215,9 +243,13 @@ function BattleArena() {
 
   if (!room) return null;
 
+  const isCompetitor = room.players.some((p) => p && (p._id || p) === user._id);
   const opponentUser = room.players.find((p) => p && (p._id || p) !== user._id);
   const isWinner = battleFinishedState?.winnerId === user._id;
   const userEloChange = battleFinishedState?.eloChanges?.[user._id] || 0;
+
+  const playerA = room.players[0];
+  const playerB = room.players[1];
 
   return (
     <div className="min-h-screen flex flex-col bg-bg-primary font-sans text-text-primary overflow-hidden relative">
@@ -229,15 +261,19 @@ function BattleArena() {
                 Match Concluded
               </span>
               <div className="text-7xl mt-1">
-                {isWinner ? "🏆" : "💀"}
+                {isCompetitor ? (isWinner ? "🏆" : "💀") : "📣"}
               </div>
-              <h2 className={`text-3xl font-extrabold tracking-tight ${isWinner ? "text-success" : "text-error"}`}>
-                {isWinner ? "Victory!" : "Defeated"}
+              <h2 className={`text-3xl font-extrabold tracking-tight ${isCompetitor ? (isWinner ? "text-success" : "text-error") : "text-primary"}`}>
+                {isCompetitor ? (isWinner ? "Victory!" : "Defeated") : "Battle Finished!"}
               </h2>
               <p className="text-sm text-text-secondary">
-                {isWinner
-                  ? "Flawless execution. You passed all hidden test cases first!"
-                  : "Opponent secured the victory. Keep refactoring and try again!"}
+                {isCompetitor ? (
+                  isWinner
+                    ? "Flawless execution. You passed all hidden test cases first!"
+                    : "Opponent secured the victory. Keep refactoring and try again!"
+                ) : (
+                  `The battle has concluded. Winner: ${room.players.find(p => p._id === battleFinishedState.winnerId)?.username || "Competitor"}`
+                )}
               </p>
             </div>
 
@@ -251,15 +287,6 @@ function BattleArena() {
                 <span className={`font-bold flex items-center gap-1 ${userEloChange >= 0 ? "text-success" : "text-error"}`}>
                   {userEloChange >= 0 ? "+" : ""}
                   {userEloChange} ELO
-                  {userEloChange >= 0 ? (
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25" />
-                    </svg>
-                  ) : (
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 4.5l-15 15m0 0h11.25m-11.25 0V8.25" />
-                    </svg>
-                  )}
                 </span>
               </div>
             </div>
@@ -274,12 +301,17 @@ function BattleArena() {
       <header className="border-b border-border-default bg-bg-surface px-6 py-4 flex items-center justify-between z-10">
         <div className="flex items-center gap-4">
           <span className="text-xl font-extrabold tracking-tight text-primary">
-            CodeDraft <span className="text-text-muted font-normal text-xs">Battle Arena</span>
+            CodeDraft <span className="text-text-muted font-normal text-xs">{isCompetitor ? "Battle Arena" : "Spectator Box"}</span>
           </span>
           <div className="h-4 w-px bg-border-default" />
           <div className="px-3 py-1 rounded bg-bg-elevated border border-border-default text-xs font-mono">
             Room ID: {roomId}
           </div>
+          {!isCompetitor && (
+            <div className="px-2 py-0.5 rounded bg-secondary-muted border border-secondary text-[10px] font-bold text-secondary uppercase font-mono tracking-wider animate-pulse">
+              Spectator Mode
+            </div>
+          )}
         </div>
 
         <div className="flex items-center gap-6">
@@ -322,7 +354,78 @@ function BattleArena() {
             </p>
           </div>
 
-          {opponentUser && (
+          {!isCompetitor && (
+            <div className="flex flex-col gap-4">
+              <h3 className="text-xs font-bold text-text-secondary uppercase tracking-wider border-b border-border-default pb-2">
+                Spectator Prediction Poll
+              </h3>
+              <Card className="p-5 bg-bg-surface border border-border-default rounded-xl flex flex-col gap-4">
+                <div className="text-xs text-text-secondary">
+                  Cast your prediction. Who will solve the problem and win the ELO stakes first?
+                </div>
+
+                <div className="flex gap-4">
+                  {playerA && (
+                    <button
+                      onClick={() => handleVoteCast(playerA._id)}
+                      disabled={hasVoted !== null}
+                      className={`flex-1 p-4 rounded-xl border flex flex-col items-center gap-1.5 transition-all duration-200 ${
+                        hasVoted === playerA._id
+                          ? "bg-primary-muted/20 border-primary"
+                          : hasVoted !== null
+                          ? "bg-bg-elevated/40 border-border-default cursor-not-allowed opacity-50"
+                          : "bg-bg-elevated border-border-default hover:border-border-hover"
+                      }`}
+                    >
+                      <span className="text-xs font-bold text-text-primary">{playerA.username}</span>
+                      <span className="text-[10px] text-text-secondary font-mono">ELO: {playerA.eloRating}</span>
+                    </button>
+                  )}
+
+                  {playerB && (
+                    <button
+                      onClick={() => handleVoteCast(playerB._id)}
+                      disabled={hasVoted !== null}
+                      className={`flex-1 p-4 rounded-xl border flex flex-col items-center gap-1.5 transition-all duration-200 ${
+                        hasVoted === playerB._id
+                          ? "bg-secondary-muted/20 border-secondary"
+                          : hasVoted !== null
+                          ? "bg-bg-elevated/40 border-border-default cursor-not-allowed opacity-50"
+                          : "bg-bg-elevated border-border-default hover:border-border-hover"
+                      }`}
+                    >
+                      <span className="text-xs font-bold text-text-primary">{playerB.username}</span>
+                      <span className="text-[10px] text-text-secondary font-mono">ELO: {playerB.eloRating}</span>
+                    </button>
+                  )}
+                </div>
+
+                {totalVotes > 0 && (
+                  <div className="flex flex-col gap-1.5 font-mono text-[10px] mt-1 text-text-secondary">
+                    <div className="flex justify-between font-bold">
+                      <span>{playerA?.username}: {votePercentages[playerA?._id] || 0}%</span>
+                      <span>{playerB?.username}: {votePercentages[playerB?._id] || 0}%</span>
+                    </div>
+                    <div className="w-full h-2.5 bg-bg-elevated rounded-full overflow-hidden border border-border-default flex">
+                      <div
+                        className="h-full bg-gradient-to-r from-primary to-primary-hover transition-all duration-300"
+                        style={{ width: `${votePercentages[playerA?._id] || 0}%` }}
+                      />
+                      <div
+                        className="h-full bg-gradient-to-r from-secondary to-secondary-muted transition-all duration-300"
+                        style={{ width: `${votePercentages[playerB?._id] || 0}%` }}
+                      />
+                    </div>
+                    <div className="text-[9px] text-text-muted text-right">
+                      Total Predictions Cast: {totalVotes}
+                    </div>
+                  </div>
+                )}
+              </Card>
+            </div>
+          )}
+
+          {isCompetitor && opponentUser && (
             <Card className="flex flex-col gap-3 p-4 bg-bg-surface border border-border-default rounded-xl">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -340,9 +443,9 @@ function BattleArena() {
                 </div>
 
                 <div className="flex items-center gap-1.5">
-                  <span className={`w-2 h-2 rounded-full ${opponentTyping ? "bg-success animate-ping" : "bg-text-muted"}`} />
-                  <span className={`text-[10px] uppercase font-mono ${opponentTyping ? "text-success font-bold" : "text-text-muted"}`}>
-                    {opponentTyping ? "Active Coding..." : "Idle"}
+                  <span className={`w-2 h-2 rounded-full ${coderTypingState[opponentUser._id] ? "bg-success animate-ping" : "bg-text-muted"}`} />
+                  <span className={`text-[10px] uppercase font-mono ${coderTypingState[opponentUser._id] ? "text-success font-bold" : "text-text-muted"}`}>
+                    {coderTypingState[opponentUser._id] ? "Active Coding..." : "Idle"}
                   </span>
                 </div>
               </div>
@@ -351,7 +454,7 @@ function BattleArena() {
                 <div className="flex items-center justify-between text-[10px] font-mono text-text-secondary">
                   <span>Examples Passed:</span>
                   <span className="font-bold">
-                    {opponentProgress ? `${opponentProgress.passedCount} / ${opponentProgress.totalCount}` : `0 / ${room.problem?.visibleExamples?.length || 0}`}
+                    {playerProgress[opponentUser._id] ? `${playerProgress[opponentUser._id].passedCount} / ${playerProgress[opponentUser._id].totalCount}` : `0 / ${room.problem?.visibleExamples?.length || 0}`}
                   </span>
                 </div>
                 <div className="w-full h-1.5 bg-bg-elevated rounded-full overflow-hidden border border-border-default">
@@ -359,8 +462,8 @@ function BattleArena() {
                     className="h-full bg-gradient-to-r from-primary to-secondary transition-all duration-300"
                     style={{
                       width: `${
-                        opponentProgress
-                          ? (opponentProgress.passedCount / opponentProgress.totalCount) * 100
+                        playerProgress[opponentUser._id]
+                          ? (playerProgress[opponentUser._id].passedCount / playerProgress[opponentUser._id].totalCount) * 100
                           : 0
                       }%`,
                     }}
@@ -368,6 +471,61 @@ function BattleArena() {
                 </div>
               </div>
             </Card>
+          )}
+
+          {!isCompetitor && (
+            <div className="flex flex-col gap-4">
+              <h3 className="text-xs font-bold text-text-secondary uppercase tracking-wider border-b border-border-default pb-2">
+                Live Competitors Telemetry
+              </h3>
+              <div className="flex flex-col gap-4">
+                {room.players.map((plyr, idx) => (
+                  <Card key={plyr._id || idx} className="flex flex-col gap-3 p-4 bg-bg-surface border border-border-default rounded-xl">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-primary-muted border border-primary flex items-center justify-center font-mono font-bold text-xs text-primary">
+                          {plyr.avatar || plyr.username.slice(0, 2).toUpperCase()}
+                        </div>
+                        <div>
+                          <h4 className="text-sm font-bold text-text-primary">{plyr.username}</h4>
+                          <span className="text-[10px] text-text-muted font-mono uppercase">
+                            ELO: {plyr.eloRating} | {plyr.college || "Independent Coder"}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-1.5">
+                        <span className={`w-2 h-2 rounded-full ${coderTypingState[plyr._id] ? "bg-success animate-ping" : "bg-text-muted"}`} />
+                        <span className={`text-[10px] uppercase font-mono ${coderTypingState[plyr._id] ? "text-success font-bold" : "text-text-muted"}`}>
+                          {coderTypingState[plyr._id] ? "Active Coding..." : "Idle"}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col gap-1 mt-1">
+                      <div className="flex items-center justify-between text-[10px] font-mono text-text-secondary">
+                        <span>Examples Passed:</span>
+                        <span className="font-bold">
+                          {playerProgress[plyr._id] ? `${playerProgress[plyr._id].passedCount} / ${playerProgress[plyr._id].totalCount}` : `0 / ${room.problem?.visibleExamples?.length || 0}`}
+                        </span>
+                      </div>
+                      <div className="w-full h-1.5 bg-bg-elevated rounded-full overflow-hidden border border-border-default">
+                        <div
+                          className="h-full bg-gradient-to-r from-primary to-secondary transition-all duration-300"
+                          style={{
+                            width: `${
+                              playerProgress[plyr._id]
+                                ? (playerProgress[plyr._id].passedCount / playerProgress[plyr._id].totalCount) * 100
+                                : 0
+                            }%`,
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            </div>
           )}
 
           <Card className="flex flex-col gap-4 p-5 bg-bg-surface border border-border-default rounded-xl">
@@ -419,167 +577,194 @@ function BattleArena() {
         </section>
 
         <section className="flex flex-col h-full overflow-hidden">
-          <div className="flex items-center justify-between px-4 py-2 border-b border-border-default bg-bg-surface/50">
-            <div className="flex items-center gap-3">
-              <span className="text-xs text-text-muted font-semibold uppercase">Language:</span>
-              <select
-                value={selectedLanguage}
-                onChange={(e) => handleLanguageChange(e.target.value)}
-                className="px-2.5 py-1 text-xs rounded bg-bg-elevated border border-border-default font-mono focus:outline-none cursor-pointer"
-              >
-                {room.problem?.allowedLanguages?.map((lang) => (
-                  <option key={lang} value={lang}>
-                    {lang}
-                  </option>
-                )) || <option value="javascript">javascript</option>}
-              </select>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setSourceCode(CODE_TEMPLATES[selectedLanguage] || "")}
-              >
-                Reset Code
-              </Button>
-            </div>
-          </div>
-
-          <div className="flex-1 relative overflow-hidden bg-bg-surface min-h-[350px]">
-            <CodeEditor
-              value={sourceCode}
-              onChange={handleEditorChange}
-              language={selectedLanguage}
-              height="100%"
-            />
-          </div>
-
-          <div className="h-64 border-t border-border-default flex flex-col bg-bg-surface">
-            <div className="flex border-b border-border-default bg-bg-elevated/40 text-xs">
-              <button
-                type="button"
-                onClick={() => setConsoleTab("tests")}
-                className={`px-6 py-3 font-semibold uppercase tracking-wider border-r border-border-default ${
-                  consoleTab === "tests"
-                    ? "bg-bg-surface text-primary border-t-2 border-t-primary"
-                    : "text-text-secondary hover:text-text-primary"
-                }`}
-              >
-                Example Tests
-              </button>
-              <button
-                type="button"
-                onClick={() => setConsoleTab("results")}
-                className={`px-6 py-3 font-semibold uppercase tracking-wider border-r border-border-default ${
-                  consoleTab === "results"
-                    ? "bg-bg-surface text-primary border-t-2 border-t-primary"
-                    : "text-text-secondary hover:text-text-primary"
-                }`}
-              >
-                Execution Results
-              </button>
-            </div>
-
-            <div className="flex-1 overflow-y-auto p-4 font-mono text-xs">
-              {consoleTab === "tests" && (
-                <div className="flex flex-col gap-3 flex-wrap">
-                  <div className="text-text-secondary italic">
-                    Tests will run against all visible examples listed on the left panel.
-                  </div>
-                  <div className="flex gap-3 mt-2">
-                    <Button size="sm" onClick={handleRunCode} disabled={isRunning || isSubmitting}>
-                      {isRunning ? "Executing Run..." : "Run Example Tests"}
-                    </Button>
-                    <Button size="sm" onClick={handleSubmitCode} disabled={isRunning || isSubmitting}>
-                      {isSubmitting ? "Compiling Submission..." : "Submit Answer"}
-                    </Button>
-                  </div>
+          {isCompetitor ? (
+            <>
+              <div className="flex items-center justify-between px-4 py-2 border-b border-border-default bg-bg-surface/50">
+                <div className="flex items-center gap-3">
+                  <span className="text-xs text-text-muted font-semibold uppercase">Language:</span>
+                  <select
+                    value={selectedLanguage}
+                    onChange={(e) => handleLanguageChange(e.target.value)}
+                    className="px-2.5 py-1 text-xs rounded bg-bg-elevated border border-border-default font-mono focus:outline-none cursor-pointer"
+                  >
+                    {room.problem?.allowedLanguages?.map((lang) => (
+                      <option key={lang} value={lang}>
+                        {lang}
+                      </option>
+                    )) || <option value="javascript">javascript</option>}
+                  </select>
                 </div>
-              )}
 
-              {consoleTab === "results" && (
-                <div className="flex flex-col gap-4">
-                  {isRunning && (
-                    <div className="text-text-secondary animate-pulse">
-                      Running validation scripts on backend compiler sandbox...
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setSourceCode(CODE_TEMPLATES[selectedLanguage] || "")}
+                  >
+                    Reset Code
+                  </Button>
+                </div>
+              </div>
+
+              <div className="flex-1 relative overflow-hidden bg-bg-surface min-h-[350px]">
+                <CodeEditor
+                  value={sourceCode}
+                  onChange={handleEditorChange}
+                  language={selectedLanguage}
+                  height="100%"
+                />
+              </div>
+
+              <div className="h-64 border-t border-border-default flex flex-col bg-bg-surface">
+                <div className="flex border-b border-border-default bg-bg-elevated/40 text-xs">
+                  <button
+                    type="button"
+                    onClick={() => setConsoleTab("tests")}
+                    className={`px-6 py-3 font-semibold uppercase tracking-wider border-r border-border-default ${
+                      consoleTab === "tests"
+                        ? "bg-bg-surface text-primary border-t-2 border-t-primary"
+                        : "text-text-secondary hover:text-text-primary"
+                    }`}
+                  >
+                    Example Tests
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setConsoleTab("results")}
+                    className={`px-6 py-3 font-semibold uppercase tracking-wider border-r border-border-default ${
+                      consoleTab === "results"
+                        ? "bg-bg-surface text-primary border-t-2 border-t-primary"
+                        : "text-text-secondary hover:text-text-primary"
+                    }`}
+                  >
+                    Execution Results
+                  </button>
+                </div>
+
+                <div className="flex-1 overflow-y-auto p-4 font-mono text-xs">
+                  {consoleTab === "tests" && (
+                    <div className="flex gap-3 flex-wrap">
+                      <div className="text-text-secondary italic w-full mb-2">
+                        Tests will run against all visible examples listed on the left panel.
+                      </div>
+                      <Button size="sm" onClick={handleRunCode} disabled={isRunning || isSubmitting}>
+                        {isRunning ? "Executing Run..." : "Run Example Tests"}
+                      </Button>
+                      <Button size="sm" onClick={handleSubmitCode} disabled={isRunning || isSubmitting}>
+                        {isSubmitting ? "Compiling Submission..." : "Submit Answer"}
+                      </Button>
                     </div>
                   )}
 
-                  {isSubmitting && (
-                    <div className="text-primary animate-pulse font-bold">
-                      Testing all hidden test cases. This matches expected outputs securely...
-                    </div>
-                  )}
+                  {consoleTab === "results" && (
+                    <div className="flex flex-col gap-4">
+                      {isRunning && (
+                        <div className="text-text-secondary animate-pulse">
+                          Running validation scripts on backend compiler sandbox...
+                        </div>
+                      )}
 
-                  {!isRunning && !isSubmitting && !runResults && (
-                    <div className="text-text-muted italic">
-                      No code execution records found. Click "Run Example Tests" to execute your solution.
-                    </div>
-                  )}
+                      {isSubmitting && (
+                        <div className="text-primary animate-pulse font-bold">
+                          Testing all hidden test cases. This matches expected outputs securely...
+                        </div>
+                      )}
 
-                  {!isRunning && !isSubmitting && runResults && (
-                    <div className="flex flex-col gap-3">
-                      {runResults.map((res, idx) => (
-                        <div
-                          key={idx}
-                          className={`p-3 rounded-lg border flex flex-col gap-2 ${
-                            res.passed
-                              ? "bg-success-muted/10 border-success/30 text-success"
-                              : "bg-error-muted/10 border-error/30 text-error"
-                          }`}
-                        >
-                          <div className="flex items-center justify-between">
-                            <span className="font-bold uppercase tracking-wider text-[10px]">
-                              Example Test Case #{idx + 1}
-                            </span>
-                            <span
-                              className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase ${
-                                res.passed ? "bg-success text-bg-primary" : "bg-error text-bg-primary"
+                      {!isRunning && !isSubmitting && !runResults && (
+                        <div className="text-text-muted italic">
+                          No code execution records found. Click "Run Example Tests" to execute your solution.
+                        </div>
+                      )}
+
+                      {!isRunning && !isSubmitting && runResults && (
+                        <div className="flex flex-col gap-3">
+                          {runResults.map((res, idx) => (
+                            <div
+                              key={idx}
+                              className={`p-3 rounded-lg border flex flex-col gap-2 ${
+                                res.passed
+                                  ? "bg-success-muted/10 border-success/30 text-success"
+                                  : "bg-error-muted/10 border-error/30 text-error"
                               }`}
                             >
-                              {res.passed ? "Passed" : "Failed"}
-                            </span>
-                          </div>
-
-                          <div className="grid grid-cols-2 gap-4 text-[11px] mt-1">
-                            <div>
-                              <span className="text-text-muted block text-[9px] uppercase">
-                                Expected output
-                              </span>
-                              <div className="font-semibold text-text-primary bg-bg-elevated p-1.5 rounded mt-0.5 overflow-x-auto">
-                                {res.expectedOutput || "N/A"}
+                              <div className="flex items-center justify-between">
+                                <span className="font-bold uppercase tracking-wider text-[10px]">
+                                  Example Test Case #{idx + 1}
+                                </span>
+                                <span
+                                  className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase ${
+                                    res.passed ? "bg-success text-bg-primary" : "bg-error text-bg-primary"
+                                  }`}
+                                >
+                                  {res.passed ? "Passed" : "Failed"}
+                                </span>
                               </div>
-                            </div>
-                            <div>
-                              <span className="text-text-muted block text-[9px] uppercase">
-                                Actual output
-                              </span>
-                              <div className="font-semibold bg-bg-elevated p-1.5 rounded mt-0.5 overflow-x-auto">
-                                {res.output || (res.error ? "COMPILE/RUN ERROR" : "EMPTY")}
+
+                              <div className="grid grid-cols-2 gap-4 text-[11px] mt-1">
+                                <div>
+                                  <span className="text-text-muted block text-[9px] uppercase">
+                                    Expected output
+                                  </span>
+                                  <div className="font-semibold text-text-primary bg-bg-elevated p-1.5 rounded mt-0.5 overflow-x-auto">
+                                    {res.expectedOutput || "N/A"}
+                                  </div>
+                                </div>
+                                <div>
+                                  <span className="text-text-muted block text-[9px] uppercase">
+                                    Actual output
+                                  </span>
+                                  <div className="font-semibold bg-bg-elevated p-1.5 rounded mt-0.5 overflow-x-auto">
+                                    {res.output || (res.error ? "COMPILE/RUN ERROR" : "EMPTY")}
+                                  </div>
+                                </div>
                               </div>
-                            </div>
-                          </div>
 
-                          {res.error && (
-                            <div className="text-[10px] text-error font-mono bg-error-muted/10 p-2 rounded mt-1 border border-error/20 whitespace-pre-wrap">
-                              {res.error}
-                            </div>
-                          )}
+                              {res.error && (
+                                <div className="text-[10px] text-error font-mono bg-error-muted/10 p-2 rounded mt-1 border border-error/20 whitespace-pre-wrap">
+                                  {res.error}
+                                </div>
+                              )}
 
-                          {res.executionTime !== undefined && (
-                            <div className="text-[10px] text-text-secondary mt-1">
-                              Execution time: {res.executionTime}ms
+                              {res.executionTime !== undefined && (
+                                <div className="text-[10px] text-text-secondary mt-1">
+                                  Execution time: {res.executionTime}ms
+                                </div>
+                              )}
                             </div>
-                          )}
+                          ))}
                         </div>
-                      ))}
+                      )}
                     </div>
                   )}
                 </div>
-              )}
+              </div>
+            </>
+          ) : (
+            <div className="flex-1 flex flex-col items-center justify-center p-8 bg-bg-surface border-l border-border-default text-center gap-6">
+              <div className="text-5xl animate-bounce">📣</div>
+              <div className="flex flex-col gap-2">
+                <h3 className="text-xl font-bold tracking-tight">Spectator Broadcast Center</h3>
+                <p className="text-sm text-text-secondary max-w-sm">
+                  You are inside the spectator box watching the battle unfold in real time. Use the telemetry widgets on the left to track coding progress.
+                </p>
+              </div>
+
+              <div className="flex flex-col gap-3 max-w-sm w-full bg-bg-elevated/40 border border-border-default rounded-xl p-5 font-mono text-xs text-text-secondary">
+                <div className="flex justify-between">
+                  <span>Match Status:</span>
+                  <span className="font-bold text-success uppercase animate-pulse">Live Duel</span>
+                </div>
+                <div className="flex justify-between border-t border-border-default pt-2.5">
+                  <span>Allowed Languages:</span>
+                  <span className="font-bold text-text-primary">JS, PY, CPP</span>
+                </div>
+                <div className="flex justify-between border-t border-border-default pt-2.5">
+                  <span>Battle Format:</span>
+                  <span className="font-bold text-secondary uppercase">{room.battleFormat || "1v1"}</span>
+                </div>
+              </div>
             </div>
-          </div>
+          )}
         </section>
       </main>
     </div>
