@@ -32,6 +32,9 @@ function BattleArena() {
   const [opponentProgress, setOpponentProgress] = useState(null);
   const [opponentTyping, setOpponentTyping] = useState(false);
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [battleFinishedState, setBattleFinishedState] = useState(null);
+
   const lastTypingEmit = useRef(0);
   const opponentTypingTimeoutRef = useRef(null);
 
@@ -79,6 +82,20 @@ function BattleArena() {
       }
     });
 
+    socket.on("battle:submitResult", ({ success, results }) => {
+      setIsSubmitting(false);
+      if (!success) {
+        toast.error("Hidden test case checks failed! Keep optimizing.");
+        setRunResults(results);
+        setConsoleTab("results");
+      }
+    });
+
+    socket.on("battle:finished", ({ winnerId, eloChanges }) => {
+      setIsSubmitting(false);
+      setBattleFinishedState({ winnerId, eloChanges });
+    });
+
     socket.on("error", ({ message }) => {
       toast.error(message);
       navigate("/dashboard");
@@ -87,6 +104,8 @@ function BattleArena() {
     return () => {
       socket.off("battle:progress");
       socket.off("battle:typing");
+      socket.off("battle:submitResult");
+      socket.off("battle:finished");
       socket.off("error");
       if (opponentTypingTimeoutRef.current) {
         clearTimeout(opponentTypingTimeoutRef.current);
@@ -95,7 +114,7 @@ function BattleArena() {
   }, [socket, room, roomId, navigate, user._id]);
 
   useEffect(() => {
-    if (!room || !room.startedAt) return;
+    if (!room || !room.startedAt || battleFinishedState) return;
 
     const limitMinutes = room.problem?.timeLimit || 10;
     const durationMs = limitMinutes * 60 * 1000;
@@ -120,7 +139,7 @@ function BattleArena() {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [room]);
+  }, [room, battleFinishedState]);
 
   const handleLanguageChange = (lang) => {
     setSelectedLanguage(lang);
@@ -176,6 +195,16 @@ function BattleArena() {
     }
   };
 
+  const handleSubmitCode = () => {
+    if (isSubmitting || !socket) return;
+    setIsSubmitting(true);
+    socket.emit("battle:submit", {
+      roomId,
+      sourceCode,
+      language: selectedLanguage,
+    });
+  };
+
   if (isLoading) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center bg-bg-primary text-text-secondary font-mono animate-pulse text-sm">
@@ -187,9 +216,61 @@ function BattleArena() {
   if (!room) return null;
 
   const opponentUser = room.players.find((p) => p && (p._id || p) !== user._id);
+  const isWinner = battleFinishedState?.winnerId === user._id;
+  const userEloChange = battleFinishedState?.eloChanges?.[user._id] || 0;
 
   return (
-    <div className="min-h-screen flex flex-col bg-bg-primary font-sans text-text-primary overflow-hidden">
+    <div className="min-h-screen flex flex-col bg-bg-primary font-sans text-text-primary overflow-hidden relative">
+      {battleFinishedState && (
+        <div className="absolute inset-0 bg-bg-primary/95 backdrop-blur-lg flex items-center justify-center z-50 animate-fade-in select-none p-6">
+          <Card className="max-w-md w-full bg-bg-surface border border-border-default rounded-2xl p-8 flex flex-col items-center text-center shadow-2xl gap-6">
+            <div className="flex flex-col items-center gap-3">
+              <span className="text-[10px] font-bold tracking-widest text-text-muted uppercase font-mono">
+                Match Concluded
+              </span>
+              <div className="text-7xl mt-1">
+                {isWinner ? "🏆" : "💀"}
+              </div>
+              <h2 className={`text-3xl font-extrabold tracking-tight ${isWinner ? "text-success" : "text-error"}`}>
+                {isWinner ? "Victory!" : "Defeated"}
+              </h2>
+              <p className="text-sm text-text-secondary">
+                {isWinner
+                  ? "Flawless execution. You passed all hidden test cases first!"
+                  : "Opponent secured the victory. Keep refactoring and try again!"}
+              </p>
+            </div>
+
+            <div className="w-full bg-bg-elevated/40 border border-border-default rounded-xl p-5 flex flex-col gap-4 font-mono text-sm">
+              <div className="flex justify-between items-center">
+                <span className="text-text-secondary uppercase text-[10px] tracking-wider">Current Rating:</span>
+                <span className="font-bold text-text-primary">{user?.eloRating || 1000} ELO</span>
+              </div>
+              <div className="flex justify-between items-center border-t border-border-default pt-3">
+                <span className="text-text-secondary uppercase text-[10px] tracking-wider">Rating Delta:</span>
+                <span className={`font-bold flex items-center gap-1 ${userEloChange >= 0 ? "text-success" : "text-error"}`}>
+                  {userEloChange >= 0 ? "+" : ""}
+                  {userEloChange} ELO
+                  {userEloChange >= 0 ? (
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25" />
+                    </svg>
+                  ) : (
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 4.5l-15 15m0 0h11.25m-11.25 0V8.25" />
+                    </svg>
+                  )}
+                </span>
+              </div>
+            </div>
+
+            <Button className="w-full py-3.5 rounded-xl font-bold uppercase tracking-wider" onClick={() => navigate("/dashboard")}>
+              Return to Dashboard
+            </Button>
+          </Card>
+        </div>
+      )}
+
       <header className="border-b border-border-default bg-bg-surface px-6 py-4 flex items-center justify-between z-10">
         <div className="flex items-center gap-4">
           <span className="text-xl font-extrabold tracking-tight text-primary">
@@ -402,13 +483,16 @@ function BattleArena() {
 
             <div className="flex-1 overflow-y-auto p-4 font-mono text-xs">
               {consoleTab === "tests" && (
-                <div className="flex flex-col gap-3">
+                <div className="flex flex-col gap-3 flex-wrap">
                   <div className="text-text-secondary italic">
                     Tests will run against all visible examples listed on the left panel.
                   </div>
                   <div className="flex gap-3 mt-2">
-                    <Button size="sm" onClick={handleRunCode} disabled={isRunning}>
+                    <Button size="sm" onClick={handleRunCode} disabled={isRunning || isSubmitting}>
                       {isRunning ? "Executing Run..." : "Run Example Tests"}
+                    </Button>
+                    <Button size="sm" onClick={handleSubmitCode} disabled={isRunning || isSubmitting}>
+                      {isSubmitting ? "Compiling Submission..." : "Submit Answer"}
                     </Button>
                   </div>
                 </div>
@@ -422,13 +506,19 @@ function BattleArena() {
                     </div>
                   )}
 
-                  {!isRunning && !runResults && (
+                  {isSubmitting && (
+                    <div className="text-primary animate-pulse font-bold">
+                      Testing all hidden test cases. This matches expected outputs securely...
+                    </div>
+                  )}
+
+                  {!isRunning && !isSubmitting && !runResults && (
                     <div className="text-text-muted italic">
                       No code execution records found. Click "Run Example Tests" to execute your solution.
                     </div>
                   )}
 
-                  {!isRunning && runResults && (
+                  {!isRunning && !isSubmitting && runResults && (
                     <div className="flex flex-col gap-3">
                       {runResults.map((res, idx) => (
                         <div
@@ -458,7 +548,7 @@ function BattleArena() {
                                 Expected output
                               </span>
                               <div className="font-semibold text-text-primary bg-bg-elevated p-1.5 rounded mt-0.5 overflow-x-auto">
-                                {res.expectedOutput}
+                                {res.expectedOutput || "N/A"}
                               </div>
                             </div>
                             <div>
