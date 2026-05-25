@@ -34,4 +34,8 @@ export const roomAPI = {
   submitProblem: (roomId, data) => api.post(`/rooms/${roomId}/problem`, data),
 };
 
+export const userAPI = {
+  getLeaderboard: (params) => api.get("/users/leaderboard", { params }),
+};
+
 export default api;

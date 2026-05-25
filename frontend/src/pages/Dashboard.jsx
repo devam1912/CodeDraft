@@ -153,7 +153,11 @@ function Dashboard() {
         <Link to="/" style={{ textDecoration: "none" }}>
           <span style={LOGO_STYLE}>CodeDraft</span>
         </Link>
-        <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+        <div style={{ display: "flex", gap: "16px", alignItems: "center" }}>
+          <Link to="/leaderboard" style={{ textDecoration: "none", color: "#94a3b8", fontSize: "14px" }}>
+            Leaderboard
+          </Link>
+          <span style={{ color: "#1e1e2e", fontSize: "14px" }}>|</span>
           <span style={{ color: "#94a3b8", fontSize: "14px" }}>
             {user?.username}
           </span>
