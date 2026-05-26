@@ -18,6 +18,7 @@ const { sendSuccess } = require("./utils/response");
 const authRoutes = require("./routes/auth");
 const roomRoutes = require("./routes/rooms");
 const userRoutes = require("./routes/users");
+const tournamentRoutes = require("./routes/tournaments");
 
 validateEnv();
 
@@ -53,6 +54,7 @@ app.get("/api/health", (req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/rooms", roomRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/tournaments", tournamentRoutes);
 
 app.use(errorHandler);
 
