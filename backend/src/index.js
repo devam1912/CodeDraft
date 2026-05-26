@@ -8,6 +8,7 @@ const cookieParser = require("cookie-parser");
 const morgan = require("morgan");
 const configureSockets = require("./config/socket");
 const initExpiryCron = require("./config/expiryCron");
+const initTournamentCron = require("./config/tournamentCron");
 
 const connectDB = require("./config/db");
 const validateEnv = require("./config/validateEnv");
@@ -64,6 +65,7 @@ const startServer = async () => {
   try {
     await connectDB();
     initExpiryCron();
+    initTournamentCron();
 
     server.listen(PORT, () => {
       logger.info(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);

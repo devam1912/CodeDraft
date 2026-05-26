@@ -1,8 +1,10 @@
 const Room = require("../models/Room");
+const Tournament = require("../models/Tournament");
 const activeRooms = require("./roomManager");
 const logger = require("../utils/logger");
 const { executeJS } = require("../utils/codeExecutor");
 const axios = require("axios");
+const generateRoomId = require("../utils/generateRoomId");
 
 const LANGUAGE_IDS = {
   javascript: 63,
@@ -380,6 +382,83 @@ const registerMatchHandlers = (io, socket) => {
         timestamp: new Date()
       });
       await room.save();
+
+      const tournament = await Tournament.findOne({ status: "active", "rounds.matches.roomId": roomId });
+      if (tournament) {
+        const currentRound = tournament.rounds[tournament.rounds.length - 1];
+        const matchNode = currentRound.matches.find((m) => m.roomId === roomId);
+        if (matchNode) {
+          matchNode.winnerId = winnerId;
+          await tournament.save();
+
+          const allCompleted = currentRound.matches.every((m) => m.winnerId !== null);
+          if (allCompleted) {
+            const roundWinners = currentRound.matches.map((m) => m.winnerId);
+            if (roundWinners.length <= 1) {
+              tournament.status = "finished";
+              await tournament.save();
+              io.to(roomId).emit("tournament:finished", { tournamentId: tournament._id, winnerId });
+            } else {
+              const nextRoundMatches = [];
+              for (let i = 0; i < roundWinners.length; i += 2) {
+                const wA = roundWinners[i];
+                const wB = roundWinners[i + 1];
+
+                if (wA && wB) {
+                  const newRoomId = generateRoomId();
+                  const setupExpiresAt = new Date(Date.now() + 30 * 60 * 1000);
+                  const nextRoom = new Room({
+                    roomId: newRoomId,
+                    creatorId: tournament.creatorId,
+                    status: "waiting_for_players",
+                    setupExpiresAt,
+                    players: [wA, wB],
+                    battleFormat: "1v1",
+                    problem: {
+                      title: `Tournament Round ${tournament.rounds.length + 1} Duel`,
+                      statement: "Design a high-performance algorithm to calculate the nth Fibonacci number modulo 10^9 + 7.",
+                      difficulty: "hard",
+                      timeLimit: 15,
+                      allowedLanguages: ["javascript", "python", "cpp"],
+                      visibleExamples: [
+                        { input: "5", output: "5" }
+                      ],
+                      hiddenTestCases: [
+                        { input: "5", expectedOutput: "5" },
+                        { input: "10", expectedOutput: "55" },
+                        { input: "50", expectedOutput: "586268941" },
+                        { input: "100", expectedOutput: "35022162" }
+                      ]
+                    }
+                  });
+                  await nextRoom.save();
+
+                  nextRoundMatches.push({
+                    roomId: newRoomId,
+                    playerA: wA,
+                    playerB: wB,
+                    winnerId: null,
+                  });
+                } else if (wA) {
+                  nextRoundMatches.push({
+                    roomId: "",
+                    playerA: wA,
+                    playerB: null,
+                    winnerId: wA,
+                  });
+                }
+              }
+
+              tournament.rounds.push({
+                roundNumber: tournament.rounds.length + 1,
+                matches: nextRoundMatches,
+              });
+              await tournament.save();
+              io.to(roomId).emit("tournament:roundCompleted", { tournamentId: tournament._id });
+            }
+          }
+        }
+      }
 
       io.to(roomId).emit("battle:finished", {
         winnerId: winnerId.toString(),

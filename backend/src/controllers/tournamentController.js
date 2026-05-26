@@ -1,4 +1,6 @@
 const Tournament = require("../models/Tournament");
+const Room = require("../models/Room");
+const generateRoomId = require("../utils/generateRoomId");
 const { sendSuccess, sendError } = require("../utils/response");
 const logger = require("../utils/logger");
 
@@ -89,9 +91,98 @@ const getTournaments = async (req, res, next) => {
   }
 };
 
+const startTournament = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const tournament = await Tournament.findById(id);
+    if (!tournament) {
+      return sendError(res, 404, "Tournament not found.");
+    }
+
+    if (tournament.creatorId.toString() !== req.userId.toString()) {
+      return sendError(res, 403, "Only the tournament host can start it.");
+    }
+
+    if (tournament.status !== "draft") {
+      return sendError(res, 400, "Tournament has already started.");
+    }
+
+    const players = tournament.participants;
+    if (players.length < 2) {
+      return sendError(res, 400, "A minimum of 2 participants is required to start.");
+    }
+
+    const shuffled = [...players].sort(() => Math.random() - 0.5);
+    const matches = [];
+
+    for (let i = 0; i < shuffled.length; i += 2) {
+      const playerA = shuffled[i];
+      const playerB = shuffled[i + 1];
+
+      if (playerA && playerB) {
+        const roomId = generateRoomId();
+        const setupExpiresAt = new Date(Date.now() + 30 * 60 * 1000);
+        const room = new Room({
+          roomId,
+          creatorId: req.userId,
+          status: "waiting_for_players",
+          setupExpiresAt,
+          players: [playerA, playerB],
+          battleFormat: "1v1",
+          problem: {
+            title: "Tournament Duel: CodeCraft Optimization",
+            statement: "Write a high-performance solution to calculate the maximum sum of contiguous subarrays. Standard input will read integers. Returns the maximum sum.",
+            difficulty: "medium",
+            timeLimit: 10,
+            allowedLanguages: ["javascript", "python", "cpp"],
+            visibleExamples: [
+              { input: "-2 1 -3 4 -1 2 1 -5 4", output: "6" }
+            ],
+            hiddenTestCases: [
+              { input: "-2 1 -3 4 -1 2 1 -5 4", expectedOutput: "6" },
+              { input: "1 2 3 4", expectedOutput: "10" },
+              { input: "-1 -2 -3 -4", expectedOutput: "-1" },
+              { input: "5 4 -1 7 8", expectedOutput: "23" }
+            ]
+          }
+        });
+        await room.save();
+
+        matches.push({
+          roomId,
+          playerA,
+          playerB,
+          winnerId: null,
+        });
+      } else if (playerA) {
+        matches.push({
+          roomId: "",
+          playerA,
+          playerB: null,
+          winnerId: playerA,
+        });
+      }
+    }
+
+    tournament.rounds = [{
+      roundNumber: 1,
+      matches,
+    }];
+    tournament.status = "active";
+    await tournament.save();
+
+    logger.info(`Tournament ${id} started with ${players.length} players.`);
+    return sendSuccess(res, 200, tournament, "Tournament round 1 matchups generated successfully");
+  } catch (error) {
+    logger.error(`Error in startTournament: ${error.message}`);
+    next(error);
+  }
+};
+
 module.exports = {
   createTournament,
   registerForTournament,
   getTournament,
   getTournaments,
+  startTournament,
 };
