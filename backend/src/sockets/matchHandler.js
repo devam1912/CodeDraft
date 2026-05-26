@@ -135,6 +135,10 @@ const registerMatchHandlers = (io, socket) => {
 
           room.status = "active";
           room.startedAt = new Date();
+          room.eventTimeline.push({
+            eventType: "match_started",
+            timestamp: new Date()
+          });
           await room.save();
 
           io.to(roomId).emit("room:ready", {
@@ -157,7 +161,7 @@ const registerMatchHandlers = (io, socket) => {
     }
   });
 
-  socket.on("battle:progress", ({ roomId, passedCount, totalCount }) => {
+  socket.on("battle:progress", async ({ roomId, passedCount, totalCount }) => {
     try {
       if (!roomId) return;
       socket.to(roomId).emit("battle:progress", {
@@ -165,6 +169,20 @@ const registerMatchHandlers = (io, socket) => {
         passedCount,
         totalCount,
       });
+
+      await Room.findOneAndUpdate(
+        { roomId },
+        {
+          $push: {
+            eventTimeline: {
+              eventType: "progress_updated",
+              userId: socket.userId,
+              payload: { passedCount, totalCount },
+              timestamp: new Date()
+            }
+          }
+        }
+      );
     } catch (error) {
       logger.error(`Error in socket battle:progress: ${error.message}`);
     }
@@ -289,6 +307,19 @@ const registerMatchHandlers = (io, socket) => {
       }
 
       if (!allPassed) {
+        await Room.findOneAndUpdate(
+          { roomId },
+          {
+            $push: {
+              eventTimeline: {
+                eventType: "submission_attempt",
+                userId: socket.userId,
+                payload: { language, passed: false },
+                timestamp: new Date()
+              }
+            }
+          }
+        );
         socket.emit("battle:submitResult", { success: false, results });
         return;
       }
@@ -336,6 +367,18 @@ const registerMatchHandlers = (io, socket) => {
       room.finishedAt = new Date();
       room.winnerId = winnerId;
       room.eloChanges = eloChanges;
+      room.eventTimeline.push({
+        eventType: "submission_attempt",
+        userId: socket.userId,
+        payload: { language, passed: true },
+        timestamp: new Date()
+      });
+      room.eventTimeline.push({
+        eventType: "match_finished",
+        userId: winnerId,
+        payload: { eloChanges },
+        timestamp: new Date()
+      });
       await room.save();
 
       io.to(roomId).emit("battle:finished", {
