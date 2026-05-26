@@ -1,6 +1,8 @@
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useAuth } from "../context/AuthContext";
+import { tournamentAPI } from "../services/api";
 import Button from "../components/ui/Button";
 import Card from "../components/ui/Card";
 import toast from "react-hot-toast";
@@ -136,6 +138,31 @@ const itemVariants = {
 function Dashboard() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [tournaments, setTournaments] = useState([]);
+
+  useEffect(() => {
+    const fetchTournaments = async () => {
+      try {
+        const response = await tournamentAPI.getTournaments();
+        setTournaments(response.data || []);
+      } catch (err) {
+        toast.error("Failed to load active tournaments");
+      }
+    };
+    fetchTournaments();
+  }, []);
+
+  const handleCreateTournament = async () => {
+    const name = prompt("Enter the name of your new Bracket Tournament:");
+    if (!name || !name.trim()) return;
+    try {
+      const response = await tournamentAPI.createTournament({ name: name.trim() });
+      toast.success("Tournament draft created successfully!");
+      navigate(`/tournament/${response.data._id}`);
+    } catch (err) {
+      toast.error(err.message || "Failed to create tournament.");
+    }
+  };
 
   const handleLogout = async () => {
     try {
@@ -245,6 +272,40 @@ function Dashboard() {
               </div>
             </div>
           </Card>
+        </motion.div>
+
+        <motion.div variants={itemVariants}>
+          <div style={{ ...SECTION_HEADING, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span>Active Bracket Tournaments</span>
+            <Button size="sm" onClick={handleCreateTournament}>Create Tournament</Button>
+          </div>
+          {tournaments.length === 0 ? (
+            <Card>
+              <div style={EMPTY_STATE}>
+                <div style={EMPTY_ICON}>🏆</div>
+                <div style={EMPTY_HEADING}>No tournaments drafting</div>
+                <div style={EMPTY_DESC}>
+                  Create your own bracket draft tournament to challenge multiple developers!
+                </div>
+              </div>
+            </Card>
+          ) : (
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: "16px", marginTop: "16px" }}>
+              {tournaments.map((t) => (
+                <Card key={t._id} style={{ display: "flex", flexDirection: "column", gap: "12px", border: "1px solid #1e1e2e", padding: "20px" }}>
+                  <div>
+                    <h4 style={{ fontSize: "16px", fontWeight: 700, color: "#f8fafc" }}>{t.name}</h4>
+                    <span style={{ fontSize: "11px", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                      Status: {t.status} | Players: {t.participants?.length || 0}
+                    </span>
+                  </div>
+                  <Button size="sm" onClick={() => navigate(`/tournament/${t._id}`)}>
+                    View Tournament
+                  </Button>
+                </Card>
+              ))}
+            </div>
+          )}
         </motion.div>
       </motion.div>
     </div>

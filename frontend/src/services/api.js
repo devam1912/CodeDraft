@@ -38,4 +38,12 @@ export const userAPI = {
   getLeaderboard: (params) => api.get("/users/leaderboard", { params }),
 };
 
+export const tournamentAPI = {
+  createTournament: (data) => api.post("/tournaments", data),
+  getTournaments: () => api.get("/tournaments"),
+  getTournamentDetails: (id) => api.get(`/tournaments/${id}`),
+  registerForTournament: (id) => api.post(`/tournaments/${id}/register`),
+  startTournament: (id) => api.post(`/tournaments/${id}/start`),
+};
+
 export default api;
