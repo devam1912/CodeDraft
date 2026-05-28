@@ -46,4 +46,10 @@ export const tournamentAPI = {
   startTournament: (id) => api.post(`/tournaments/${id}/start`),
 };
 
+export const matchAPI = {
+  getMatchReplay: (roomId) => api.get(`/matches/${roomId}`),
+  getMyMatchHistory: (params) => api.get("/matches/user/me", { params }),
+};
+
 export default api;
+
