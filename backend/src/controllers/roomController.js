@@ -252,9 +252,52 @@ const getRoom = async (req, res, next) => {
   }
 };
 
+const rateProblem = async (req, res, next) => {
+  try {
+    const { roomId } = req.params;
+    const { rating } = req.body;
+
+    if (!rating || typeof rating !== "number" || rating < 1 || rating > 5) {
+      return sendError(res, 400, "Invalid rating value. Must be a number between 1 and 5.");
+    }
+
+    const room = await Room.findOne({ roomId });
+    if (!room) {
+      return sendError(res, 404, "Room not found.");
+    }
+
+    if (room.status !== "finished") {
+      return sendError(res, 400, "You can only rate a problem after the battle concludes.");
+    }
+
+    const alreadyRated = room.problemRatings.some(
+      (r) => r.userId.toString() === req.userId.toString()
+    );
+
+    if (alreadyRated) {
+      return sendError(res, 400, "You have already rated this problem.");
+    }
+
+    room.problemRatings.push({
+      userId: req.userId,
+      rating,
+    });
+
+    await room.save();
+
+    logger.info(`User ${req.userId} rated problem in room ${roomId} as ${rating}`);
+
+    return sendSuccess(res, 200, { problemRatingsCount: room.problemRatings.length }, "Problem rated successfully");
+  } catch (error) {
+    logger.error(`Error in rateProblem: ${error.message}`);
+    next(error);
+  }
+};
+
 module.exports = {
   createRoom,
   validateReferenceSolution,
   submitProblem,
   getRoom,
+  rateProblem,
 };

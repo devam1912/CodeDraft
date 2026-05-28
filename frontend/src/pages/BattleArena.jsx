@@ -44,6 +44,8 @@ function BattleArena() {
   const isRemoteChange = useRef(false);
   const [teammateTyping, setTeammateTyping] = useState(false);
   const teammateTypingTimeoutRef = useRef(null);
+  const [userRating, setUserRating] = useState(0);
+  const [hasRated, setHasRated] = useState(false);
 
   useEffect(() => {
     const fetchRoom = async () => {
@@ -257,6 +259,17 @@ function BattleArena() {
     toast.success("Prediction recorded successfully!");
   };
 
+  const handleRateProblem = async (ratingVal) => {
+    try {
+      await roomAPI.rateProblem(roomId, { rating: ratingVal });
+      setUserRating(ratingVal);
+      setHasRated(true);
+      toast.success("Problem rating submitted. Thank you!");
+    } catch (err) {
+      toast.error(err.message || "Failed to submit rating");
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center bg-bg-primary text-text-secondary font-mono animate-pulse text-sm">
@@ -314,6 +327,32 @@ function BattleArena() {
                 </span>
               </div>
             </div>
+
+            {isCompetitor && (
+              <div className="w-full border-t border-border-default pt-4 flex flex-col items-center gap-3">
+                <span className="text-xs font-semibold text-text-secondary uppercase tracking-wider">
+                  Rate the Creator's Problem
+                </span>
+                {hasRated ? (
+                  <div className="text-xs text-success font-medium">
+                    Thank you! Your rating of {userRating} ⭐ has been registered.
+                  </div>
+                ) : (
+                  <div className="flex gap-2.5">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button
+                        key={star}
+                        onClick={() => handleRateProblem(star)}
+                        className="text-2xl hover:scale-125 transition-transform duration-150 cursor-pointer"
+                        type="button"
+                      >
+                        ☆
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
 
             <Button className="w-full py-3.5 rounded-xl font-bold uppercase tracking-wider" onClick={() => navigate("/dashboard")}>
               Return to Dashboard
