@@ -1,5 +1,7 @@
 const User = require("../models/User");
 const Room = require("../models/Room");
+const Notification = require("../models/Notification");
+const generateRoomId = require("../utils/generateRoomId");
 const { sendSuccess, sendError } = require("../utils/response");
 const logger = require("../utils/logger");
 
@@ -90,4 +92,75 @@ const getPublicProfile = async (req, res, next) => {
   }
 };
 
-module.exports = { getPublicProfile };
+const sendChallengeInvite = async (req, res, next) => {
+  try {
+    const { username } = req.params;
+    const challengerId = req.userId;
+
+    const challenger = await User.findById(challengerId).select("username avatar").lean();
+    const challengee = await User.findOne({ username }).select("_id username").lean();
+
+    if (!challengee) {
+      return sendError(res, 404, "User to challenge not found");
+    }
+
+    if (challengerId.toString() === challengee._id.toString()) {
+      return sendError(res, 400, "You cannot challenge yourself");
+    }
+
+    let roomId = "";
+    let roomExists = true;
+    while (roomExists) {
+      roomId = generateRoomId();
+      const existingRoom = await Room.findOne({ roomId }).lean();
+      if (!existingRoom) {
+        roomExists = false;
+      }
+    }
+
+    const setupExpiresAt = new Date(Date.now() + 30 * 60 * 1000);
+
+    const room = new Room({
+      roomId,
+      creatorId: challengerId,
+      creatorCompeting: true,
+      battleFormat: "1v1",
+      isPublic: false,
+      status: "setting_up",
+      setupExpiresAt,
+      players: [challengerId],
+    });
+
+    await room.save();
+
+    const notification = new Notification({
+      recipientId: challengee._id,
+      senderId: challengerId,
+      type: "challenge_invite",
+      title: "⚔️ Direct Challenge!",
+      message: `${challenger.username} has challenged you to a direct 1v1 battle! Click to accept and enter the lobby.`,
+      payload: { roomId },
+    });
+
+    await notification.save();
+
+    const io = req.app.get("io");
+    if (io) {
+      io.to(challengee._id.toString()).emit("notification:new", { notification });
+    }
+
+    logger.info(`Direct challenge sent from ${challenger.username} to ${challengee.username} - Room: ${roomId}`);
+
+    return sendSuccess(
+      res,
+      201,
+      { roomId },
+      "Challenge invitation sent successfully"
+    );
+  } catch (error) {
+    logger.error(`Error in sendChallengeInvite: ${error.message}`);
+    next(error);
+  }
+};
+
+module.exports = { getPublicProfile, sendChallengeInvite };

@@ -38,6 +38,9 @@ const configureSockets = (server) => {
 
   io.on("connection", (socket) => {
     logger.info(`New authenticated socket connection: ${socket.id} (User: ${socket.userId})`);
+    
+    // Join a room unique to the user so we can emit targeted notifications/events to all of their active connections
+    socket.join(socket.userId.toString());
 
     registerMatchHandlers(io, socket);
 
