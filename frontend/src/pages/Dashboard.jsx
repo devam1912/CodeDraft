@@ -19,6 +19,7 @@ import { useAuth } from "../context/AuthContext";
 import { userAPI, tournamentAPI, matchAPI } from "../services/api";
 import Button from "../components/ui/Button";
 import Card from "../components/ui/Card";
+import NotificationBell from "../components/ui/NotificationBell";
 import toast from "react-hot-toast";
 
 const PAGE_STYLE = { minHeight: "100vh", display: "flex", flexDirection: "column", backgroundColor: "#0a0a0f", color: "#f8fafc", fontFamily: "Inter, sans-serif" };
@@ -119,6 +120,7 @@ function Dashboard() {
         </Link>
         <div style={{ display: "flex", gap: "20px", alignItems: "center" }}>
           <Link to="/leaderboard" style={{ textDecoration: "none", color: "#94a3b8", fontSize: "14px" }}>Leaderboard</Link>
+          <NotificationBell />
           <span style={{ color: "#1e1e2e" }}>|</span>
           <span style={{ color: "#94a3b8", fontSize: "14px" }}>{displayUser?.username}</span>
           <Button variant="ghost" size="sm" onClick={handleLogout}>Log Out</Button>

@@ -57,5 +57,12 @@ export const matchAPI = {
   getMyMatchHistory: (params) => api.get("/matches/user/me", { params }),
 };
 
+export const notificationAPI = {
+  getNotifications: (params) => api.get("/notifications", { params }),
+  markAllRead: () => api.post("/notifications/read-all"),
+  markOneRead: (notifId) => api.patch(`/notifications/${notifId}/read`),
+};
+
 export default api;
+
 

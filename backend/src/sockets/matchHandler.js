@@ -1,5 +1,6 @@
 const Room = require("../models/Room");
 const Tournament = require("../models/Tournament");
+const Notification = require("../models/Notification");
 const activeRooms = require("./roomManager");
 const logger = require("../utils/logger");
 const { executeJS } = require("../utils/codeExecutor");
@@ -488,6 +489,47 @@ const registerMatchHandlers = (io, socket) => {
         winnerId: winnerId.toString(),
         eloChanges,
       });
+
+      try {
+        const winnerUser = room.players.find((p) => p._id.toString() === winnerId.toString());
+        const loserUser = room.players.find((p) => p._id.toString() !== winnerId.toString());
+        const winDelta = eloChanges[winnerId.toString()] || 0;
+        const loseDelta = loserUser ? eloChanges[loserUser._id.toString()] || 0 : 0;
+
+        const winNotif = new Notification({
+          recipientId: winnerId,
+          senderId: loserUser?._id || null,
+          type: "match_result",
+          title: "Victory!",
+          message: `You defeated ${loserUser?.username || "your opponent"} and gained ${winDelta >= 0 ? "+" : ""}${winDelta} ELO`,
+          payload: { roomId, result: "win", eloChange: winDelta },
+        });
+        await winNotif.save();
+
+        const winnerSocketId = activeRooms.get(roomId)?.players?.get(winnerId.toString());
+        if (winnerSocketId) {
+          io.to(winnerSocketId).emit("notification:new", { notification: winNotif });
+        }
+
+        if (loserUser) {
+          const loseNotif = new Notification({
+            recipientId: loserUser._id,
+            senderId: winnerId,
+            type: "match_result",
+            title: "Defeat",
+            message: `${winnerUser?.username || "Your opponent"} solved it first. ${loseDelta} ELO`,
+            payload: { roomId, result: "loss", eloChange: loseDelta },
+          });
+          await loseNotif.save();
+
+          const loserSocketId = activeRooms.get(roomId)?.players?.get(loserUser._id.toString());
+          if (loserSocketId) {
+            io.to(loserSocketId).emit("notification:new", { notification: loseNotif });
+          }
+        }
+      } catch (notifError) {
+        logger.error(`Failed to create match result notifications: ${notifError.message}`);
+      }
 
       logger.info(`Battle Arena roomId ${roomId} finished. Winner: ${winnerId}`);
     } catch (error) {
