@@ -365,12 +365,19 @@ const registerMatchHandlers = (io, socket) => {
         winnerUser.eloRating = newWinnerElo;
         winnerUser.wins += 1;
         winnerUser.matchesPlayed += 1;
+        winnerUser.eloHistory = winnerUser.eloHistory || [];
+        winnerUser.eloHistory.push({ eloRating: newWinnerElo, roomId, createdAt: new Date() });
+        if (winnerUser.eloHistory.length > 50) winnerUser.eloHistory = winnerUser.eloHistory.slice(-50);
         await winnerUser.save();
 
         opponentUser.eloRating = newLoserElo;
         opponentUser.losses += 1;
         opponentUser.matchesPlayed += 1;
+        opponentUser.eloHistory = opponentUser.eloHistory || [];
+        opponentUser.eloHistory.push({ eloRating: newLoserElo, roomId, createdAt: new Date() });
+        if (opponentUser.eloHistory.length > 50) opponentUser.eloHistory = opponentUser.eloHistory.slice(-50);
         await opponentUser.save();
+
 
         eloChanges[winnerId.toString()] = winnerDelta;
         eloChanges[opponentUser._id.toString()] = loserDelta;

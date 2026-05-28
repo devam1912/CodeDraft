@@ -66,6 +66,13 @@ const userSchema = new mongoose.Schema(
       correct: { type: Number, default: 0 },
       total: { type: Number, default: 0 },
     },
+    eloHistory: [
+      {
+        eloRating: { type: Number },
+        roomId: { type: String },
+        createdAt: { type: Date, default: Date.now },
+      },
+    ],
   },
   {
     timestamps: true,

@@ -36,7 +36,11 @@ export const roomAPI = {
 
 export const userAPI = {
   getLeaderboard: (params) => api.get("/users/leaderboard", { params }),
+  getCollegeLeaderboard: () => api.get("/users/leaderboard/college"),
+  getProfile: () => api.get("/users/profile"),
+  getProblemsCreated: (params) => api.get("/users/problems-created", { params }),
 };
+
 
 export const tournamentAPI = {
   createTournament: (data) => api.post("/tournaments", data),

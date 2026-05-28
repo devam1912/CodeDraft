@@ -1,155 +1,83 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  defs,
+  linearGradient,
+  stop,
+  Area,
+  AreaChart,
+} from "recharts";
 import { useAuth } from "../context/AuthContext";
-import { tournamentAPI } from "../services/api";
+import { userAPI, tournamentAPI } from "../services/api";
 import Button from "../components/ui/Button";
 import Card from "../components/ui/Card";
 import toast from "react-hot-toast";
 
-const PAGE_STYLE = {
-  minHeight: "100vh",
-  display: "flex",
-  flexDirection: "column",
-};
+const PAGE_STYLE = { minHeight: "100vh", display: "flex", flexDirection: "column", backgroundColor: "#0a0a0f", color: "#f8fafc", fontFamily: "Inter, sans-serif" };
+const NAV_STYLE = { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "20px 40px", borderBottom: "1px solid #1e1e2e", backdropFilter: "blur(12px)", backgroundColor: "rgba(10, 10, 15, 0.8)" };
+const LOGO_STYLE = { fontSize: "24px", fontWeight: 800, background: "linear-gradient(135deg, #6366f1, #22d3ee)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", letterSpacing: "-0.02em" };
+const CONTENT_STYLE = { flex: 1, padding: "40px", maxWidth: "1200px", margin: "0 auto", width: "100%" };
+const GREETING_STYLE = { fontSize: "28px", fontWeight: 700, marginBottom: "8px" };
+const SUBTEXT_STYLE = { fontSize: "14px", color: "#94a3b8", marginBottom: "32px" };
+const ELO_DISPLAY = { fontSize: "56px", fontWeight: 800, fontFamily: "JetBrains Mono, monospace", background: "linear-gradient(135deg, #6366f1, #22d3ee)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", lineHeight: 1 };
+const ELO_LABEL = { fontSize: "12px", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.08em", marginTop: "6px" };
+const RANK_BADGE = { display: "inline-block", fontSize: "11px", fontWeight: 700, color: "#6366f1", backgroundColor: "rgba(99,102,241,0.12)", border: "1px solid rgba(99,102,241,0.3)", borderRadius: "6px", padding: "2px 8px", marginTop: "8px" };
+const STATS_GRID = { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px", marginTop: "20px" };
+const STAT_VALUE = { fontSize: "22px", fontWeight: 700, fontFamily: "JetBrains Mono, monospace" };
+const STAT_LABEL_STYLE = { fontSize: "11px", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em", marginTop: "2px" };
+const EMPTY_STATE = { textAlign: "center", padding: "48px 24px", color: "#94a3b8" };
+const EMPTY_ICON = { fontSize: "40px", marginBottom: "12px" };
+const EMPTY_HEADING = { fontSize: "16px", fontWeight: 600, color: "#f8fafc", marginBottom: "6px" };
+const EMPTY_DESC = { fontSize: "13px", color: "#94a3b8", marginBottom: "20px" };
+const SECTION_HEADING = { fontSize: "16px", fontWeight: 600, marginBottom: "16px", marginTop: "32px", color: "#f8fafc", display: "flex", alignItems: "center", gap: "8px" };
+const DIFF_BADGE = (d) => ({ fontSize: "10px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", padding: "2px 7px", borderRadius: "4px", backgroundColor: d === "easy" ? "rgba(16,185,129,0.12)" : d === "medium" ? "rgba(245,158,11,0.12)" : "rgba(239,68,68,0.12)", color: d === "easy" ? "#10b981" : d === "medium" ? "#f59e0b" : "#ef4444", border: "1px solid", borderColor: d === "easy" ? "rgba(16,185,129,0.3)" : d === "medium" ? "rgba(245,158,11,0.3)" : "rgba(239,68,68,0.3)" });
 
-const NAV_STYLE = {
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "space-between",
-  padding: "20px 40px",
-  borderBottom: "1px solid #1e1e2e",
-  backdropFilter: "blur(12px)",
-  backgroundColor: "rgba(10, 10, 15, 0.8)",
-};
+const containerVariants = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.07 } } };
+const itemVariants = { hidden: { opacity: 0, y: 14 }, visible: { opacity: 1, y: 0, transition: { duration: 0.3 } } };
 
-const LOGO_STYLE = {
-  fontSize: "24px",
-  fontWeight: 800,
-  background: "linear-gradient(135deg, #6366f1, #22d3ee)",
-  WebkitBackgroundClip: "text",
-  WebkitTextFillColor: "transparent",
-  letterSpacing: "-0.02em",
-};
-
-const CONTENT_STYLE = {
-  flex: 1,
-  padding: "40px",
-  maxWidth: "1200px",
-  margin: "0 auto",
-  width: "100%",
-};
-
-const GREETING_STYLE = {
-  fontSize: "28px",
-  fontWeight: 700,
-  marginBottom: "8px",
-};
-
-const SUBTEXT_STYLE = {
-  fontSize: "14px",
-  color: "#94a3b8",
-  marginBottom: "32px",
-};
-
-const ELO_DISPLAY = {
-  fontSize: "48px",
-  fontWeight: 700,
-  fontFamily: "JetBrains Mono, monospace",
-  background: "linear-gradient(135deg, #6366f1, #22d3ee)",
-  WebkitBackgroundClip: "text",
-  WebkitTextFillColor: "transparent",
-};
-
-const ELO_LABEL = {
-  fontSize: "13px",
-  color: "#64748b",
-  textTransform: "uppercase",
-  letterSpacing: "0.08em",
-  marginTop: "4px",
-};
-
-const STATS_GRID = {
-  display: "grid",
-  gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
-  gap: "16px",
-  marginTop: "24px",
-};
-
-const STAT_VALUE = {
-  fontSize: "24px",
-  fontWeight: 700,
-  fontFamily: "JetBrains Mono, monospace",
-  color: "#f8fafc",
-};
-
-const STAT_LABEL_STYLE = {
-  fontSize: "12px",
-  color: "#64748b",
-  textTransform: "uppercase",
-  letterSpacing: "0.06em",
-  marginTop: "2px",
-};
-
-const EMPTY_STATE = {
-  textAlign: "center",
-  padding: "48px 24px",
-  color: "#94a3b8",
-};
-
-const EMPTY_ICON = {
-  fontSize: "48px",
-  marginBottom: "16px",
-};
-
-const EMPTY_HEADING = {
-  fontSize: "18px",
-  fontWeight: 600,
-  color: "#f8fafc",
-  marginBottom: "8px",
-};
-
-const EMPTY_DESC = {
-  fontSize: "14px",
-  color: "#94a3b8",
-  marginBottom: "24px",
-};
-
-const SECTION_HEADING = {
-  fontSize: "18px",
-  fontWeight: 600,
-  marginBottom: "16px",
-  marginTop: "32px",
-};
-
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.08 },
-  },
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 12 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.3 } },
+const CustomTooltip = ({ active, payload }) => {
+  if (active && payload && payload.length) {
+    return (
+      <div style={{ backgroundColor: "#111118", border: "1px solid #1e1e2e", borderRadius: "8px", padding: "8px 12px", fontFamily: "JetBrains Mono, monospace", fontSize: "12px" }}>
+        <div style={{ color: "#a5b4fc", fontWeight: 700 }}>ELO: {payload[0].value}</div>
+      </div>
+    );
+  }
+  return null;
 };
 
 function Dashboard() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+
+  const [profile, setProfile] = useState(null);
   const [tournaments, setTournaments] = useState([]);
+  const [problems, setProblems] = useState([]);
 
   useEffect(() => {
-    const fetchTournaments = async () => {
+    const load = async () => {
       try {
-        const response = await tournamentAPI.getTournaments();
-        setTournaments(response.data || []);
+        const [profileRes, tourRes, probRes] = await Promise.allSettled([
+          userAPI.getProfile(),
+          tournamentAPI.getTournaments(),
+          userAPI.getProblemsCreated(),
+        ]);
+        if (profileRes.status === "fulfilled") setProfile(profileRes.value.data || profileRes.value);
+        if (tourRes.status === "fulfilled") setTournaments(tourRes.value.data || tourRes.value || []);
+        if (probRes.status === "fulfilled") setProblems(probRes.value.data?.problems || []);
       } catch (err) {
-        toast.error("Failed to load active tournaments");
+        toast.error("Failed to load dashboard data");
       }
     };
-    fetchTournaments();
+    load();
   }, []);
 
   const handleCreateTournament = async () => {
@@ -158,7 +86,7 @@ function Dashboard() {
     try {
       const response = await tournamentAPI.createTournament({ name: name.trim() });
       toast.success("Tournament draft created successfully!");
-      navigate(`/tournament/${response.data._id}`);
+      navigate(`/tournament/${response.data._id || response._id}`);
     } catch (err) {
       toast.error(err.message || "Failed to create tournament.");
     }
@@ -174,109 +102,125 @@ function Dashboard() {
     }
   };
 
+  const displayUser = profile || user;
+  const eloHistory = profile?.eloHistory || [];
+  const chartData = eloHistory.map((h, i) => ({ match: i + 1, elo: h.eloRating }));
+  const globalRank = profile?.globalRank || null;
+  const winPct = displayUser?.matchesPlayed > 0 ? Math.round(((displayUser.wins || 0) / displayUser.matchesPlayed) * 100) : 0;
+
   return (
     <div style={PAGE_STYLE}>
       <nav style={NAV_STYLE}>
         <Link to="/" style={{ textDecoration: "none" }}>
           <span style={LOGO_STYLE}>CodeDraft</span>
         </Link>
-        <div style={{ display: "flex", gap: "16px", alignItems: "center" }}>
-          <Link to="/leaderboard" style={{ textDecoration: "none", color: "#94a3b8", fontSize: "14px" }}>
-            Leaderboard
-          </Link>
-          <span style={{ color: "#1e1e2e", fontSize: "14px" }}>|</span>
-          <span style={{ color: "#94a3b8", fontSize: "14px" }}>
-            {user?.username}
-          </span>
-          <Button variant="ghost" size="sm" onClick={handleLogout}>
-            Log Out
-          </Button>
+        <div style={{ display: "flex", gap: "20px", alignItems: "center" }}>
+          <Link to="/leaderboard" style={{ textDecoration: "none", color: "#94a3b8", fontSize: "14px" }}>Leaderboard</Link>
+          <span style={{ color: "#1e1e2e" }}>|</span>
+          <span style={{ color: "#94a3b8", fontSize: "14px" }}>{displayUser?.username}</span>
+          <Button variant="ghost" size="sm" onClick={handleLogout}>Log Out</Button>
         </div>
       </nav>
 
-      <motion.div
-        style={CONTENT_STYLE}
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-      >
+      <motion.div style={CONTENT_STYLE} variants={containerVariants} initial="hidden" animate="visible">
         <motion.div variants={itemVariants}>
-          <div style={GREETING_STYLE}>
-            Welcome, {user?.username || "Challenger"}
-          </div>
-          <div style={SUBTEXT_STYLE}>Ready for your next battle?</div>
+          <div style={GREETING_STYLE}>Welcome back, {displayUser?.username || "Challenger"} 👋</div>
+          <div style={SUBTEXT_STYLE}>Track your performance, review matches, and challenge opponents.</div>
         </motion.div>
 
-        <motion.div
-          style={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: "24px" }}
-          variants={itemVariants}
-        >
-          <Card>
-            <div style={ELO_DISPLAY}>{user?.eloRating || 1000}</div>
+        <motion.div style={{ display: "grid", gridTemplateColumns: "280px 1fr", gap: "24px" }} variants={itemVariants}>
+          <Card style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+            <div style={ELO_DISPLAY}>{displayUser?.eloRating || 1000}</div>
             <div style={ELO_LABEL}>ELO Rating</div>
+            {globalRank && <div style={RANK_BADGE}>Global Rank #{globalRank}</div>}
             <div style={STATS_GRID}>
-              <div>
-                <div style={{ ...STAT_VALUE, color: "#10b981" }}>
-                  {user?.wins || 0}
-                </div>
+              <div style={{ backgroundColor: "#0a0a0f", borderRadius: "8px", padding: "10px", textAlign: "center" }}>
+                <div style={{ ...STAT_VALUE, color: "#10b981" }}>{displayUser?.wins || 0}</div>
                 <div style={STAT_LABEL_STYLE}>Wins</div>
               </div>
-              <div>
-                <div style={{ ...STAT_VALUE, color: "#ef4444" }}>
-                  {user?.losses || 0}
-                </div>
+              <div style={{ backgroundColor: "#0a0a0f", borderRadius: "8px", padding: "10px", textAlign: "center" }}>
+                <div style={{ ...STAT_VALUE, color: "#ef4444" }}>{displayUser?.losses || 0}</div>
                 <div style={STAT_LABEL_STYLE}>Losses</div>
               </div>
-              <div>
-                <div style={{ ...STAT_VALUE, color: "#f59e0b" }}>
-                  {user?.draws || 0}
-                </div>
+              <div style={{ backgroundColor: "#0a0a0f", borderRadius: "8px", padding: "10px", textAlign: "center" }}>
+                <div style={{ ...STAT_VALUE, color: "#f59e0b" }}>{displayUser?.draws || 0}</div>
                 <div style={STAT_LABEL_STYLE}>Draws</div>
               </div>
             </div>
+            <div style={{ marginTop: "12px", padding: "10px", backgroundColor: "#0a0a0f", borderRadius: "8px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span style={{ fontSize: "12px", color: "#64748b" }}>Win Rate</span>
+              <span style={{ fontFamily: "JetBrains Mono, monospace", fontSize: "14px", fontWeight: 700, color: winPct >= 50 ? "#10b981" : "#ef4444" }}>{winPct}%</span>
+            </div>
           </Card>
 
           <Card>
-            <div style={EMPTY_STATE}>
-              <div style={EMPTY_ICON}>📊</div>
-              <div style={EMPTY_HEADING}>ELO History</div>
-              <div style={EMPTY_DESC}>
-                Your ELO history chart will appear here after your first match.
-              </div>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
+              <span style={{ fontSize: "14px", fontWeight: 600, color: "#f8fafc" }}>ELO History</span>
+              <span style={{ fontSize: "11px", color: "#64748b", fontFamily: "JetBrains Mono, monospace" }}>Last {chartData.length} matches</span>
             </div>
+            {chartData.length === 0 ? (
+              <div style={EMPTY_STATE}>
+                <div style={EMPTY_ICON}>📊</div>
+                <div style={EMPTY_HEADING}>No matches yet</div>
+                <div style={EMPTY_DESC}>Complete your first battle to see your ELO chart appear here.</div>
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height={200}>
+                <AreaChart data={chartData} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="eloGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#1e1e2e" />
+                  <XAxis dataKey="match" tick={{ fill: "#64748b", fontSize: 11 }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fill: "#64748b", fontSize: 11 }} axisLine={false} tickLine={false} domain={["auto", "auto"]} />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Area type="monotone" dataKey="elo" stroke="#6366f1" strokeWidth={2} fill="url(#eloGradient)" dot={{ fill: "#6366f1", r: 3, strokeWidth: 0 }} activeDot={{ r: 5, fill: "#a5b4fc" }} />
+                </AreaChart>
+              </ResponsiveContainer>
+            )}
           </Card>
         </motion.div>
 
         <motion.div variants={itemVariants}>
-          <div style={SECTION_HEADING}>Match History</div>
-          <Card>
-            <div style={EMPTY_STATE}>
-              <div style={EMPTY_ICON}>⚔️</div>
-              <div style={EMPTY_HEADING}>No matches yet</div>
-              <div style={EMPTY_DESC}>
-                You haven&apos;t battled yet. Create a room to start your journey.
+          <div style={SECTION_HEADING}>
+            <span>✍️</span> Problems Created
+          </div>
+          {problems.length === 0 ? (
+            <Card>
+              <div style={EMPTY_STATE}>
+                <div style={EMPTY_ICON}>✍️</div>
+                <div style={EMPTY_HEADING}>No problems created</div>
+                <div style={EMPTY_DESC}>Create a room to write your first battle problem and challenge opponents.</div>
+                <Button size="md" onClick={() => navigate("/create")}>Create a Room</Button>
               </div>
-              <Button size="md">Create a Room</Button>
+            </Card>
+          ) : (
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: "14px" }}>
+              {problems.map((prob) => (
+                <Card key={prob.roomId} style={{ display: "flex", flexDirection: "column", gap: "10px", padding: "18px" }}>
+                  <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "8px" }}>
+                    <span style={{ fontSize: "14px", fontWeight: 600, color: "#f8fafc", lineHeight: 1.3 }}>{prob.title}</span>
+                    <span style={DIFF_BADGE(prob.difficulty)}>{prob.difficulty}</span>
+                  </div>
+                  <div style={{ fontSize: "11px", color: "#64748b", fontFamily: "JetBrains Mono, monospace" }}>
+                    {prob.allowedLanguages?.join(", ")}
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                    <span style={{ fontSize: "11px", color: "#64748b" }}>Battles:</span>
+                    <span style={{ fontSize: "12px", fontWeight: 700, fontFamily: "JetBrains Mono, monospace", color: "#f8fafc" }}>{prob.battlesPlayed}</span>
+                  </div>
+                </Card>
+              ))}
             </div>
-          </Card>
+          )}
         </motion.div>
 
         <motion.div variants={itemVariants}>
-          <div style={SECTION_HEADING}>Problems Created</div>
-          <Card>
-            <div style={EMPTY_STATE}>
-              <div style={EMPTY_ICON}>✍️</div>
-              <div style={EMPTY_HEADING}>No problems created</div>
-              <div style={EMPTY_DESC}>
-                You haven&apos;t written any problems yet. Create a room to write your first battle problem.
-              </div>
-            </div>
-          </Card>
-        </motion.div>
-
-        <motion.div variants={itemVariants}>
-          <div style={{ ...SECTION_HEADING, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <span>Active Bracket Tournaments</span>
+          <div style={{ ...SECTION_HEADING, justifyContent: "space-between" }}>
+            <span style={{ display: "flex", alignItems: "center", gap: "8px" }}><span>🏆</span> Active Bracket Tournaments</span>
             <Button size="sm" onClick={handleCreateTournament}>Create Tournament</Button>
           </div>
           {tournaments.length === 0 ? (
@@ -284,24 +228,20 @@ function Dashboard() {
               <div style={EMPTY_STATE}>
                 <div style={EMPTY_ICON}>🏆</div>
                 <div style={EMPTY_HEADING}>No tournaments drafting</div>
-                <div style={EMPTY_DESC}>
-                  Create your own bracket draft tournament to challenge multiple developers!
-                </div>
+                <div style={EMPTY_DESC}>Create your own bracket draft tournament to challenge multiple developers!</div>
               </div>
             </Card>
           ) : (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: "16px", marginTop: "16px" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: "16px" }}>
               {tournaments.map((t) => (
-                <Card key={t._id} style={{ display: "flex", flexDirection: "column", gap: "12px", border: "1px solid #1e1e2e", padding: "20px" }}>
+                <Card key={t._id} style={{ display: "flex", flexDirection: "column", gap: "12px", padding: "20px" }}>
                   <div>
-                    <h4 style={{ fontSize: "16px", fontWeight: 700, color: "#f8fafc" }}>{t.name}</h4>
+                    <h4 style={{ fontSize: "15px", fontWeight: 700, color: "#f8fafc", marginBottom: "4px" }}>{t.name}</h4>
                     <span style={{ fontSize: "11px", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                      Status: {t.status} | Players: {t.participants?.length || 0}
+                      {t.status} · {t.participants?.length || 0} players
                     </span>
                   </div>
-                  <Button size="sm" onClick={() => navigate(`/tournament/${t._id}`)}>
-                    View Tournament
-                  </Button>
+                  <Button size="sm" onClick={() => navigate(`/tournament/${t._id}`)}>View Tournament</Button>
                 </Card>
               ))}
             </div>
