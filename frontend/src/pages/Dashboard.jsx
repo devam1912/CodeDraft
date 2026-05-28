@@ -16,7 +16,7 @@ import {
   AreaChart,
 } from "recharts";
 import { useAuth } from "../context/AuthContext";
-import { userAPI, tournamentAPI } from "../services/api";
+import { userAPI, tournamentAPI, matchAPI } from "../services/api";
 import Button from "../components/ui/Button";
 import Card from "../components/ui/Card";
 import toast from "react-hot-toast";
@@ -61,18 +61,21 @@ function Dashboard() {
   const [profile, setProfile] = useState(null);
   const [tournaments, setTournaments] = useState([]);
   const [problems, setProblems] = useState([]);
+  const [matchHistory, setMatchHistory] = useState([]);
 
   useEffect(() => {
     const load = async () => {
       try {
-        const [profileRes, tourRes, probRes] = await Promise.allSettled([
+        const [profileRes, tourRes, probRes, histRes] = await Promise.allSettled([
           userAPI.getProfile(),
           tournamentAPI.getTournaments(),
           userAPI.getProblemsCreated(),
+          matchAPI.getMyMatchHistory(),
         ]);
         if (profileRes.status === "fulfilled") setProfile(profileRes.value.data || profileRes.value);
         if (tourRes.status === "fulfilled") setTournaments(tourRes.value.data || tourRes.value || []);
         if (probRes.status === "fulfilled") setProblems(probRes.value.data?.problems || []);
+        if (histRes.status === "fulfilled") setMatchHistory(histRes.value.data?.history || histRes.value?.history || []);
       } catch (err) {
         toast.error("Failed to load dashboard data");
       }
@@ -215,6 +218,78 @@ function Dashboard() {
                 </Card>
               ))}
             </div>
+          )}
+        </motion.div>
+
+        <motion.div variants={itemVariants}>
+          <div style={SECTION_HEADING}>
+            <span>⚔️</span> Match History
+          </div>
+          {matchHistory.length === 0 ? (
+            <Card>
+              <div style={EMPTY_STATE}>
+                <div style={EMPTY_ICON}>⚔️</div>
+                <div style={EMPTY_HEADING}>No matches yet</div>
+                <div style={EMPTY_DESC}>You haven&apos;t battled yet. Create a room to start your journey.</div>
+              </div>
+            </Card>
+          ) : (
+            <Card style={{ padding: 0, overflow: "hidden" }}>
+              <div style={{ overflowX: "auto" }}>
+                <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px" }}>
+                  <thead>
+                    <tr style={{ borderBottom: "1px solid #1e1e2e", backgroundColor: "rgba(30,30,46,0.4)" }}>
+                      {["Opponent", "Result", "Problem", "Time", "ELO Δ", "Replay"].map((h) => (
+                        <th key={h} style={{ padding: "12px 20px", textAlign: h === "Replay" ? "center" : "left", fontSize: "11px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em", fontFamily: "JetBrains Mono, monospace" }}>{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {matchHistory.map((match, i) => {
+                      const resultColor = match.result === "win" ? "#10b981" : match.result === "loss" ? "#ef4444" : "#f59e0b";
+                      const resultBg = match.result === "win" ? "rgba(16,185,129,0.1)" : match.result === "loss" ? "rgba(239,68,68,0.1)" : "rgba(245,158,11,0.1)";
+                      const eloDelta = match.eloChange;
+                      const min = match.durationSec ? Math.floor(match.durationSec / 60) : 0;
+                      const sec = match.durationSec ? match.durationSec % 60 : 0;
+                      return (
+                        <tr key={match.roomId || i} style={{ borderBottom: "1px solid #1e1e2e" }}>
+                          <td style={{ padding: "14px 20px" }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                              <div style={{ width: "28px", height: "28px", borderRadius: "50%", backgroundColor: "rgba(99,102,241,0.12)", border: "1px solid rgba(99,102,241,0.3)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "10px", fontWeight: 700, color: "#a5b4fc" }}>
+                                {match.opponent?.avatar || match.opponent?.username?.slice(0, 2).toUpperCase() || "??"}
+                              </div>
+                              <div>
+                                <div style={{ fontWeight: 600, color: "#f8fafc" }}>{match.opponent?.username || "Unknown"}</div>
+                                <div style={{ fontSize: "11px", color: "#64748b", fontFamily: "JetBrains Mono, monospace" }}>ELO {match.opponent?.eloRating || "—"}</div>
+                              </div>
+                            </div>
+                          </td>
+                          <td style={{ padding: "14px 20px" }}>
+                            <span style={{ display: "inline-block", fontSize: "10px", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.08em", padding: "3px 10px", borderRadius: "4px", color: resultColor, backgroundColor: resultBg }}>
+                              {match.result}
+                            </span>
+                          </td>
+                          <td style={{ padding: "14px 20px", color: "#94a3b8", maxWidth: "160px" }}>
+                            {match.problemTitle || "—"}
+                          </td>
+                          <td style={{ padding: "14px 20px", fontFamily: "JetBrains Mono, monospace", fontSize: "12px", color: "#94a3b8" }}>
+                            {match.durationSec ? `${String(min).padStart(2, "0")}:${String(sec).padStart(2, "0")}` : "—"}
+                          </td>
+                          <td style={{ padding: "14px 20px", fontFamily: "JetBrains Mono, monospace", fontWeight: 700, color: eloDelta == null ? "#64748b" : eloDelta >= 0 ? "#10b981" : "#ef4444" }}>
+                            {eloDelta == null ? "—" : eloDelta >= 0 ? `+${eloDelta}` : eloDelta}
+                          </td>
+                          <td style={{ padding: "14px 20px", textAlign: "center" }}>
+                            <Button size="sm" variant="ghost" onClick={() => navigate(`/room/${match.roomId}/replay`)}>
+                              ▶ Replay
+                            </Button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </Card>
           )}
         </motion.div>
 
