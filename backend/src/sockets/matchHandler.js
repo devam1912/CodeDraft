@@ -190,16 +190,33 @@ const registerMatchHandlers = (io, socket) => {
     }
   });
 
-  socket.on("battle:keystroke", ({ roomId }) => {
+  socket.on("battle:keystroke", async ({ roomId, lineCount }) => {
     try {
       if (!roomId) return;
       socket.to(roomId).emit("battle:typing", {
         userId: socket.userId.toString(),
       });
+
+      if (typeof lineCount === "number") {
+        await Room.findOneAndUpdate(
+          { roomId },
+          {
+            $push: {
+              eventTimeline: {
+                eventType: "line_count_updated",
+                userId: socket.userId,
+                payload: { lineCount },
+                timestamp: new Date(),
+              },
+            },
+          }
+        );
+      }
     } catch (error) {
       logger.error(`Error in socket battle:keystroke: ${error.message}`);
     }
   });
+
 
   socket.on("spectator:voteCast", ({ roomId, coderId }) => {
     try {
