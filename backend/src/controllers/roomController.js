@@ -13,7 +13,7 @@ const LANGUAGE_IDS = {
 
 const createRoom = async (req, res, next) => {
   try {
-    const { battleFormat, creatorCompeting } = req.body;
+    const { battleFormat, creatorCompeting, isBlitz } = req.body;
 
     if (!battleFormat || !["1v1", "2v2"].includes(battleFormat)) {
       return sendError(res, 400, "Invalid battle format. Must be 1v1 or 2v2.");
@@ -31,7 +31,7 @@ const createRoom = async (req, res, next) => {
       }
     }
 
-    const setupExpiresAt = new Date(Date.now() + 30 * 60 * 1000);
+    const setupExpiresAt = isBlitz === true ? new Date(Date.now() + 5 * 60 * 1000) : new Date(Date.now() + 30 * 60 * 1000);
 
     const room = new Room({
       roomId,
@@ -45,6 +45,9 @@ const createRoom = async (req, res, next) => {
     }
     if (battleFormat !== undefined) {
       room.battleFormat = battleFormat;
+    }
+    if (isBlitz !== undefined) {
+      room.isBlitz = isBlitz === true;
     }
 
     await room.save();
