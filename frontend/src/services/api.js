@@ -42,6 +42,8 @@ export const userAPI = {
   getProblemsCreated: (params) => api.get("/users/problems-created", { params }),
   getPublicProfile: (username) => api.get(`/profiles/${username}`),
   sendChallengeInvite: (username) => api.post(`/profiles/${username}/challenge`),
+  updateAvatar: (avatar) => api.patch("/users/avatar", { avatar }),
+  verifyCollege: (email) => api.post("/users/verify-college", { email }),
 };
 
 

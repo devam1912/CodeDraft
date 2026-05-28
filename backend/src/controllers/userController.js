@@ -187,10 +187,60 @@ const updateAvatar = async (req, res, next) => {
   }
 };
 
+const verifyCollege = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    if (!email || !email.includes("@")) {
+      return sendError(res, 400, "Invalid email address format.");
+    }
+    const suffix = email.split("@")[1].toLowerCase();
+    
+    const domainToCollege = {
+      "mit.edu": "Massachusetts Institute of Technology (MIT)",
+      "stanford.edu": "Stanford University",
+      "harvard.edu": "Harvard University",
+      "berkeley.edu": "UC Berkeley",
+      "iitb.ac.in": "IIT Bombay",
+      "iitd.ac.in": "IIT Delhi",
+      "bits-pilani.ac.in": "BITS Pilani",
+    };
+
+    let collegeName = "";
+    let isDomainValid = false;
+
+    if (suffix.endsWith(".edu") || suffix.endsWith(".ac.in")) {
+      isDomainValid = true;
+      collegeName = domainToCollege[suffix] || suffix.split(".")[0].toUpperCase() + " University";
+    }
+
+    if (!isDomainValid) {
+      return sendError(res, 400, "Please enter a valid university domain email (ending in .edu or .ac.in).");
+    }
+
+    const user = await User.findById(req.userId);
+    if (!user) {
+      return sendError(res, 404, "User not found.");
+    }
+
+    user.college = collegeName;
+    user.collegeEmail = email;
+    user.collegeVerified = true;
+    await user.save();
+
+    logger.info(`User ${req.userId} successfully verified college standing at ${collegeName}`);
+
+    return sendSuccess(res, 200, { college: user.college, collegeVerified: user.collegeVerified }, "College standing successfully verified!");
+  } catch (error) {
+    logger.error(`Error in verifyCollege: ${error.message}`);
+    next(error);
+  }
+};
+
 module.exports = {
   getLeaderboard,
   getCollegeLeaderboard,
   getProfile,
   getProblemsCreated,
   updateAvatar,
+  verifyCollege,
 };

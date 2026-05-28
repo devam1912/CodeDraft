@@ -58,6 +58,10 @@ const userSchema = new mongoose.Schema(
       trim: true,
       default: "",
     },
+    collegeVerified: {
+      type: Boolean,
+      default: false,
+    },
     avatar: {
       type: String,
       default: "",
@@ -113,6 +117,8 @@ userSchema.methods.toPublicJSON = function () {
     draws: this.draws,
     matchesPlayed: this.matchesPlayed,
     college: this.college,
+    collegeEmail: this.collegeEmail,
+    collegeVerified: this.collegeVerified,
     avatar: this.avatar,
     spectatorPredictions: this.spectatorPredictions,
     createdAt: this.createdAt,

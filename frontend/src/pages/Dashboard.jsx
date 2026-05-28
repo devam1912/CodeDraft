@@ -70,6 +70,8 @@ function Dashboard() {
   const [battleFormat, setBattleFormat] = useState("1v1");
   const [isBlitz, setIsBlitz] = useState(false);
   const [creatorCompeting, setCreatorCompeting] = useState(false);
+  const [showVerifyModal, setShowVerifyModal] = useState(false);
+  const [collegeEmailInput, setCollegeEmailInput] = useState("");
 
   const [activities, setActivities] = useState([
     { id: 1, message: "Welcome to CodeDraft! Live battle activity scrolling feed active.", timestamp: new Date() }
@@ -97,6 +99,20 @@ function Dashboard() {
       setShowAvatarModal(false);
     } catch (err) {
       toast.error(err.message || "Failed to update avatar");
+    }
+  };
+
+  const handleVerifyCollege = async () => {
+    try {
+      if (!collegeEmailInput || !collegeEmailInput.includes("@")) {
+        return toast.error("Please enter a valid email address");
+      }
+      await userAPI.verifyCollege(collegeEmailInput);
+      await checkSession();
+      toast.success("College standing successfully verified!");
+      setShowVerifyModal(false);
+    } catch (err) {
+      toast.error(err.message || "Verification failed");
     }
   };
 
@@ -231,6 +247,18 @@ function Dashboard() {
                 >
                   Edit Avatar
                 </div>
+                {displayUser?.collegeVerified ? (
+                  <div style={{ fontSize: "11px", color: "#10b981", fontWeight: 600, marginTop: "4px" }}>
+                    🎓 {displayUser.college} (Verified)
+                  </div>
+                ) : (
+                  <div 
+                    onClick={() => setShowVerifyModal(true)} 
+                    style={{ fontSize: "10px", color: "#f59e0b", cursor: "pointer", textDecoration: "underline", marginTop: "4px", fontWeight: 600 }}
+                  >
+                    🎓 Verify College
+                  </div>
+                )}
               </div>
             </div>
             <div style={ELO_DISPLAY}>{displayUser?.eloRating || 1000}</div>
@@ -527,6 +555,36 @@ function Dashboard() {
             <div style={{ display: "flex", gap: "12px" }}>
               <Button variant="ghost" style={{ flex: 1 }} onClick={() => setShowCreateModal(false)}>Cancel</Button>
               <Button variant="primary" style={{ flex: 2 }} onClick={handleCreateRoom}>Initialize Lobby</Button>
+            </div>
+          </div>
+        </div>
+      {showVerifyModal && (
+        <div style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.8)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", zIndex: 100, justifyContent: "center" }}>
+          <div style={{ backgroundColor: "#111118", border: "1px solid #1e1e2e", borderRadius: "16px", padding: "24px", maxWidth: "380px", width: "100%", textAlign: "center" }}>
+            <h3 style={{ fontSize: "18px", fontWeight: 700, marginBottom: "12px", color: "#f8fafc" }}>🎓 Verify College Standing</h3>
+            <p style={{ fontSize: "12px", color: "#64748b", marginBottom: "20px" }}>
+              Enter your university domain email (ending in <b>.edu</b> or <b>.ac.in</b>) to verify your academic league standing.
+            </p>
+            <input
+              type="email"
+              value={collegeEmailInput}
+              onChange={(e) => setCollegeEmailInput(e.target.value)}
+              placeholder="e.g. coder@mit.edu"
+              style={{
+                width: "100%",
+                padding: "12px",
+                borderRadius: "8px",
+                backgroundColor: "#0a0a0f",
+                border: "1px solid #1e1e2e",
+                color: "#f8fafc",
+                fontSize: "13px",
+                marginBottom: "20px",
+                textAlign: "center"
+              }}
+            />
+            <div style={{ display: "flex", gap: "12px" }}>
+              <Button variant="ghost" style={{ flex: 1 }} onClick={() => setShowVerifyModal(false)}>Cancel</Button>
+              <Button variant="primary" style={{ flex: 2 }} onClick={handleVerifyCollege}>Verify Suffix</Button>
             </div>
           </div>
         </div>
