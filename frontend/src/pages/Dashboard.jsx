@@ -16,6 +16,7 @@ import {
   AreaChart,
 } from "recharts";
 import { useAuth } from "../context/AuthContext";
+import { useSocket } from "../context/SocketContext";
 import { userAPI, tournamentAPI, matchAPI } from "../services/api";
 import Button from "../components/ui/Button";
 import Card from "../components/ui/Card";
@@ -58,6 +59,7 @@ const CustomTooltip = ({ active, payload }) => {
 function Dashboard() {
   const { user, logout, checkSession } = useAuth();
   const navigate = useNavigate();
+  const socket = useSocket();
 
   const [profile, setProfile] = useState(null);
   const [tournaments, setTournaments] = useState([]);
@@ -68,6 +70,10 @@ function Dashboard() {
   const [battleFormat, setBattleFormat] = useState("1v1");
   const [isBlitz, setIsBlitz] = useState(false);
   const [creatorCompeting, setCreatorCompeting] = useState(false);
+
+  const [activities, setActivities] = useState([
+    { id: 1, message: "Welcome to CodeDraft! Live battle activity scrolling feed active.", timestamp: new Date() }
+  ]);
 
   const handleCreateRoom = async () => {
     try {
@@ -114,6 +120,19 @@ function Dashboard() {
     load();
   }, []);
 
+  useEffect(() => {
+    if (!socket) return;
+    socket.on("global:activity", (act) => {
+      setActivities((prev) => [
+        { ...act, id: Date.now() },
+        ...prev.slice(0, 9),
+      ]);
+    });
+    return () => {
+      socket.off("global:activity");
+    };
+  }, [socket]);
+
   const handleCreateTournament = async () => {
     const name = prompt("Enter the name of your new Bracket Tournament:");
     if (!name || !name.trim()) return;
@@ -156,6 +175,20 @@ function Dashboard() {
           <Button variant="ghost" size="sm" onClick={handleLogout}>Log Out</Button>
         </div>
       </nav>
+
+      <div style={{ backgroundColor: "#111118", borderBottom: "1px solid #1e1e2e", padding: "10px 20px", display: "flex", alignItems: "center", gap: "12px", overflow: "hidden" }}>
+        <span style={{ fontSize: "11px", fontWeight: 700, textTransform: "uppercase", color: "#6366f1", letterSpacing: "0.08em", display: "flex", alignItems: "center", gap: "6px", borderRight: "1px solid #1e1e2e", paddingRight: "12px", whiteSpace: "nowrap" }}>
+          <span style={{ width: "8px", height: "8px", backgroundColor: "#10b981", borderRadius: "50%", display: "inline-block" }} /> Live Feed
+        </span>
+        <div style={{ display: "flex", gap: "32px", overflowX: "auto", fontSize: "12px", color: "#94a3b8", fontFamily: "JetBrains Mono, monospace" }}>
+          {activities.map((act) => (
+            <span key={act.id} style={{ display: "inline-flex", alignItems: "center", gap: "6px", whiteSpace: "nowrap" }}>
+              <span style={{ color: "#6366f1" }}>✦</span>
+              {act.message}
+            </span>
+          ))}
+        </div>
+      </div>
 
       <motion.div style={CONTENT_STYLE} variants={containerVariants} initial="hidden" animate="visible">
         <motion.div variants={itemVariants} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px", width: "100%", flexWrap: "wrap", gap: "16px" }}>

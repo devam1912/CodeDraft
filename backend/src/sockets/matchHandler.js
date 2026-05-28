@@ -93,6 +93,12 @@ const registerMatchHandlers = (io, socket) => {
         teamB: updatedRoom.teamB,
       });
 
+      io.emit("global:activity", {
+        type: "join",
+        message: `${joinedPlayer?.username || "A challenger"} entered Battle Lobby ${roomId}`,
+        timestamp: new Date(),
+      });
+
       logger.info(`User ${socket.userId} joined Room ${roomId} via socket ${socket.id}`);
     } catch (error) {
       logger.error(`Error in socket room:join: ${error.message}`);
@@ -206,6 +212,12 @@ const registerMatchHandlers = (io, socket) => {
               difficulty: room.problem.difficulty,
               allowedLanguages: room.problem.allowedLanguages,
             },
+          });
+
+          io.emit("global:activity", {
+            type: "battle_start",
+            message: `Battle Room ${roomId} has launched! The race to pass hidden test cases is ON!`,
+            timestamp: new Date(),
           });
 
           logger.info(`Synchronized countdown finished. Battle active for Room ${roomId}`);
@@ -620,6 +632,14 @@ const registerMatchHandlers = (io, socket) => {
       io.to(roomId).emit("battle:finished", {
         winnerId: winnerId.toString(),
         eloChanges,
+      });
+
+      const winnerUser = room.players.find((p) => p._id.toString() === winnerId.toString());
+      const winDelta = eloChanges[winnerId.toString()] || 0;
+      io.emit("global:activity", {
+        type: "battle_finish",
+        message: `${winnerUser?.username || "A challenger"} won the battle in Room ${roomId} (${winDelta >= 0 ? "+" : ""}${winDelta} ELO)`,
+        timestamp: new Date(),
       });
 
       try {
