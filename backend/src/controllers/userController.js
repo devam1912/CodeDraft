@@ -166,9 +166,31 @@ const getProblemsCreated = async (req, res, next) => {
   }
 };
 
+const updateAvatar = async (req, res, next) => {
+  try {
+    const { avatar } = req.body;
+    const allowedAvatars = ["💻", "🔥", "⚡", "🏆", "💀", "👾", "🤖", "🐼"];
+    if (!avatar || !allowedAvatars.includes(avatar)) {
+      return sendError(res, 400, "Invalid avatar choice.");
+    }
+    const user = await User.findById(req.userId);
+    if (!user) {
+      return sendError(res, 404, "User not found.");
+    }
+    user.avatar = avatar;
+    await user.save();
+    logger.info(`User ${req.userId} updated avatar to ${avatar}`);
+    return sendSuccess(res, 200, { avatar: user.avatar }, "Avatar updated successfully");
+  } catch (error) {
+    logger.error(`Error in updateAvatar: ${error.message}`);
+    next(error);
+  }
+};
+
 module.exports = {
   getLeaderboard,
   getCollegeLeaderboard,
   getProfile,
   getProblemsCreated,
+  updateAvatar,
 };

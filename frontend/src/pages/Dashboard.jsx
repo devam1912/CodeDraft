@@ -56,13 +56,43 @@ const CustomTooltip = ({ active, payload }) => {
 };
 
 function Dashboard() {
-  const { user, logout } = useAuth();
+  const { user, logout, checkSession } = useAuth();
   const navigate = useNavigate();
 
   const [profile, setProfile] = useState(null);
   const [tournaments, setTournaments] = useState([]);
   const [problems, setProblems] = useState([]);
   const [matchHistory, setMatchHistory] = useState([]);
+  const [showAvatarModal, setShowAvatarModal] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [battleFormat, setBattleFormat] = useState("1v1");
+  const [isBlitz, setIsBlitz] = useState(false);
+  const [creatorCompeting, setCreatorCompeting] = useState(false);
+
+  const handleCreateRoom = async () => {
+    try {
+      const response = await roomAPI.createRoom({
+        battleFormat,
+        isBlitz,
+        creatorCompeting,
+      });
+      toast.success("Battle room lobby initialized!");
+      navigate(`/room/${response.data.roomId || response.roomId}/edit`);
+    } catch (err) {
+      toast.error(err.message || "Failed to initialize battle room");
+    }
+  };
+
+  const handleUpdateAvatar = async (avatar) => {
+    try {
+      await userAPI.updateAvatar(avatar);
+      await checkSession();
+      toast.success("Avatar updated successfully!");
+      setShowAvatarModal(false);
+    } catch (err) {
+      toast.error(err.message || "Failed to update avatar");
+    }
+  };
 
   useEffect(() => {
     const load = async () => {
@@ -128,13 +158,48 @@ function Dashboard() {
       </nav>
 
       <motion.div style={CONTENT_STYLE} variants={containerVariants} initial="hidden" animate="visible">
-        <motion.div variants={itemVariants}>
-          <div style={GREETING_STYLE}>Welcome back, {displayUser?.username || "Challenger"} 👋</div>
-          <div style={SUBTEXT_STYLE}>Track your performance, review matches, and challenge opponents.</div>
+        <motion.div variants={itemVariants} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px", width: "100%", flexWrap: "wrap", gap: "16px" }}>
+          <div>
+            <div style={GREETING_STYLE}>Welcome back, {displayUser?.username || "Challenger"} 👋</div>
+            <div style={SUBTEXT_STYLE}>Track your performance, review matches, and challenge opponents.</div>
+          </div>
+          <div>
+            <Button onClick={() => setShowCreateModal(true)} variant="primary" style={{ padding: "12px 24px" }}>⚔️ Create Battle</Button>
+          </div>
         </motion.div>
 
         <motion.div style={{ display: "grid", gridTemplateColumns: "280px 1fr", gap: "24px" }} variants={itemVariants}>
           <Card style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "16px", marginBottom: "12px", borderBottom: "1px solid #1e1e2e", paddingBottom: "12px" }}>
+              <div 
+                onClick={() => setShowAvatarModal(true)}
+                style={{ 
+                  width: "60px", 
+                  height: "60px", 
+                  borderRadius: "50%", 
+                  backgroundColor: "rgba(99,102,241,0.12)", 
+                  border: "2px solid rgba(99,102,241,0.4)", 
+                  display: "flex", 
+                  alignItems: "center", 
+                  justifyContent: "center", 
+                  fontSize: "30px", 
+                  cursor: "pointer", 
+                  transition: "all 0.2s" 
+                }}
+                title="Change Avatar"
+              >
+                {displayUser?.avatar || "💻"}
+              </div>
+              <div>
+                <div style={{ fontSize: "16px", fontWeight: 700, color: "#f8fafc" }}>{displayUser?.username}</div>
+                <div 
+                  onClick={() => setShowAvatarModal(true)} 
+                  style={{ fontSize: "11px", color: "#6366f1", cursor: "pointer", textDecoration: "underline" }}
+                >
+                  Edit Avatar
+                </div>
+              </div>
+            </div>
             <div style={ELO_DISPLAY}>{displayUser?.eloRating || 1000}</div>
             <div style={ELO_LABEL}>ELO Rating</div>
             {globalRank && <div style={RANK_BADGE}>Global Rank #{globalRank}</div>}
@@ -199,7 +264,7 @@ function Dashboard() {
                 <div style={EMPTY_ICON}>✍️</div>
                 <div style={EMPTY_HEADING}>No problems created</div>
                 <div style={EMPTY_DESC}>Create a room to write your first battle problem and challenge opponents.</div>
-                <Button size="md" onClick={() => navigate("/create")}>Create a Room</Button>
+                <Button size="md" onClick={() => setShowCreateModal(true)}>Create a Room</Button>
               </div>
             </Card>
           ) : (
@@ -325,6 +390,114 @@ function Dashboard() {
           )}
         </motion.div>
       </motion.div>
+
+      {showAvatarModal && (
+        <div style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.8)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", zIndex: 100, justifyContent: "center" }}>
+          <div style={{ backgroundColor: "#111118", border: "1px solid #1e1e2e", borderRadius: "16px", padding: "24px", maxWidth: "360px", width: "100%", textAlign: "center" }}>
+            <h3 style={{ fontSize: "18px", fontWeight: 700, marginBottom: "16px", color: "#f8fafc" }}>Select Gaming Avatar</h3>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "14px", marginBottom: "20px" }}>
+              {["💻", "🔥", "⚡", "🏆", "💀", "👾", "🤖", "🐼"].map((avatar) => (
+                <button
+                  key={avatar}
+                  onClick={() => handleUpdateAvatar(avatar)}
+                  style={{
+                    fontSize: "32px",
+                    padding: "10px",
+                    borderRadius: "12px",
+                    backgroundColor: displayUser?.avatar === avatar ? "rgba(99,102,241,0.2)" : "#0a0a0f",
+                    border: displayUser?.avatar === avatar ? "2px solid #6366f1" : "1px solid #1e1e2e",
+                    cursor: "pointer",
+                    transition: "all 0.15s",
+                  }}
+                  className="hover:scale-110 active:scale-95"
+                >
+                  {avatar}
+                </button>
+              ))}
+            </div>
+            <Button variant="ghost" className="w-full" onClick={() => setShowAvatarModal(false)}>Cancel</Button>
+          </div>
+        </div>
+      )}
+
+      {showCreateModal && (
+        <div style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.8)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", zIndex: 100, justifyContent: "center" }}>
+          <div style={{ backgroundColor: "#111118", border: "1px solid #1e1e2e", borderRadius: "16px", padding: "24px", maxWidth: "420px", width: "100%" }}>
+            <h3 style={{ fontSize: "18px", fontWeight: 700, marginBottom: "16px", color: "#f8fafc", textAlign: "center" }}>Create Coding Battle</h3>
+            
+            <div style={{ display: "flex", flexDirection: "column", gap: "16px", marginBottom: "24px" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                <span style={{ fontSize: "11px", color: "#64748b", textTransform: "uppercase", fontWeight: 600 }}>Battle Format</span>
+                <div style={{ display: "flex", gap: "10px" }}>
+                  <button
+                    onClick={() => setBattleFormat("1v1")}
+                    style={{
+                      flex: 1,
+                      padding: "10px",
+                      borderRadius: "8px",
+                      backgroundColor: battleFormat === "1v1" ? "rgba(99,102,241,0.15)" : "#0a0a0f",
+                      border: battleFormat === "1v1" ? "1px solid #6366f1" : "1px solid #1e1e2e",
+                      color: battleFormat === "1v1" ? "#a5b4fc" : "#94a3b8",
+                      fontWeight: 600,
+                      cursor: "pointer"
+                    }}
+                    type="button"
+                  >
+                    1v1 Duel
+                  </button>
+                  <button
+                    onClick={() => setBattleFormat("2v2")}
+                    style={{
+                      flex: 1,
+                      padding: "10px",
+                      borderRadius: "8px",
+                      backgroundColor: battleFormat === "2v2" ? "rgba(99,102,241,0.15)" : "#0a0a0f",
+                      border: battleFormat === "2v2" ? "1px solid #6366f1" : "1px solid #1e1e2e",
+                      color: battleFormat === "2v2" ? "#a5b4fc" : "#94a3b8",
+                      fontWeight: 600,
+                      cursor: "pointer"
+                    }}
+                    type="button"
+                  >
+                    2v2 Team Battle
+                  </button>
+                </div>
+              </div>
+
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", backgroundColor: "#0a0a0f", padding: "12px", borderRadius: "8px", border: "1px solid #1e1e2e" }}>
+                <div>
+                  <div style={{ fontSize: "13px", fontWeight: 600, color: "#f8fafc" }}>⚡ Blitz Room</div>
+                  <div style={{ fontSize: "11px", color: "#64748b" }}>Ultra-fast duels with a 5m lobby expiry</div>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={isBlitz}
+                  onChange={(e) => setIsBlitz(e.target.checked)}
+                  style={{ width: "18px", height: "18px", accentColor: "#6366f1", cursor: "pointer" }}
+                />
+              </div>
+
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", backgroundColor: "#0a0a0f", padding: "12px", borderRadius: "8px", border: "1px solid #1e1e2e" }}>
+                <div>
+                  <div style={{ fontSize: "13px", fontWeight: 600, color: "#f8fafc" }}>⚔️ Compete as Host</div>
+                  <div style={{ fontSize: "11px", color: "#64748b" }}>Host takes a 5 ELO penalty on victory</div>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={creatorCompeting}
+                  onChange={(e) => setCreatorCompeting(e.target.checked)}
+                  style={{ width: "18px", height: "18px", accentColor: "#6366f1", cursor: "pointer" }}
+                />
+              </div>
+            </div>
+
+            <div style={{ display: "flex", gap: "12px" }}>
+              <Button variant="ghost" style={{ flex: 1 }} onClick={() => setShowCreateModal(false)}>Cancel</Button>
+              <Button variant="primary" style={{ flex: 2 }} onClick={handleCreateRoom}>Initialize Lobby</Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
