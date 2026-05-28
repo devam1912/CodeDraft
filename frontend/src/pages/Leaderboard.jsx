@@ -11,6 +11,7 @@ function Leaderboard() {
   const { user } = useAuth();
 
   const [users, setUsers] = useState([]);
+  const [colleges, setColleges] = useState([]);
   const [pagination, setPagination] = useState({ currentPage: 1, totalPages: 1 });
   const [isLoading, setIsLoading] = useState(true);
   const [filterType, setFilterType] = useState("global");
@@ -21,22 +22,20 @@ function Leaderboard() {
     const fetchLeaderboard = async () => {
       setIsLoading(true);
       try {
-        const params = {
-          page: currentPage,
-          limit: 15,
-        };
-
-        if (filterType === "college" && user?.college) {
-          params.college = user.college;
+        if (filterType === "colleges") {
+          const response = await userAPI.getCollegeLeaderboard();
+          setColleges(response.data?.colleges || response.colleges || []);
+          setIsLoading(false);
+          return;
         }
 
-        if (searchQuery.trim()) {
-          params.search = searchQuery.trim();
-        }
+        const params = { page: currentPage, limit: 15 };
+        if (filterType === "college" && user?.college) params.college = user.college;
+        if (searchQuery.trim()) params.search = searchQuery.trim();
 
         const response = await userAPI.getLeaderboard(params);
-        setUsers(response.data.users || []);
-        setPagination(response.data.pagination || { currentPage: 1, totalPages: 1 });
+        setUsers(response.data?.users || response.users || []);
+        setPagination(response.data?.pagination || response.pagination || { currentPage: 1, totalPages: 1 });
       } catch (err) {
         toast.error(err.message || "Failed to load leaderboard");
       } finally {
@@ -98,29 +97,25 @@ function Leaderboard() {
           </div>
 
           <div className="flex bg-bg-surface border border-border-default p-1 rounded-xl gap-1">
-            <button
-              onClick={() => handleFilterChange("global")}
-              className={`px-4 py-2 rounded-lg text-xs font-bold uppercase transition-all duration-150 ${
-                filterType === "global"
-                  ? "bg-primary text-text-primary"
-                  : "text-text-secondary hover:text-text-primary"
-              }`}
-            >
-              Global
-            </button>
-            <button
-              onClick={() => handleFilterChange("college")}
-              disabled={!user?.college}
-              className={`px-4 py-2 rounded-lg text-xs font-bold uppercase transition-all duration-150 ${
-                filterType === "college"
-                  ? "bg-primary text-text-primary"
-                  : !user?.college
-                  ? "text-text-muted cursor-not-allowed opacity-50"
-                  : "text-text-secondary hover:text-text-primary"
-              }`}
-            >
-              {user?.college ? `${user.college} League` : "No College Registered"}
-            </button>
+            {[
+              { key: "global", label: "Global" },
+              { key: "college", label: user?.college ? `${user.college} League` : "My College", disabled: !user?.college },
+              { key: "colleges", label: "Colleges" },
+            ].map(({ key, label, disabled }) => (
+              <button
+                key={key}
+                onClick={() => !disabled && handleFilterChange(key)}
+                className={`px-4 py-2 rounded-lg text-xs font-bold uppercase transition-all duration-150 ${
+                  filterType === key
+                    ? "bg-primary text-text-primary"
+                    : disabled
+                    ? "text-text-muted cursor-not-allowed opacity-50"
+                    : "text-text-secondary hover:text-text-primary"
+                }`}
+              >
+                {label}
+              </button>
+            ))}
           </div>
         </div>
 
@@ -195,7 +190,40 @@ function Leaderboard() {
               </div>
             )}
 
-            {(listUsers.length > 0 || (podiumUsers.length > 0 && (currentPage > 1 || searchQuery))) && (
+            {filterType === "colleges" ? (
+              <Card className="p-0 border border-border-default rounded-xl overflow-hidden bg-bg-surface">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse text-xs">
+                    <thead>
+                      <tr className="border-b border-border-default bg-bg-elevated/40 text-text-muted uppercase font-mono tracking-wider">
+                        <th className="py-4 px-6 text-center font-bold">Rank</th>
+                        <th className="py-4 px-6 font-bold">College</th>
+                        <th className="py-4 px-6 text-center font-bold">Members</th>
+                        <th className="py-4 px-6 text-center font-bold">Top ELO</th>
+                        <th className="py-4 px-6 text-right font-bold">Avg ELO</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border-default font-mono">
+                      {colleges.map((col, idx) => (
+                        <tr
+                          key={col.college}
+                          className={`hover:bg-bg-elevated/20 transition-colors duration-150 ${
+                            col.college === user?.college ? "border-l-2 border-primary bg-primary/5" : ""
+                          }`}
+                        >
+                          <td className="py-4 px-6 text-center text-text-muted font-bold">#{idx + 1}</td>
+                          <td className="py-4 px-6 font-semibold text-text-primary">{col.college}</td>
+                          <td className="py-4 px-6 text-center text-text-secondary">{col.memberCount}</td>
+                          <td className="py-4 px-6 text-center text-warning font-bold">{col.topElo}</td>
+                          <td className="py-4 px-6 text-right text-secondary font-black text-sm">{col.avgElo}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </Card>
+            ) : (
+            (listUsers.length > 0 || (podiumUsers.length > 0 && (currentPage > 1 || searchQuery))) && (
               <Card className="p-0 border border-border-default rounded-xl overflow-hidden bg-bg-surface">
                 <div className="overflow-x-auto">
                   <table className="w-full text-left border-collapse text-xs">
@@ -206,44 +234,40 @@ function Leaderboard() {
                         <th className="py-4 px-6 font-bold">College</th>
                         <th className="py-4 px-6 text-center font-bold">Wins</th>
                         <th className="py-4 px-6 text-center font-bold">Losses</th>
+                        <th className="py-4 px-6 text-center font-bold">Win%</th>
                         <th className="py-4 px-6 text-right font-bold">Rating</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border-default font-mono">
                       {(currentPage === 1 && !searchQuery ? listUsers : users).map((listUser, idx) => {
                         const rankNumber = (currentPage - 1) * 15 + (currentPage === 1 && !searchQuery ? idx + 4 : idx + 1);
+                        const isViewer = user?._id === listUser._id || user?.username === listUser.username;
+                        const winPct = listUser.wins + listUser.losses > 0
+                          ? Math.round((listUser.wins / (listUser.wins + listUser.losses)) * 100)
+                          : 0;
                         return (
                           <tr
                             key={listUser._id}
                             className={`hover:bg-bg-elevated/20 transition-colors duration-150 ${
-                              user?._id === listUser._id ? "bg-primary-muted/5 font-bold" : ""
+                              isViewer ? "border-l-2 border-primary bg-primary/5 font-bold" : ""
                             }`}
                           >
-                            <td className="py-4 px-6 text-center text-text-muted font-bold">
-                              #{rankNumber}
-                            </td>
+                            <td className="py-4 px-6 text-center text-text-muted font-bold">#{rankNumber}</td>
                             <td className="py-4 px-6 font-sans">
                               <div className="flex items-center gap-3">
                                 <div className="w-7 h-7 rounded-full bg-bg-elevated border border-border-default flex items-center justify-center font-mono font-bold text-[10px] text-primary">
                                   {listUser.avatar || listUser.username.slice(0, 2).toUpperCase()}
                                 </div>
-                                <span className="font-semibold text-text-primary">
-                                  {listUser.username}
+                                <span className={`font-semibold ${isViewer ? "text-primary" : "text-text-primary"}`}>
+                                  {listUser.username}{isViewer ? " (You)" : ""}
                                 </span>
                               </div>
                             </td>
-                            <td className="py-4 px-6 text-text-secondary">
-                              {listUser.college || "Independent Coder"}
-                            </td>
-                            <td className="py-4 px-6 text-center text-success font-bold">
-                              {listUser.wins || 0}
-                            </td>
-                            <td className="py-4 px-6 text-center text-error font-bold">
-                              {listUser.losses || 0}
-                            </td>
-                            <td className="py-4 px-6 text-right text-secondary font-black text-sm">
-                              {listUser.eloRating}
-                            </td>
+                            <td className="py-4 px-6 text-text-secondary">{listUser.college || "Independent"}</td>
+                            <td className="py-4 px-6 text-center text-success font-bold">{listUser.wins || 0}</td>
+                            <td className="py-4 px-6 text-center text-error font-bold">{listUser.losses || 0}</td>
+                            <td className="py-4 px-6 text-center font-bold" style={{ color: winPct >= 50 ? "#10b981" : "#ef4444" }}>{winPct}%</td>
+                            <td className="py-4 px-6 text-right text-secondary font-black text-sm">{listUser.eloRating}</td>
                           </tr>
                         );
                       })}
@@ -275,7 +299,7 @@ function Leaderboard() {
                   </div>
                 )}
               </Card>
-            )}
+            ))}
           </div>
         )}
       </main>
