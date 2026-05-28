@@ -544,7 +544,7 @@ function MatchReplay() {
 
             <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
               <span style={{ fontSize: "11px", color: "#64748b", marginRight: "4px" }}>Speed</span>
-              {[1, 2].map((s) => (
+              {[1, 2, 4].map((s) => (
                 <button
                   key={s}
                   onClick={() => handleSpeedChange(s)}
