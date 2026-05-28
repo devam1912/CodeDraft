@@ -15,6 +15,8 @@ function Lobby() {
 
   const [room, setRoom] = useState(null);
   const [players, setPlayers] = useState([]);
+  const [teamA, setTeamA] = useState([]);
+  const [teamB, setTeamB] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [countdown, setCountdown] = useState(null);
 
@@ -24,6 +26,8 @@ function Lobby() {
         const response = await roomAPI.getRoomDetails(roomId);
         setRoom(response.data);
         setPlayers(response.data.players || []);
+        setTeamA(response.data.teamA || []);
+        setTeamB(response.data.teamB || []);
       } catch (err) {
         toast.error(err.message || "Failed to load lobby details");
         navigate("/dashboard");
@@ -40,11 +44,19 @@ function Lobby() {
 
     socket.emit("room:join", { roomId });
 
-    socket.on("room:playerJoined", ({ player, currentPlayers }) => {
+    socket.on("room:playerJoined", ({ player, currentPlayers, teamA: tA, teamB: tB }) => {
       setPlayers(currentPlayers);
+      if (tA) setTeamA(tA);
+      if (tB) setTeamB(tB);
       if (player && player._id !== user._id) {
         toast.success(`Competitor "${player.username}" entered the lobby!`);
       }
+    });
+
+    socket.on("room:teamUpdated", ({ teamA: tA, teamB: tB, players: ps }) => {
+      if (tA) setTeamA(tA);
+      if (tB) setTeamB(tB);
+      if (ps) setPlayers(ps);
     });
 
     socket.on("room:countdown", ({ count }) => {
@@ -64,6 +76,7 @@ function Lobby() {
 
     return () => {
       socket.off("room:playerJoined");
+      socket.off("room:teamUpdated");
       socket.off("room:countdown");
       socket.off("room:ready");
       socket.off("error");
@@ -73,6 +86,11 @@ function Lobby() {
   const handleStartBattle = () => {
     if (!socket || !canStart) return;
     socket.emit("room:start", { roomId });
+  };
+
+  const handleSwitchTeam = (targetTeam) => {
+    if (!socket) return;
+    socket.emit("room:switchTeam", { roomId, targetTeam });
   };
 
   if (isLoading) {
@@ -160,18 +178,40 @@ function Lobby() {
             {room.battleFormat === "2v2" ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="flex flex-col gap-3">
-                  <span className="text-[10px] font-bold text-primary uppercase tracking-wide">
-                    Team Alpha
-                  </span>
-                  <PlayerSlot player={getSlotPlayer(0)} teamLabel="Team A" />
-                  <PlayerSlot player={getSlotPlayer(2)} teamLabel="Team A" />
+                  <div className="flex justify-between items-center">
+                    <span className="text-[10px] font-bold text-primary uppercase tracking-wide">
+                      Team Alpha
+                    </span>
+                    {!teamA.some((p) => p && (p._id === user._id || p === user._id)) && teamA.length < 2 && (
+                      <button
+                        onClick={() => handleSwitchTeam("A")}
+                        className="text-[10px] font-bold text-primary hover:underline cursor-pointer"
+                        type="button"
+                      >
+                        Join Alpha
+                      </button>
+                    )}
+                  </div>
+                  <PlayerSlot player={teamA[0] || null} teamLabel="Team A" />
+                  <PlayerSlot player={teamA[1] || null} teamLabel="Team A" />
                 </div>
                 <div className="flex flex-col gap-3">
-                  <span className="text-[10px] font-bold text-secondary uppercase tracking-wide">
-                    Team Beta
-                  </span>
-                  <PlayerSlot player={getSlotPlayer(1)} teamLabel="Team B" />
-                  <PlayerSlot player={getSlotPlayer(3)} teamLabel="Team B" />
+                  <div className="flex justify-between items-center">
+                    <span className="text-[10px] font-bold text-secondary uppercase tracking-wide">
+                      Team Beta
+                    </span>
+                    {!teamB.some((p) => p && (p._id === user._id || p === user._id)) && teamB.length < 2 && (
+                      <button
+                        onClick={() => handleSwitchTeam("B")}
+                        className="text-[10px] font-bold text-secondary hover:underline cursor-pointer"
+                        type="button"
+                      >
+                        Join Beta
+                      </button>
+                    )}
+                  </div>
+                  <PlayerSlot player={teamB[0] || null} teamLabel="Team B" />
+                  <PlayerSlot player={teamB[1] || null} teamLabel="Team B" />
                 </div>
               </div>
             ) : (

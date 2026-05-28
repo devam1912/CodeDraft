@@ -41,6 +41,9 @@ function BattleArena() {
 
   const lastTypingEmit = useRef(0);
   const typingTimeoutRefs = useRef({});
+  const isRemoteChange = useRef(false);
+  const [teammateTyping, setTeammateTyping] = useState(false);
+  const teammateTypingTimeoutRef = useRef(null);
 
   useEffect(() => {
     const fetchRoom = async () => {
@@ -112,6 +115,18 @@ function BattleArena() {
       setTotalVotes(totalVotes);
     });
 
+    socket.on("battle:codeSync", ({ sourceCode: remoteCode }) => {
+      isRemoteChange.current = true;
+      setSourceCode(remoteCode);
+      setTeammateTyping(true);
+      if (teammateTypingTimeoutRef.current) {
+        clearTimeout(teammateTypingTimeoutRef.current);
+      }
+      teammateTypingTimeoutRef.current = setTimeout(() => {
+        setTeammateTyping(false);
+      }, 1500);
+    });
+
     socket.on("error", ({ message }) => {
       toast.error(message);
       navigate("/dashboard");
@@ -123,9 +138,11 @@ function BattleArena() {
       socket.off("battle:submitResult");
       socket.off("battle:finished");
       socket.off("spectator:voteUpdate");
+      socket.off("battle:codeSync");
       socket.off("error");
 
       Object.values(typingTimeoutRefs.current).forEach((t) => clearTimeout(t));
+      if (teammateTypingTimeoutRef.current) clearTimeout(teammateTypingTimeoutRef.current);
     };
   }, [socket, room, roomId, navigate, user._id]);
 
@@ -164,10 +181,17 @@ function BattleArena() {
 
   const handleEditorChange = (val) => {
     setSourceCode(val);
+    if (isRemoteChange.current) {
+      isRemoteChange.current = false;
+      return;
+    }
     const now = Date.now();
     if (socket && now - lastTypingEmit.current > 1000) {
       lastTypingEmit.current = now;
       socket.emit("battle:keystroke", { roomId });
+    }
+    if (socket && room?.battleFormat === "2v2") {
+      socket.emit("battle:codeUpdate", { roomId, sourceCode: val });
     }
   };
 
@@ -593,6 +617,11 @@ function BattleArena() {
                       </option>
                     )) || <option value="javascript">javascript</option>}
                   </select>
+                  {teammateTyping && (
+                    <span className="text-xs text-success animate-pulse font-medium">
+                      ⚡ Teammate is typing...
+                    </span>
+                  )}
                 </div>
 
                 <div className="flex items-center gap-2">
