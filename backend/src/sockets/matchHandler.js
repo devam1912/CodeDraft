@@ -61,7 +61,10 @@ const registerMatchHandlers = (io, socket) => {
         { roomId },
         updateQuery,
         { new: true }
-      ).populate("players", "username eloRating college avatar");
+      )
+        .populate("players", "username eloRating college avatar")
+        .populate("teamA", "username eloRating college avatar")
+        .populate("teamB", "username eloRating college avatar");
 
       socket.roomId = roomId;
       socket.join(roomId);
@@ -86,12 +89,62 @@ const registerMatchHandlers = (io, socket) => {
       io.to(roomId).emit("room:playerJoined", {
         player: joinedPlayer,
         currentPlayers: updatedRoom.players,
+        teamA: updatedRoom.teamA,
+        teamB: updatedRoom.teamB,
       });
 
       logger.info(`User ${socket.userId} joined Room ${roomId} via socket ${socket.id}`);
     } catch (error) {
       logger.error(`Error in socket room:join: ${error.message}`);
       socket.emit("error", { message: "Internal server socket error occurred" });
+    }
+  });
+
+  socket.on("room:switchTeam", async ({ roomId, targetTeam }) => {
+    try {
+      if (!roomId || !["A", "B"].includes(targetTeam)) {
+        return socket.emit("error", { message: "Invalid parameters" });
+      }
+      const room = await Room.findOne({ roomId });
+      if (!room) {
+        return socket.emit("error", { message: "Room not found" });
+      }
+      if (room.status !== "setting_up" && room.status !== "waiting_for_players") {
+        return socket.emit("error", { message: "Cannot switch teams now" });
+      }
+      const userIdStr = socket.userId.toString();
+      const inTeamA = room.teamA.some((id) => id.toString() === userIdStr);
+      const inTeamB = room.teamB.some((id) => id.toString() === userIdStr);
+      if (targetTeam === "A" && inTeamA) return;
+      if (targetTeam === "B" && inTeamB) return;
+
+      if (targetTeam === "A") {
+        if (room.teamA.length >= 2) {
+          return socket.emit("error", { message: "Team Alpha is already full" });
+        }
+        room.teamB = room.teamB.filter((id) => id.toString() !== userIdStr);
+        room.teamA.push(socket.userId);
+      } else {
+        if (room.teamB.length >= 2) {
+          return socket.emit("error", { message: "Team Beta is already full" });
+        }
+        room.teamA = room.teamA.filter((id) => id.toString() !== userIdStr);
+        room.teamB.push(socket.userId);
+      }
+      await room.save();
+      const updatedRoom = await Room.findOne({ roomId })
+        .populate("players", "username eloRating college avatar")
+        .populate("teamA", "username eloRating college avatar")
+        .populate("teamB", "username eloRating college avatar");
+
+      io.to(roomId).emit("room:teamUpdated", {
+        teamA: updatedRoom.teamA,
+        teamB: updatedRoom.teamB,
+        players: updatedRoom.players,
+      });
+    } catch (error) {
+      logger.error(`Error in socket room:switchTeam: ${error.message}`);
+      socket.emit("error", { message: "Failed to switch teams" });
     }
   });
 

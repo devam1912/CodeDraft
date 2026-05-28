@@ -226,7 +226,9 @@ const getRoom = async (req, res, next) => {
 
     const room = await Room.findOne({ roomId })
       .populate("creatorId", "username eloRating college avatar")
-      .populate("players", "username eloRating college avatar");
+      .populate("players", "username eloRating college avatar")
+      .populate("teamA", "username eloRating college avatar")
+      .populate("teamB", "username eloRating college avatar");
 
     if (!room) {
       return sendError(res, 404, "Room not found.");
