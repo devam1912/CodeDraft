@@ -39,6 +39,8 @@ export const userAPI = {
   getCollegeLeaderboard: () => api.get("/users/leaderboard/college"),
   getProfile: () => api.get("/users/profile"),
   getProblemsCreated: (params) => api.get("/users/problems-created", { params }),
+  getPublicProfile: (username) => api.get(`/profiles/${username}`),
+  sendChallengeInvite: (username) => api.post(`/profiles/${username}/challenge`),
 };
 
 

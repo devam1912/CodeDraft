@@ -13,6 +13,8 @@ import BattleArena from "./pages/BattleArena";
 import Leaderboard from "./pages/Leaderboard";
 import MatchReplay from "./pages/MatchReplay";
 import TournamentArena from "./pages/TournamentArena";
+import PublicProfile from "./pages/PublicProfile";
+
 
 const TOAST_OPTIONS = {
   duration: 4000,
@@ -100,6 +102,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <TournamentArena />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/u/:username"
+            element={
+              <ProtectedRoute>
+                <PublicProfile />
               </ProtectedRoute>
             }
           />
