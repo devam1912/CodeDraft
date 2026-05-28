@@ -23,6 +23,7 @@ const tournamentRoutes = require("./routes/tournaments");
 const matchRoutes = require("./routes/matches");
 const profileRoutes = require("./routes/profiles");
 const notificationRoutes = require("./routes/notifications");
+const adminRoutes = require("./routes/admin");
 
 validateEnv();
 
@@ -62,6 +63,7 @@ app.use("/api/tournaments", tournamentRoutes);
 app.use("/api/matches", matchRoutes);
 app.use("/api/profiles", profileRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/admin", adminRoutes);
 
 app.use(errorHandler);
 

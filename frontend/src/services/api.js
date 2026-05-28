@@ -66,6 +66,10 @@ export const notificationAPI = {
   markOneRead: (notifId) => api.patch(`/notifications/${notifId}/read`),
 };
 
+export const adminAPI = {
+  getTelemetry: () => api.get("/admin/telemetry"),
+};
+
 export default api;
 
 
