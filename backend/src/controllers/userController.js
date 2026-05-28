@@ -3,8 +3,17 @@ const Room = require("../models/Room");
 const { sendSuccess, sendError } = require("../utils/response");
 const logger = require("../utils/logger");
 
+const leaderboardCache = new Map();
+const collegeLeaderboardCache = new Map();
+const CACHE_TTL = 5000;
+
 const getLeaderboard = async (req, res, next) => {
   try {
+    const cacheKey = JSON.stringify(req.query);
+    const cached = leaderboardCache.get(cacheKey);
+    if (cached && (Date.now() - cached.timestamp < CACHE_TTL)) {
+      return sendSuccess(res, 200, cached.data, "Leaderboard retrieved successfully");
+    }
     const { college, search, page = 1, limit = 20 } = req.query;
     const query = {};
 
@@ -28,17 +37,22 @@ const getLeaderboard = async (req, res, next) => {
 
     const totalUsers = await User.countDocuments(query);
 
+    const responsePayload = {
+      users,
+      pagination: {
+        currentPage: parseInt(page, 10),
+        totalPages: Math.ceil(totalUsers / parsedLimit),
+        totalUsers,
+      },
+    };
+    leaderboardCache.set(cacheKey, {
+      timestamp: Date.now(),
+      data: responsePayload
+    });
     return sendSuccess(
       res,
       200,
-      {
-        users,
-        pagination: {
-          currentPage: parseInt(page, 10),
-          totalPages: Math.ceil(totalUsers / parsedLimit),
-          totalUsers,
-        },
-      },
+      responsePayload,
       "Leaderboard retrieved successfully"
     );
   } catch (error) {
@@ -49,6 +63,11 @@ const getLeaderboard = async (req, res, next) => {
 
 const getCollegeLeaderboard = async (req, res, next) => {
   try {
+    const cacheKey = JSON.stringify(req.query);
+    const cached = collegeLeaderboardCache.get(cacheKey);
+    if (cached && (Date.now() - cached.timestamp < CACHE_TTL)) {
+      return sendSuccess(res, 200, cached.data, "College leaderboard retrieved successfully");
+    }
     const { page = 1, limit = 20 } = req.query;
     const skip = (parseInt(page, 10) - 1) * parseInt(limit, 10);
     const parsedLimit = parseInt(limit, 10);
@@ -76,7 +95,12 @@ const getCollegeLeaderboard = async (req, res, next) => {
       topElo: r.topElo,
     }));
 
-    return sendSuccess(res, 200, { colleges }, "College leaderboard retrieved successfully");
+    const responsePayload = { colleges };
+    collegeLeaderboardCache.set(cacheKey, {
+      timestamp: Date.now(),
+      data: responsePayload
+    });
+    return sendSuccess(res, 200, responsePayload, "College leaderboard retrieved successfully");
   } catch (error) {
     logger.error(`Error in getCollegeLeaderboard: ${error.message}`);
     next(error);

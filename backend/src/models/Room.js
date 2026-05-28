@@ -202,4 +202,8 @@ const roomSchema = new mongoose.Schema(
   }
 );
 
+roomSchema.index({ players: 1, status: 1, finishedAt: -1 });
+roomSchema.index({ creatorId: 1, status: 1 });
+roomSchema.index({ status: 1, isPublic: 1, createdAt: -1 });
+
 module.exports = mongoose.model("Room", roomSchema);

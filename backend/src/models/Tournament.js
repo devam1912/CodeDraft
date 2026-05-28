@@ -57,4 +57,7 @@ const tournamentSchema = new mongoose.Schema(
   }
 );
 
+tournamentSchema.index({ status: 1, createdAt: -1 });
+tournamentSchema.index({ creatorId: 1, status: 1 });
+
 module.exports = mongoose.model("Tournament", tournamentSchema);
