@@ -271,6 +271,37 @@ const registerMatchHandlers = (io, socket) => {
     }
   });
 
+  socket.on("battle:codeUpdate", async ({ roomId, sourceCode }) => {
+    try {
+      if (!roomId || typeof sourceCode !== "string") return;
+      if (!activeRooms.has(roomId)) return;
+      const roomState = activeRooms.get(roomId);
+      const room = await Room.findOne({ roomId });
+      if (!room || room.battleFormat !== "2v2" || room.status !== "active") return;
+      const userIdStr = socket.userId.toString();
+      const inTeamA = room.teamA.some((id) => id.toString() === userIdStr);
+      const inTeamB = room.teamB.some((id) => id.toString() === userIdStr);
+      let teammateId = null;
+
+      if (inTeamA) {
+        teammateId = room.teamA.find((id) => id.toString() !== userIdStr);
+      } else if (inTeamB) {
+        teammateId = room.teamB.find((id) => id.toString() !== userIdStr);
+      }
+
+      if (teammateId) {
+        const teammateSocketId = roomState.players.get(teammateId.toString());
+        if (teammateSocketId) {
+          io.to(teammateSocketId).emit("battle:codeSync", {
+            sourceCode,
+            senderId: userIdStr,
+          });
+        }
+      }
+    } catch (error) {
+      logger.error(`Error in socket battle:codeUpdate: ${error.message}`);
+    }
+  });
 
   socket.on("spectator:voteCast", ({ roomId, coderId }) => {
     try {
@@ -307,7 +338,9 @@ const registerMatchHandlers = (io, socket) => {
       }
 
       const room = await Room.findOne({ roomId })
-        .populate("players", "username eloRating wins losses matchesPlayed");
+        .populate("players", "username eloRating wins losses matchesPlayed")
+        .populate("teamA", "username eloRating wins losses matchesPlayed eloHistory")
+        .populate("teamB", "username eloRating wins losses matchesPlayed eloHistory");
       if (!room) {
         return socket.emit("error", { message: "Room not found" });
       }
@@ -398,49 +431,95 @@ const registerMatchHandlers = (io, socket) => {
       }
 
       const winnerId = socket.userId;
-      const opponentUser = room.players.find((p) => p._id.toString() !== winnerId.toString());
       let eloChanges = {};
 
-      if (opponentUser) {
-        const winnerUser = room.players.find((p) => p._id.toString() === winnerId.toString());
-        const expectedA = 1 / (1 + Math.pow(10, (opponentUser.eloRating - winnerUser.eloRating) / 400));
+      if (room.battleFormat === "2v2") {
+        const winningTeam = room.teamA.some((p) => p._id.toString() === winnerId.toString()) ? "A" : "B";
+        room.winningTeam = winningTeam;
+
+        const avgA = room.teamA.reduce((sum, p) => sum + p.eloRating, 0) / room.teamA.length;
+        const avgB = room.teamB.reduce((sum, p) => sum + p.eloRating, 0) / room.teamB.length;
+
+        const avgWinners = winningTeam === "A" ? avgA : avgB;
+        const avgLosers = winningTeam === "A" ? avgB : avgA;
+
+        const expectedWinners = 1 / (1 + Math.pow(10, (avgLosers - avgWinners) / 400));
         const K = 32;
+        let winnerDelta = Math.round(K * (1 - expectedWinners));
+        let loserDelta = Math.round(K * (0 - (1 - expectedWinners)));
 
-        let winnerDelta = Math.round(K * (1 - expectedA));
-        let loserDelta = Math.round(K * (0 - (1 - expectedA)));
+        const winners = winningTeam === "A" ? room.teamA : room.teamB;
+        const losers = winningTeam === "A" ? room.teamB : room.teamA;
 
-        if (winnerId.toString() === room.creatorId.toString() && room.creatorCompeting) {
-          winnerDelta = Math.max(0, winnerDelta - 5);
+        for (const p of winners) {
+          let delta = winnerDelta;
+          if (p._id.toString() === room.creatorId.toString() && room.creatorCompeting) {
+            delta = Math.max(0, delta - 5);
+          }
+          p.eloRating += delta;
+          p.wins += 1;
+          p.matchesPlayed += 1;
+          p.eloHistory = p.eloHistory || [];
+          p.eloHistory.push({ eloRating: p.eloRating, roomId, createdAt: new Date() });
+          if (p.eloHistory.length > 50) p.eloHistory = p.eloHistory.slice(-50);
+          await p.save();
+          eloChanges[p._id.toString()] = delta;
         }
 
-        const newWinnerElo = winnerUser.eloRating + winnerDelta;
-        const newLoserElo = Math.max(100, opponentUser.eloRating + loserDelta);
-
-        winnerUser.eloRating = newWinnerElo;
-        winnerUser.wins += 1;
-        winnerUser.matchesPlayed += 1;
-        winnerUser.eloHistory = winnerUser.eloHistory || [];
-        winnerUser.eloHistory.push({ eloRating: newWinnerElo, roomId, createdAt: new Date() });
-        if (winnerUser.eloHistory.length > 50) winnerUser.eloHistory = winnerUser.eloHistory.slice(-50);
-        await winnerUser.save();
-
-        opponentUser.eloRating = newLoserElo;
-        opponentUser.losses += 1;
-        opponentUser.matchesPlayed += 1;
-        opponentUser.eloHistory = opponentUser.eloHistory || [];
-        opponentUser.eloHistory.push({ eloRating: newLoserElo, roomId, createdAt: new Date() });
-        if (opponentUser.eloHistory.length > 50) opponentUser.eloHistory = opponentUser.eloHistory.slice(-50);
-        await opponentUser.save();
-
-
-        eloChanges[winnerId.toString()] = winnerDelta;
-        eloChanges[opponentUser._id.toString()] = loserDelta;
+        for (const p of losers) {
+          const newElo = Math.max(100, p.eloRating + loserDelta);
+          const delta = newElo - p.eloRating;
+          p.eloRating = newElo;
+          p.losses += 1;
+          p.matchesPlayed += 1;
+          p.eloHistory = p.eloHistory || [];
+          p.eloHistory.push({ eloRating: newElo, roomId, createdAt: new Date() });
+          if (p.eloHistory.length > 50) p.eloHistory = p.eloHistory.slice(-50);
+          await p.save();
+          eloChanges[p._id.toString()] = delta;
+        }
       } else {
-        const winnerUser = room.players.find((p) => p._id.toString() === winnerId.toString());
-        winnerUser.wins += 1;
-        winnerUser.matchesPlayed += 1;
-        await winnerUser.save();
-        eloChanges[winnerId.toString()] = 0;
+        const opponentUser = room.players.find((p) => p._id.toString() !== winnerId.toString());
+        if (opponentUser) {
+          const winnerUser = room.players.find((p) => p._id.toString() === winnerId.toString());
+          const expectedA = 1 / (1 + Math.pow(10, (opponentUser.eloRating - winnerUser.eloRating) / 400));
+          const K = 32;
+
+          let winnerDelta = Math.round(K * (1 - expectedA));
+          let loserDelta = Math.round(K * (0 - (1 - expectedA)));
+
+          if (winnerId.toString() === room.creatorId.toString() && room.creatorCompeting) {
+            winnerDelta = Math.max(0, winnerDelta - 5);
+          }
+
+          const newWinnerElo = winnerUser.eloRating + winnerDelta;
+          const newLoserElo = Math.max(100, opponentUser.eloRating + loserDelta);
+
+          winnerUser.eloRating = newWinnerElo;
+          winnerUser.wins += 1;
+          winnerUser.matchesPlayed += 1;
+          winnerUser.eloHistory = winnerUser.eloHistory || [];
+          winnerUser.eloHistory.push({ eloRating: newWinnerElo, roomId, createdAt: new Date() });
+          if (winnerUser.eloHistory.length > 50) winnerUser.eloHistory = winnerUser.eloHistory.slice(-50);
+          await winnerUser.save();
+
+          opponentUser.eloRating = newLoserElo;
+          opponentUser.losses += 1;
+          opponentUser.matchesPlayed += 1;
+          opponentUser.eloHistory = opponentUser.eloHistory || [];
+          opponentUser.eloHistory.push({ eloRating: newLoserElo, roomId, createdAt: new Date() });
+          if (opponentUser.eloHistory.length > 50) opponentUser.eloHistory = opponentUser.eloHistory.slice(-50);
+          await opponentUser.save();
+
+          eloChanges[winnerId.toString()] = winnerDelta;
+          eloChanges[opponentUser._id.toString()] = loserDelta;
+        } else {
+          const winnerUser = room.players.find((p) => p._id.toString() === winnerId.toString());
+          winnerUser.wins += 1;
+          winnerUser.matchesPlayed += 1;
+          await winnerUser.save();
+          eloChanges[winnerId.toString()] = 0;
+        }
       }
 
       room.status = "finished";
@@ -544,40 +623,82 @@ const registerMatchHandlers = (io, socket) => {
       });
 
       try {
-        const winnerUser = room.players.find((p) => p._id.toString() === winnerId.toString());
-        const loserUser = room.players.find((p) => p._id.toString() !== winnerId.toString());
-        const winDelta = eloChanges[winnerId.toString()] || 0;
-        const loseDelta = loserUser ? eloChanges[loserUser._id.toString()] || 0 : 0;
+        if (room.battleFormat === "2v2") {
+          const winningTeam = room.winningTeam;
+          const winners = winningTeam === "A" ? room.teamA : room.teamB;
+          const losers = winningTeam === "A" ? room.teamB : room.teamA;
 
-        const winNotif = new Notification({
-          recipientId: winnerId,
-          senderId: loserUser?._id || null,
-          type: "match_result",
-          title: "Victory!",
-          message: `You defeated ${loserUser?.username || "your opponent"} and gained ${winDelta >= 0 ? "+" : ""}${winDelta} ELO`,
-          payload: { roomId, result: "win", eloChange: winDelta },
-        });
-        await winNotif.save();
+          for (const w of winners) {
+            const wDelta = eloChanges[w._id.toString()] || 0;
+            const winNotif = new Notification({
+              recipientId: w._id,
+              senderId: winnerId,
+              type: "match_result",
+              title: "Victory!",
+              message: `Your team won the 2v2 battle! Gained ${wDelta >= 0 ? "+" : ""}${wDelta} ELO`,
+              payload: { roomId, result: "win", eloChange: wDelta },
+            });
+            await winNotif.save();
 
-        const winnerSocketId = activeRooms.get(roomId)?.players?.get(winnerId.toString());
-        if (winnerSocketId) {
-          io.to(winnerSocketId).emit("notification:new", { notification: winNotif });
-        }
+            const winnerSocketId = activeRooms.get(roomId)?.players?.get(w._id.toString());
+            if (winnerSocketId) {
+              io.to(winnerSocketId).emit("notification:new", { notification: winNotif });
+            }
+          }
 
-        if (loserUser) {
-          const loseNotif = new Notification({
-            recipientId: loserUser._id,
-            senderId: winnerId,
+          for (const l of losers) {
+            const lDelta = eloChanges[l._id.toString()] || 0;
+            const loseNotif = new Notification({
+              recipientId: l._id,
+              senderId: winnerId,
+              type: "match_result",
+              title: "Defeat",
+              message: `Your team lost the 2v2 battle. ${lDelta} ELO`,
+              payload: { roomId, result: "loss", eloChange: lDelta },
+            });
+            await loseNotif.save();
+
+            const loserSocketId = activeRooms.get(roomId)?.players?.get(l._id.toString());
+            if (loserSocketId) {
+              io.to(loserSocketId).emit("notification:new", { notification: loseNotif });
+            }
+          }
+        } else {
+          const winnerUser = room.players.find((p) => p._id.toString() === winnerId.toString());
+          const loserUser = room.players.find((p) => p._id.toString() !== winnerId.toString());
+          const winDelta = eloChanges[winnerId.toString()] || 0;
+          const loseDelta = loserUser ? eloChanges[loserUser._id.toString()] || 0 : 0;
+
+          const winNotif = new Notification({
+            recipientId: winnerId,
+            senderId: loserUser?._id || null,
             type: "match_result",
-            title: "Defeat",
-            message: `${winnerUser?.username || "Your opponent"} solved it first. ${loseDelta} ELO`,
-            payload: { roomId, result: "loss", eloChange: loseDelta },
+            title: "Victory!",
+            message: `You defeated ${loserUser?.username || "your opponent"} and gained ${winDelta >= 0 ? "+" : ""}${winDelta} ELO`,
+            payload: { roomId, result: "win", eloChange: winDelta },
           });
-          await loseNotif.save();
+          await winNotif.save();
 
-          const loserSocketId = activeRooms.get(roomId)?.players?.get(loserUser._id.toString());
-          if (loserSocketId) {
-            io.to(loserSocketId).emit("notification:new", { notification: loseNotif });
+          const winnerSocketId = activeRooms.get(roomId)?.players?.get(winnerId.toString());
+          if (winnerSocketId) {
+            io.to(winnerSocketId).emit("notification:new", { notification: winNotif });
+          }
+
+          if (loserUser) {
+            const loseNotif = new Notification({
+              recipientId: loserUser._id,
+              senderId: winnerId,
+              type: "match_result",
+              title: "Defeat",
+              message: `${winnerUser?.username || "Your opponent"} solved it first. ${loseDelta} ELO`,
+              payload: { roomId, result: "loss", eloChange: loseDelta },
+            });
+            await loseNotif.save();
+
+            const loserSocketId = activeRooms.get(roomId)?.players?.get(loserUser._id.toString());
+            if (loserSocketId) {
+              io.to(loserSocketId).emit("notification:new", { notification: loseNotif });
+            }
           }
         }
       } catch (notifError) {
