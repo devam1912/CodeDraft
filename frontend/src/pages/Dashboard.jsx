@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from "recharts";
 import { useAuth } from "../context/AuthContext";
 import { useSocket } from "../context/SocketContext";
-import { userAPI, tournamentAPI, matchAPI, adminAPI } from "../services/api";
+import { userAPI, matchAPI, adminAPI, roomAPI } from "../services/api";
 import Button from "../components/ui/Button";
 import Card from "../components/ui/Card";
 import NotificationBell from "../components/ui/NotificationBell";
@@ -49,11 +49,12 @@ function Dashboard() {
   const socket = useSocket();
 
   const [profile, setProfile] = useState(null);
-  const [tournaments, setTournaments] = useState([]);
   const [problems, setProblems] = useState([]);
   const [matchHistory, setMatchHistory] = useState([]);
   const [showAvatarModal, setShowAvatarModal] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showJoinModal, setShowJoinModal] = useState(false);
+  const [joinRoomId, setJoinRoomId] = useState("");
   const [battleFormat, setBattleFormat] = useState("1v1");
   const [isBlitz, setIsBlitz] = useState(false);
   const [creatorCompeting, setCreatorCompeting] = useState(false);
@@ -74,9 +75,27 @@ function Dashboard() {
         creatorCompeting,
       });
       toast.success("Battle room lobby initialized!");
-      navigate(`/room/${response.data.roomId || response.roomId}/edit`);
+      navigate(`/room/${response.data.roomId || response.roomId}`);
     } catch (err) {
       toast.error(err.message || "Failed to initialize battle room");
+    }
+  };
+
+  const handleJoinRoom = async () => {
+    const trimmedId = joinRoomId.trim().toUpperCase();
+    if (!trimmedId) {
+      toast.error("Please enter a Room ID");
+      return;
+    }
+    try {
+      // Verify room exists first
+      await roomAPI.getRoomDetails(trimmedId);
+      setShowJoinModal(false);
+      setJoinRoomId("");
+      toast.success("Joining battle lobby...");
+      navigate(`/room/${trimmedId}`);
+    } catch (err) {
+      toast.error(err.message || "Room not found. Check the Room ID and try again.");
     }
   };
 
@@ -108,15 +127,13 @@ function Dashboard() {
   useEffect(() => {
     const load = async () => {
       try {
-        const [profileRes, tourRes, probRes, histRes, telRes] = await Promise.allSettled([
+        const [profileRes, probRes, histRes, telRes] = await Promise.allSettled([
           userAPI.getProfile(),
-          tournamentAPI.getTournaments(),
           userAPI.getProblemsCreated(),
           matchAPI.getMyMatchHistory(),
           adminAPI.getTelemetry(),
         ]);
         if (profileRes.status === "fulfilled") setProfile(profileRes.value.data || profileRes.value);
-        if (tourRes.status === "fulfilled") setTournaments(tourRes.value.data || tourRes.value || []);
         if (probRes.status === "fulfilled") setProblems(probRes.value.data?.problems || []);
         if (histRes.status === "fulfilled") setMatchHistory(histRes.value.data?.history || histRes.value?.history || []);
         if (telRes.status === "fulfilled") setTelemetry(telRes.value.data || telRes.value);
@@ -140,17 +157,6 @@ function Dashboard() {
     };
   }, [socket]);
 
-  const handleCreateTournament = async () => {
-    const name = prompt("Enter the name of your new Bracket Tournament:");
-    if (!name || !name.trim()) return;
-    try {
-      const response = await tournamentAPI.createTournament({ name: name.trim() });
-      toast.success("Tournament draft created successfully!");
-      navigate(`/tournament/${response.data._id || response._id}`);
-    } catch (err) {
-      toast.error(err.message || "Failed to create tournament.");
-    }
-  };
 
   const handleLogout = async () => {
     try {
@@ -203,7 +209,8 @@ function Dashboard() {
             <div style={GREETING_STYLE}>Welcome back, {displayUser?.username || "Challenger"} 👋</div>
             <div style={SUBTEXT_STYLE}>Track your performance, review matches, and challenge opponents.</div>
           </div>
-          <div>
+          <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+            <Button onClick={() => setShowJoinModal(true)} variant="ghost" style={{ padding: "12px 24px" }}>🎮 Join Room</Button>
             <Button onClick={() => setShowCreateModal(true)} variant="primary" style={{ padding: "12px 24px" }}>⚔️ Create Battle</Button>
           </div>
         </motion.div>
@@ -447,35 +454,7 @@ function Dashboard() {
               )}
             </motion.div>
     
-            <motion.div variants={itemVariants}>
-              <div style={{ ...SECTION_HEADING, justifyContent: "space-between" }}>
-                <span style={{ display: "flex", alignItems: "center", gap: "8px" }}><span>🏆</span> Active Bracket Tournaments</span>
-                <Button size="sm" onClick={handleCreateTournament}>Create Tournament</Button>
-              </div>
-              {tournaments.length === 0 ? (
-                <Card>
-                  <div style={EMPTY_STATE}>
-                    <div style={EMPTY_ICON}>🏆</div>
-                    <div style={EMPTY_HEADING}>No tournaments drafting</div>
-                    <div style={EMPTY_DESC}>Create your own bracket draft tournament to challenge multiple developers!</div>
-                  </div>
-                </Card>
-              ) : (
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: "16px" }}>
-                  {tournaments.map((t) => (
-                    <Card key={t._id} style={{ display: "flex", flexDirection: "column", gap: "12px", padding: "20px" }}>
-                      <div>
-                        <h4 style={{ fontSize: "15px", fontWeight: 700, color: "#f8fafc", marginBottom: "4px" }}>{t.name}</h4>
-                        <span style={{ fontSize: "11px", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                          {t.status} · {t.participants?.length || 0} players
-                        </span>
-                      </div>
-                      <Button size="sm" onClick={() => navigate(`/tournament/${t._id}`)}>View Tournament</Button>
-                    </Card>
-                  ))}
-                </div>
-              )}
-            </motion.div>
+
           </>
         ) : (
           <motion.div variants={itemVariants} style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
@@ -688,6 +667,52 @@ function Dashboard() {
         </div>
       )}
 
+      {showJoinModal && (
+        <div style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.8)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", zIndex: 100, justifyContent: "center" }}>
+          <div style={{ backgroundColor: "#111118", border: "1px solid #1e1e2e", borderRadius: "16px", padding: "32px", maxWidth: "420px", width: "100%" }}>
+            <div style={{ textAlign: "center", marginBottom: "24px" }}>
+              <div style={{ fontSize: "40px", marginBottom: "12px" }}>🎮</div>
+              <h3 style={{ fontSize: "20px", fontWeight: 700, color: "#f8fafc", marginBottom: "6px" }}>Join Battle Room</h3>
+              <p style={{ fontSize: "13px", color: "#64748b" }}>Enter the Room ID shared by your opponent to enter their battle lobby.</p>
+            </div>
+
+            <div style={{ marginBottom: "24px" }}>
+              <label style={{ fontSize: "11px", color: "#64748b", textTransform: "uppercase", fontWeight: 600, letterSpacing: "0.08em", display: "block", marginBottom: "8px" }}>Room ID</label>
+              <input
+                type="text"
+                value={joinRoomId}
+                onChange={(e) => setJoinRoomId(e.target.value.toUpperCase())}
+                onKeyDown={(e) => e.key === "Enter" && handleJoinRoom()}
+                placeholder="e.g. NKJAYE"
+                autoFocus
+                style={{
+                  width: "100%",
+                  padding: "14px 16px",
+                  borderRadius: "12px",
+                  backgroundColor: "#0a0a0f",
+                  border: "1px solid #1e1e2e",
+                  color: "#f8fafc",
+                  fontSize: "18px",
+                  fontFamily: "JetBrains Mono, monospace",
+                  fontWeight: 700,
+                  textAlign: "center",
+                  letterSpacing: "0.15em",
+                  textTransform: "uppercase",
+                  outline: "none",
+                }}
+                onFocus={(e) => e.target.style.borderColor = "#6366f1"}
+                onBlur={(e) => e.target.style.borderColor = "#1e1e2e"}
+              />
+            </div>
+
+            <div style={{ display: "flex", gap: "12px" }}>
+              <Button variant="ghost" style={{ flex: 1 }} onClick={() => { setShowJoinModal(false); setJoinRoomId(""); }}>Cancel</Button>
+              <Button variant="primary" style={{ flex: 2 }} onClick={handleJoinRoom}>Join Lobby</Button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {showCreateModal && (
         <div style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.8)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", zIndex: 100, justifyContent: "center" }}>
           <div style={{ backgroundColor: "#111118", border: "1px solid #1e1e2e", borderRadius: "16px", padding: "24px", maxWidth: "420px", width: "100%" }}>
@@ -732,31 +757,6 @@ function Dashboard() {
                 </div>
               </div>
 
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", backgroundColor: "#0a0a0f", padding: "12px", borderRadius: "8px", border: "1px solid #1e1e2e" }}>
-                <div>
-                  <div style={{ fontSize: "13px", fontWeight: 600, color: "#f8fafc" }}>⚡ Blitz Room</div>
-                  <div style={{ fontSize: "11px", color: "#64748b" }}>Ultra-fast duels with a 5m lobby expiry</div>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={isBlitz}
-                  onChange={(e) => setIsBlitz(e.target.checked)}
-                  style={{ width: "18px", height: "18px", accentColor: "#6366f1", cursor: "pointer" }}
-                />
-              </div>
-
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", backgroundColor: "#0a0a0f", padding: "12px", borderRadius: "8px", border: "1px solid #1e1e2e" }}>
-                <div>
-                  <div style={{ fontSize: "13px", fontWeight: 600, color: "#f8fafc" }}>⚔️ Compete as Host</div>
-                  <div style={{ fontSize: "11px", color: "#64748b" }}>Host takes a 5 ELO penalty on victory</div>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={creatorCompeting}
-                  onChange={(e) => setCreatorCompeting(e.target.checked)}
-                  style={{ width: "18px", height: "18px", accentColor: "#6366f1", cursor: "pointer" }}
-                />
-              </div>
             </div>
 
             <div style={{ display: "flex", gap: "12px" }}>

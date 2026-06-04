@@ -30,7 +30,7 @@ export const authAPI = {
 export const roomAPI = {
   createRoom: (data) => api.post("/rooms", data),
   getRoomDetails: (roomId) => api.get(`/rooms/${roomId}`),
-  validateProblem: (roomId, data) => api.post(`/rooms/${roomId}/validate`, data),
+  validateProblem: (roomId, data) => api.post(`/rooms/${roomId}/validate`, data, { timeout: 60000 }),
   submitProblem: (roomId, data) => api.post(`/rooms/${roomId}/problem`, data),
   rateProblem: (roomId, data) => api.post(`/rooms/${roomId}/rate`, data),
 };

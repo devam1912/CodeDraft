@@ -1,10 +1,105 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
+import { motion } from "framer-motion";
 import { useAuth } from "../context/AuthContext";
 import { userAPI } from "../services/api";
 import Button from "../components/ui/Button";
 import Card from "../components/ui/Card";
 import toast from "react-hot-toast";
+
+const PAGE_STYLE = {
+  minHeight: "100vh",
+  backgroundColor: "#030305",
+  color: "#f8fafc",
+  fontFamily: "Inter, sans-serif",
+  position: "relative",
+  overflow: "hidden",
+  display: "flex",
+  flexDirection: "column"
+};
+
+const GLOW_ORB = (top, left, right, bottom, color, size = "600px") => ({
+  position: "absolute",
+  width: size,
+  height: size,
+  top,
+  left,
+  right,
+  bottom,
+  borderRadius: "50%",
+  background: `radial-gradient(circle, ${color} 0%, transparent 70%)`,
+  filter: "blur(60px)",
+  pointerEvents: "none",
+  zIndex: 0,
+});
+
+const NAV_CONTAINER = {
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "space-between",
+  padding: "20px 40px",
+  borderBottom: "1px solid rgba(255, 255, 255, 0.05)",
+  backdropFilter: "blur(20px)",
+  backgroundColor: "rgba(3, 3, 5, 0.75)",
+  position: "sticky",
+  top: 0,
+  zIndex: 50
+};
+
+const LOGO_TEXT = {
+  fontSize: "24px",
+  fontWeight: 900,
+  background: "linear-gradient(135deg, #6366f1 0%, #22d3ee 100%)",
+  WebkitBackgroundClip: "text",
+  WebkitTextFillColor: "transparent",
+  letterSpacing: "-0.03em"
+};
+
+const MAIN_STYLE = {
+  flex: 1,
+  maxWidth: "1200px",
+  width: "100%",
+  margin: "0 auto",
+  padding: "40px 24px",
+  position: "relative",
+  zIndex: 2,
+  display: "flex",
+  flexDirection: "column",
+  gap: "32px"
+};
+
+const BRAND_BADGE = {
+  display: "inline-flex",
+  alignItems: "center",
+  gap: "8px",
+  padding: "6px 12px",
+  borderRadius: "999px",
+  backgroundColor: "rgba(99, 102, 241, 0.1)",
+  border: "1px solid rgba(99, 102, 241, 0.25)",
+  fontSize: "12px",
+  fontWeight: 700,
+  color: "#a5b4fc",
+  textTransform: "uppercase",
+  letterSpacing: "0.05em",
+  marginBottom: "8px"
+};
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.08 }
+  }
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.5, ease: "easeOut" }
+  }
+};
 
 function Leaderboard() {
   const navigate = useNavigate();
@@ -61,42 +156,86 @@ function Leaderboard() {
 
   const getPodiumOrder = () => {
     const order = [];
-    if (podiumUsers[1]) order.push({ user: podiumUsers[1], rank: 2, color: "border-text-secondary/40 text-text-secondary", bg: "bg-text-secondary/10" });
-    if (podiumUsers[0]) order.push({ user: podiumUsers[0], rank: 1, color: "border-warning/40 text-warning", bg: "bg-warning/10" });
-    if (podiumUsers[2]) order.push({ user: podiumUsers[2], rank: 3, color: "border-amber-700/40 text-amber-700", bg: "bg-amber-700/10" });
+    // 2nd Place
+    if (podiumUsers[1]) {
+      order.push({
+        user: podiumUsers[1],
+        rank: 2,
+        color: "#cbd5e1",
+        bg: "rgba(203, 213, 225, 0.05)",
+        icon: "🥈",
+        gradient: "linear-gradient(135deg, rgba(203,213,225,0.08), rgba(203,213,225,0.02))",
+        height: "220px"
+      });
+    }
+    // 1st Place
+    if (podiumUsers[0]) {
+      order.push({
+        user: podiumUsers[0],
+        rank: 1,
+        color: "#f59e0b",
+        bg: "rgba(245, 158, 11, 0.1)",
+        icon: "🏆",
+        gradient: "linear-gradient(135deg, rgba(99,102,241,0.15), rgba(34,211,238,0.05))",
+        height: "250px"
+      });
+    }
+    // 3rd Place
+    if (podiumUsers[2]) {
+      order.push({
+        user: podiumUsers[2],
+        rank: 3,
+        color: "#b45309",
+        bg: "rgba(180, 83, 9, 0.05)",
+        icon: "🥉",
+        gradient: "linear-gradient(135deg, rgba(180,83,9,0.08), rgba(180,83,9,0.02))",
+        height: "200px"
+      });
+    }
     return order;
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-bg-primary font-sans text-text-primary">
-      <header className="border-b border-border-default bg-bg-surface px-6 py-4 flex items-center justify-between sticky top-0 z-40">
-        <div className="flex items-center gap-4">
-          <button
-            onClick={() => navigate("/dashboard")}
-            className="flex items-center gap-2 text-text-secondary hover:text-text-primary transition-colors duration-150 text-sm font-medium"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
-            </svg>
-            Dashboard
-          </button>
-          <div className="h-4 w-px bg-border-default" />
-          <span className="text-sm font-semibold text-secondary tracking-wide uppercase">
-            Leaderboard
-          </span>
-        </div>
-      </header>
+    <div style={PAGE_STYLE}>
+      <div style={GLOW_ORB("-200px", null, "-100px", null, "rgba(99, 102, 241, 0.12)", "700px")} />
+      <div style={GLOW_ORB(null, "-100px", null, "-200px", "rgba(34, 211, 238, 0.1)", "600px")} />
 
-      <main className="flex-1 max-w-4xl w-full mx-auto p-6 flex flex-col gap-8">
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div className="flex flex-col gap-1">
-            <h1 className="text-3xl font-extrabold tracking-tight">ELO League Standings</h1>
-            <p className="text-sm text-text-secondary">
-              See who sits at the top of the arena ranks.
+      <nav style={NAV_CONTAINER}>
+        <div style={{ display: "flex", gap: "36px", alignItems: "center" }}>
+          <Link to="/" style={{ textDecoration: "none" }}>
+            <span style={LOGO_TEXT}>CodeDraft</span>
+          </Link>
+          <div style={{ display: "flex", gap: "24px", alignItems: "center" }}>
+            <Link to="/leaderboard" style={{ textDecoration: "none", color: "#ffffff", fontSize: "14px", fontWeight: 700 }}>Leaderboard</Link>
+            <Link to="/dashboard" style={{ textDecoration: "none", color: "#94a3b8", fontSize: "14px", fontWeight: 500 }} className="hover:text-white transition-colors">Tournaments</Link>
+            <Link to="/dashboard" style={{ textDecoration: "none", color: "#94a3b8", fontSize: "14px", fontWeight: 500 }} className="hover:text-white transition-colors">Spectate</Link>
+          </div>
+        </div>
+        <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+          <Button variant="ghost" size="sm" onClick={() => navigate("/dashboard")}>
+            Back to Dashboard
+          </Button>
+        </div>
+      </nav>
+
+      <motion.main 
+        style={MAIN_STYLE}
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+      >
+        <motion.div variants={itemVariants} style={{ display: "flex", flexDirection: "column", gap: "16px", mdFlexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", width: "100%" }}>
+          <div>
+            <div style={BRAND_BADGE}>Platform Standings</div>
+            <h1 style={{ fontSize: "36px", fontWeight: 900, letterSpacing: "-0.03em", marginBottom: "8px" }}>
+              ELO League Standings
+            </h1>
+            <p style={{ fontSize: "14px", color: "#94a3b8" }}>
+              See who sits at the top of the competitive arena ranks.
             </p>
           </div>
 
-          <div className="flex bg-bg-surface border border-border-default p-1 rounded-xl gap-1">
+          <div style={{ display: "flex", backgroundColor: "#0a0a0f", border: "1px solid rgba(255, 255, 255, 0.05)", padding: "4px", borderRadius: "12px", gap: "4px", alignSelf: "flex-start", marginTop: "12px" }}>
             {[
               { key: "global", label: "Global" },
               { key: "college", label: user?.college ? `${user.college} League` : "My College", disabled: !user?.college },
@@ -104,205 +243,262 @@ function Leaderboard() {
             ].map(({ key, label, disabled }) => (
               <button
                 key={key}
-                onClick={() => !disabled && handleFilterChange(key)}
-                className={`px-4 py-2 rounded-lg text-xs font-bold uppercase transition-all duration-150 ${
-                  filterType === key
-                    ? "bg-primary text-text-primary"
-                    : disabled
-                    ? "text-text-muted cursor-not-allowed opacity-50"
-                    : "text-text-secondary hover:text-text-primary"
-                }`}
+                disabled={disabled}
+                onClick={() => handleFilterChange(key)}
+                style={{
+                  padding: "8px 16px",
+                  borderRadius: "8px",
+                  fontSize: "11px",
+                  fontWeight: 800,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.05em",
+                  border: "none",
+                  cursor: disabled ? "not-allowed" : "pointer",
+                  opacity: disabled ? 0.3 : 1,
+                  backgroundColor: filterType === key ? "rgba(99, 102, 241, 0.15)" : "transparent",
+                  color: filterType === key ? "#a5b4fc" : "#94a3b8",
+                  transition: "all 0.2s"
+                }}
               >
                 {label}
               </button>
             ))}
           </div>
-        </div>
+        </motion.div>
 
-        <div className="w-full relative">
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={handleSearchChange}
-            placeholder="Search fighters by username..."
-            className="w-full px-4 py-3 rounded-xl bg-bg-surface border border-border-default text-sm placeholder:text-text-muted focus:outline-none focus:border-primary transition-colors duration-150 font-mono"
-          />
-        </div>
+        {filterType !== "colleges" && (
+          <motion.div variants={itemVariants} style={{ width: "100%", position: "relative" }}>
+            <div style={{ position: "absolute", left: "16px", top: "50%", transform: "translateY(-50%)", display: "flex", alignItems: "center", pointerEvents: "none" }}>
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+              </svg>
+            </div>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={handleSearchChange}
+              placeholder="Search fighters by username..."
+              style={{
+                width: "100%",
+                padding: "14px 20px 14px 48px",
+                borderRadius: "12px",
+                backgroundColor: "#0a0a0f",
+                border: "1px solid rgba(255, 255, 255, 0.05)",
+                color: "#f8fafc",
+                fontSize: "14px",
+                fontFamily: "JetBrains Mono, monospace"
+              }}
+            />
+          </motion.div>
+        )}
 
         {isLoading ? (
-          <div className="flex-1 py-20 flex justify-center text-sm font-mono text-text-secondary animate-pulse">
+          <div style={{ flex: 1, padding: "80px 0", textAlign: "center", fontSize: "14px", fontFamily: "JetBrains Mono, monospace", color: "#64748b", animation: "pulse 1s infinite" }}>
             Retrieving standings history records...
           </div>
-        ) : users.length === 0 ? (
-          <Card className="text-center py-16 text-text-secondary flex flex-col items-center gap-3">
-            <span className="text-4xl">🏅</span>
-            <h3 className="text-lg font-bold text-text-primary">No competitors found</h3>
-            <p className="text-xs text-text-muted">
+        ) : users.length === 0 && filterType !== "colleges" ? (
+          <Card style={{ textAlign: "center", padding: "64px 32px", display: "flex", flexDirection: "column", alignItems: "center", gap: "12px" }}>
+            <span style={{ fontSize: "40px" }}>🏅</span>
+            <h3 style={{ fontSize: "18px", fontWeight: 700, color: "#f8fafc" }}>No competitors found</h3>
+            <p style={{ fontSize: "13px", color: "#94a3b8" }}>
               Adjust your search criteria or register a college tag to broaden findings.
             </p>
           </Card>
         ) : (
-          <div className="flex flex-col gap-8 animate-fade-in">
-            {currentPage === 1 && !searchQuery && podiumUsers.length > 0 && (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-end mt-4">
-                {getPodiumOrder().map(({ user: podUser, rank, color, bg }) => (
+          <div style={{ display: "flex", flexDirection: "column", gap: "32px" }}>
+            {currentPage === 1 && !searchQuery && podiumUsers.length > 0 && filterType !== "colleges" && (
+              <motion.div 
+                style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "24px", alignItems: "end", marginTop: "16px" }}
+                variants={itemVariants}
+              >
+                {getPodiumOrder().map(({ user: podUser, rank, color, bg, icon, gradient, height }) => (
                   <Card
                     key={podUser._id}
-                    className={`bg-bg-surface border flex flex-col items-center p-6 text-center gap-4 relative overflow-hidden ${
-                      rank === 1 ? "md:py-10 border-primary md:order-none" : "border-border-default"
-                    }`}
+                    style={{
+                      background: gradient,
+                      border: rank === 1 ? "1px solid #6366f1" : "1px solid rgba(255, 255, 255, 0.05)",
+                      borderRadius: "16px",
+                      padding: "32px 24px",
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      textAlign: "center",
+                      gap: "16px",
+                      position: "relative",
+                      overflow: "hidden",
+                      minHeight: height,
+                      boxShadow: rank === 1 ? "0 10px 30px rgba(99, 102, 241, 0.15)" : "0 4px 20px rgba(0, 0, 0, 0.2)"
+                    }}
                   >
-                    <div className={`absolute top-0 inset-x-0 h-1 bg-gradient-to-r ${rank === 1 ? "from-primary to-secondary" : rank === 2 ? "from-text-secondary to-text-secondary/50" : "from-amber-700 to-amber-800"}`} />
+                    <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: "3px", background: rank === 1 ? "linear-gradient(90deg, #6366f1, #22d3ee)" : color }} />
                     
-                    <div className="relative">
-                      <div className="w-16 h-16 rounded-full bg-bg-elevated border-2 border-border-default flex items-center justify-center font-mono font-extrabold text-lg text-primary shadow-inner">
-                        {podUser.avatar || podUser.username.slice(0, 2).toUpperCase()}
+                    <div style={{ position: "relative" }}>
+                      <div style={{ width: "64px", height: "64px", borderRadius: "50%", backgroundColor: "rgba(255,255,255,0.03)", border: `2px solid rgba(255,255,255,0.08)`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "32px" }}>
+                        {podUser.avatar || "👤"}
                       </div>
-                      <div className={`absolute -bottom-2 -right-2 w-8 h-8 rounded-full border-2 ${color} ${bg} flex items-center justify-center font-mono font-black text-xs`}>
+                      <div style={{ position: "absolute", bottom: "-6px", right: "-6px", width: "26px", height: "26px", borderRadius: "50%", backgroundColor: "#030305", border: `2px solid ${color}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "12px", fontWeight: 900 }}>
                         {rank}
                       </div>
                     </div>
 
-                    <div className="flex flex-col gap-1">
-                      <h4 className="font-extrabold text-base text-text-primary truncate max-w-[150px]">
+                    <div>
+                      <h4 style={{ fontSize: "16px", fontWeight: 800, color: "#f8fafc", marginBottom: "4px" }}>
                         {podUser.username}
                       </h4>
-                      <span className="text-[10px] text-text-muted font-mono uppercase truncate max-w-[150px]">
-                        {podUser.college || "Independent Coder"}
+                      <span style={{ fontSize: "10px", color: "#64748b", textTransform: "uppercase", fontWeight: 700, letterSpacing: "0.05em", fontFamily: "JetBrains Mono, monospace" }}>
+                        🎓 {podUser.college || "Independent"}
                       </span>
                     </div>
 
-                    <div className="flex flex-col items-center">
-                      <span className="text-2xl font-black font-mono text-secondary">
+                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+                      <span style={{ fontSize: "28px", fontWeight: 900, fontFamily: "JetBrains Mono, monospace", background: "linear-gradient(135deg, #a5b4fc 0%, #6366f1 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
                         {podUser.eloRating}
                       </span>
-                      <span className="text-[9px] text-text-muted uppercase tracking-wider font-mono">
+                      <span style={{ fontSize: "9px", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em", marginTop: "2px" }}>
                         Rating ELO
                       </span>
                     </div>
 
-                    <div className="text-[10px] text-text-secondary font-mono flex gap-3 border-t border-border-default pt-3 w-full justify-center">
-                      <span>W: <span className="text-success font-bold">{podUser.wins || 0}</span></span>
-                      <span>L: <span className="text-error font-bold">{podUser.losses || 0}</span></span>
+                    <div style={{ fontSize: "11px", color: "#94a3b8", fontFamily: "JetBrains Mono, monospace", display: "flex", gap: "16px", borderTop: "1px solid rgba(255, 255, 255, 0.05)", paddingTop: "12px", width: "100%", justifyContent: "center" }}>
+                      <span>Wins: <span style={{ color: "#10b981", fontWeight: 700 }}>{podUser.wins || 0}</span></span>
+                      <span>Losses: <span style={{ color: "#ef4444", fontWeight: 700 }}>{podUser.losses || 0}</span></span>
                     </div>
                   </Card>
                 ))}
-              </div>
+              </motion.div>
             )}
 
-            {filterType === "colleges" ? (
-              <Card className="p-0 border border-border-default rounded-xl overflow-hidden bg-bg-surface">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse text-xs">
-                    <thead>
-                      <tr className="border-b border-border-default bg-bg-elevated/40 text-text-muted uppercase font-mono tracking-wider">
-                        <th className="py-4 px-6 text-center font-bold">Rank</th>
-                        <th className="py-4 px-6 font-bold">College</th>
-                        <th className="py-4 px-6 text-center font-bold">Members</th>
-                        <th className="py-4 px-6 text-center font-bold">Top ELO</th>
-                        <th className="py-4 px-6 text-right font-bold">Avg ELO</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-border-default font-mono">
-                      {colleges.map((col, idx) => (
-                        <tr
-                          key={col.college}
-                          className={`hover:bg-bg-elevated/20 transition-colors duration-150 ${
-                            col.college === user?.college ? "border-l-2 border-primary bg-primary/5" : ""
-                          }`}
-                        >
-                          <td className="py-4 px-6 text-center text-text-muted font-bold">#{idx + 1}</td>
-                          <td className="py-4 px-6 font-semibold text-text-primary">{col.college}</td>
-                          <td className="py-4 px-6 text-center text-text-secondary">{col.memberCount}</td>
-                          <td className="py-4 px-6 text-center text-warning font-bold">{col.topElo}</td>
-                          <td className="py-4 px-6 text-right text-secondary font-black text-sm">{col.avgElo}</td>
+            <motion.div variants={itemVariants} style={{ width: "100%" }}>
+              {filterType === "colleges" ? (
+                <Card style={{ padding: 0, overflow: "hidden" }}>
+                  <div style={{ overflowX: "auto" }}>
+                    <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px" }}>
+                      <thead>
+                        <tr style={{ borderBottom: "1px solid rgba(255, 255, 255, 0.05)", backgroundColor: "rgba(255,255,255,0.01)" }}>
+                          <th style={{ padding: "14px 20px", textTransform: "uppercase", letterSpacing: "0.05em", color: "#64748b", fontFamily: "JetBrains Mono, monospace", fontSize: "11px", textAlign: "center" }}>Rank</th>
+                          <th style={{ padding: "14px 20px", textTransform: "uppercase", letterSpacing: "0.05em", color: "#64748b", fontFamily: "JetBrains Mono, monospace", fontSize: "11px", textAlign: "left" }}>College / Institution</th>
+                          <th style={{ padding: "14px 20px", textTransform: "uppercase", letterSpacing: "0.05em", color: "#64748b", fontFamily: "JetBrains Mono, monospace", fontSize: "11px", textAlign: "center" }}>Members</th>
+                          <th style={{ padding: "14px 20px", textTransform: "uppercase", letterSpacing: "0.05em", color: "#64748b", fontFamily: "JetBrains Mono, monospace", fontSize: "11px", textAlign: "center" }}>Top ELO</th>
+                          <th style={{ padding: "14px 20px", textTransform: "uppercase", letterSpacing: "0.05em", color: "#64748b", fontFamily: "JetBrains Mono, monospace", fontSize: "11px", textAlign: "right" }}>Avg ELO</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </Card>
-            ) : (
-            (listUsers.length > 0 || (podiumUsers.length > 0 && (currentPage > 1 || searchQuery))) && (
-              <Card className="p-0 border border-border-default rounded-xl overflow-hidden bg-bg-surface">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse text-xs">
-                    <thead>
-                      <tr className="border-b border-border-default bg-bg-elevated/40 text-text-muted uppercase font-mono tracking-wider">
-                        <th className="py-4 px-6 text-center font-bold">Rank</th>
-                        <th className="py-4 px-6 font-bold">Competitor</th>
-                        <th className="py-4 px-6 font-bold">College</th>
-                        <th className="py-4 px-6 text-center font-bold">Wins</th>
-                        <th className="py-4 px-6 text-center font-bold">Losses</th>
-                        <th className="py-4 px-6 text-center font-bold">Win%</th>
-                        <th className="py-4 px-6 text-right font-bold">Rating</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-border-default font-mono">
-                      {(currentPage === 1 && !searchQuery ? listUsers : users).map((listUser, idx) => {
-                        const rankNumber = (currentPage - 1) * 15 + (currentPage === 1 && !searchQuery ? idx + 4 : idx + 1);
-                        const isViewer = user?._id === listUser._id || user?.username === listUser.username;
-                        const winPct = listUser.wins + listUser.losses > 0
-                          ? Math.round((listUser.wins / (listUser.wins + listUser.losses)) * 100)
-                          : 0;
-                        return (
-                          <tr
-                            key={listUser._id}
-                            className={`hover:bg-bg-elevated/20 transition-colors duration-150 ${
-                              isViewer ? "border-l-2 border-primary bg-primary/5 font-bold" : ""
-                            }`}
-                          >
-                            <td className="py-4 px-6 text-center text-text-muted font-bold">#{rankNumber}</td>
-                            <td className="py-4 px-6 font-sans">
-                              <div className="flex items-center gap-3">
-                                <div className="w-7 h-7 rounded-full bg-bg-elevated border border-border-default flex items-center justify-center font-mono font-bold text-[10px] text-primary">
-                                  {listUser.avatar || listUser.username.slice(0, 2).toUpperCase()}
-                                </div>
-                                <span className={`font-semibold ${isViewer ? "text-primary" : "text-text-primary"}`}>
-                                  {listUser.username}{isViewer ? " (You)" : ""}
-                                </span>
-                              </div>
-                            </td>
-                            <td className="py-4 px-6 text-text-secondary">{listUser.college || "Independent"}</td>
-                            <td className="py-4 px-6 text-center text-success font-bold">{listUser.wins || 0}</td>
-                            <td className="py-4 px-6 text-center text-error font-bold">{listUser.losses || 0}</td>
-                            <td className="py-4 px-6 text-center font-bold" style={{ color: winPct >= 50 ? "#10b981" : "#ef4444" }}>{winPct}%</td>
-                            <td className="py-4 px-6 text-right text-secondary font-black text-sm">{listUser.eloRating}</td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-
-                {pagination.totalPages > 1 && (
-                  <div className="flex items-center justify-between p-4 border-t border-border-default text-xs font-mono">
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                      disabled={currentPage === 1}
-                    >
-                      Previous
-                    </Button>
-                    <span className="text-text-secondary">
-                      Page {currentPage} of {pagination.totalPages}
-                    </span>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => setCurrentPage((p) => Math.min(pagination.totalPages, p + 1))}
-                      disabled={currentPage === pagination.totalPages}
-                    >
-                      Next
-                    </Button>
+                      </thead>
+                      <tbody>
+                        {colleges.map((col, idx) => {
+                          const isViewerCollege = col.college === user?.college;
+                          return (
+                            <tr
+                              key={col.college}
+                              style={{ 
+                                borderBottom: "1px solid rgba(255, 255, 255, 0.04)",
+                                borderLeft: isViewerCollege ? "3px solid #6366f1" : "3px solid transparent",
+                                backgroundColor: isViewerCollege ? "rgba(99, 102, 241, 0.04)" : "transparent"
+                              }}
+                            >
+                              <td style={{ padding: "14px 20px", textAlign: "center", fontFamily: "JetBrains Mono, monospace", fontWeight: 700, color: "#64748b" }}>#{idx + 1}</td>
+                              <td style={{ padding: "14px 20px", fontWeight: 700, color: "#f8fafc" }}>🎓 {col.college}</td>
+                              <td style={{ padding: "14px 20px", textAlign: "center", color: "#94a3b8", fontFamily: "JetBrains Mono, monospace" }}>{col.memberCount}</td>
+                              <td style={{ padding: "14px 20px", textAlign: "center", color: "#f59e0b", fontWeight: 700, fontFamily: "JetBrains Mono, monospace" }}>{col.topElo}</td>
+                              <td style={{ padding: "14px 20px", textAlign: "right", color: "#22d3ee", fontWeight: 800, fontFamily: "JetBrains Mono, monospace", fontSize: "14px" }}>{col.avgElo}</td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
                   </div>
-                )}
-              </Card>
-            ))}
+                </Card>
+              ) : (
+                <Card style={{ padding: 0, overflow: "hidden" }}>
+                  <div style={{ overflowX: "auto" }}>
+                    <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px" }}>
+                      <thead>
+                        <tr style={{ borderBottom: "1px solid rgba(255, 255, 255, 0.05)", backgroundColor: "rgba(255,255,255,0.01)" }}>
+                          <th style={{ padding: "14px 20px", textTransform: "uppercase", letterSpacing: "0.05em", color: "#64748b", fontFamily: "JetBrains Mono, monospace", fontSize: "11px", textAlign: "center" }}>Rank</th>
+                          <th style={{ padding: "14px 20px", textTransform: "uppercase", letterSpacing: "0.05em", color: "#64748b", fontFamily: "JetBrains Mono, monospace", fontSize: "11px", textAlign: "left" }}>Competitor</th>
+                          <th style={{ padding: "14px 20px", textTransform: "uppercase", letterSpacing: "0.05em", color: "#64748b", fontFamily: "JetBrains Mono, monospace", fontSize: "11px", textAlign: "left" }}>College</th>
+                          <th style={{ padding: "14px 20px", textTransform: "uppercase", letterSpacing: "0.05em", color: "#64748b", fontFamily: "JetBrains Mono, monospace", fontSize: "11px", textAlign: "center" }}>Wins</th>
+                          <th style={{ padding: "14px 20px", textTransform: "uppercase", letterSpacing: "0.05em", color: "#64748b", fontFamily: "JetBrains Mono, monospace", fontSize: "11px", textAlign: "center" }}>Losses</th>
+                          <th style={{ padding: "14px 20px", textTransform: "uppercase", letterSpacing: "0.05em", color: "#64748b", fontFamily: "JetBrains Mono, monospace", fontSize: "11px", textAlign: "center" }}>Win%</th>
+                          <th style={{ padding: "14px 20px", textTransform: "uppercase", letterSpacing: "0.05em", color: "#64748b", fontFamily: "JetBrains Mono, monospace", fontSize: "11px", textAlign: "right" }}>Rating</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {(currentPage === 1 && !searchQuery ? listUsers : users).length === 0 ? (
+                          <tr>
+                            <td colSpan="7" style={{ padding: "48px 20px", textAlign: "center", color: "#64748b", fontFamily: "JetBrains Mono, monospace", fontSize: "13px" }}>
+                              <span style={{ fontSize: "24px", display: "block", marginBottom: "8px" }}>📭</span>
+                              More fighters entering the arena soon...
+                            </td>
+                          </tr>
+                        ) : (
+                          (currentPage === 1 && !searchQuery ? listUsers : users).map((listUser, idx) => {
+                          const rankNumber = (currentPage - 1) * 15 + (currentPage === 1 && !searchQuery ? idx + 4 : idx + 1);
+                          const isViewer = user?._id === listUser._id || user?.username === listUser.username;
+                          const winPct = listUser.wins + listUser.losses > 0
+                            ? Math.round((listUser.wins / (listUser.wins + listUser.losses)) * 100)
+                            : 0;
+                          return (
+                            <tr
+                              key={listUser._id}
+                              style={{ 
+                                borderBottom: "1px solid rgba(255, 255, 255, 0.04)",
+                                borderLeft: isViewer ? "3px solid #6366f1" : "3px solid transparent",
+                                backgroundColor: isViewer ? "rgba(99, 102, 241, 0.04)" : "transparent",
+                                transition: "background-color 0.15s"
+                              }}
+                            >
+                              <td style={{ padding: "14px 20px", textAlign: "center", fontFamily: "JetBrains Mono, monospace", fontWeight: 700, color: "#64748b" }}>#{rankNumber}</td>
+                              <td style={{ padding: "14px 20px" }}>
+                                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                                  <div style={{ width: "26px", height: "26px", borderRadius: "50%", backgroundColor: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "14px" }}>
+                                    {listUser.avatar || "👤"}
+                                  </div>
+                                  <span style={{ fontWeight: 700, color: isViewer ? "#a5b4fc" : "#f8fafc" }}>
+                                    {listUser.username}{isViewer ? " (You)" : ""}
+                                  </span>
+                                </div>
+                              </td>
+                              <td style={{ padding: "14px 20px", color: "#94a3b8" }}>{listUser.college || "Independent"}</td>
+                              <td style={{ padding: "14px 20px", textAlign: "center", color: "#10b981", fontWeight: 700, fontFamily: "JetBrains Mono, monospace" }}>{listUser.wins || 0}</td>
+                              <td style={{ padding: "14px 20px", textAlign: "center", color: "#ef4444", fontWeight: 700, fontFamily: "JetBrains Mono, monospace" }}>{listUser.losses || 0}</td>
+                              <td style={{ padding: "14px 20px", textAlign: "center", fontWeight: 800, color: winPct >= 50 ? "#10b981" : "#ef4444", fontFamily: "JetBrains Mono, monospace" }}>{winPct}%</td>
+                              <td style={{ padding: "14px 20px", textAlign: "right", color: "#22d3ee", fontWeight: 800, fontFamily: "JetBrains Mono, monospace", fontSize: "14px" }}>{listUser.eloRating}</td>
+                            </tr>
+                          );
+                        }))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {pagination.totalPages > 1 && (
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 24px", borderTop: "1px solid rgba(255, 255, 255, 0.05)", fontSize: "12px", fontFamily: "JetBrains Mono, monospace" }}>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                        disabled={currentPage === 1}
+                      >
+                        Previous
+                      </Button>
+                      <span style={{ color: "#64748b" }}>
+                        Page {currentPage} of {pagination.totalPages}
+                      </span>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => setCurrentPage((p) => Math.min(pagination.totalPages, p + 1))}
+                        disabled={currentPage === pagination.totalPages}
+                      >
+                        Next
+                      </Button>
+                    </div>
+                  )}
+                </Card>
+              )}
+            </motion.div>
           </div>
         )}
-      </main>
+      </motion.main>
     </div>
   );
 }

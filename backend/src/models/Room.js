@@ -87,6 +87,8 @@ const roomSchema = new mongoose.Schema(
       index: true,
     },
     problem: problemSchema,
+    problemA: problemSchema,
+    problemB: problemSchema,
     players: [
       {
         type: mongoose.Schema.Types.ObjectId,
@@ -111,7 +113,6 @@ const roomSchema = new mongoose.Schema(
     },
     setupExpiresAt: {
       type: Date,
-      required: true,
     },
     startedAt: {
       type: Date,

@@ -3,7 +3,7 @@ const Tournament = require("../models/Tournament");
 const Notification = require("../models/Notification");
 const activeRooms = require("./roomManager");
 const logger = require("../utils/logger");
-const { executeJS } = require("../utils/codeExecutor");
+const { executeJS, executePython, executeCPP, executeC } = require("../utils/codeExecutor");
 const axios = require("axios");
 const generateRoomId = require("../utils/generateRoomId");
 
@@ -11,6 +11,61 @@ const LANGUAGE_IDS = {
   javascript: 63,
   python: 71,
   cpp: 54,
+  java: 62,
+  go: 60,
+  rust: 73,
+  c: 50,
+};
+
+const FALLBACK_CHALLENGES = {
+  easy: {
+    title: "Two Sum",
+    statement: "Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target.\n\nYou may assume that each input would have exactly one solution, and you may not use the same element twice.\n\nYou can return the answer in any order.",
+    visibleExamples: [
+      { input: "[2,7,11,15]\n9", output: "[0,1]", explanation: "Because nums[0] + nums[1] == 9, we return [0, 1]." }
+    ],
+    hiddenTestCases: [
+      { input: "[2,7,11,15]\n9", expectedOutput: "[0,1]" },
+      { input: "[3,2,4]\n6", expectedOutput: "[1,2]" },
+      { input: "[3,3]\n6", expectedOutput: "[0,1]" },
+      { input: "[1,5,3,7]\n12", expectedOutput: "[1,3]" }
+    ],
+    timeLimit: 10,
+    difficulty: "easy",
+    allowedLanguages: ["javascript", "python", "cpp"]
+  },
+  medium: {
+    title: "Reverse Integer",
+    statement: "Given a signed 32-bit integer x, return x with its digits reversed. If reversing x causes the value to go outside the signed 32-bit integer range [-2^31, 2^31 - 1], then return 0.",
+    visibleExamples: [
+      { input: "123", output: "321", explanation: "123 reversed is 321." }
+    ],
+    hiddenTestCases: [
+      { input: "123", expectedOutput: "321" },
+      { input: "-123", expectedOutput: "-321" },
+      { input: "120", expectedOutput: "21" },
+      { input: "1534236469", expectedOutput: "0" }
+    ],
+    timeLimit: 10,
+    difficulty: "medium",
+    allowedLanguages: ["javascript", "python", "cpp"]
+  },
+  hard: {
+    title: "Regular Expression Matching",
+    statement: "Given an input string s and a pattern p, implement regular expression matching with support for '.' and '*' where '.' matches any single character and '*' matches zero or more of the preceding element.",
+    visibleExamples: [
+      { input: "aa\na", output: "false", explanation: "'a' does not match the entire string 'aa'." }
+    ],
+    hiddenTestCases: [
+      { input: "aa\na", expectedOutput: "false" },
+      { input: "aa\na*", expectedOutput: "true" },
+      { input: "ab\n.*", expectedOutput: "true" },
+      { input: "aab\nc*a*b", expectedOutput: "true" }
+    ],
+    timeLimit: 15,
+    difficulty: "hard",
+    allowedLanguages: ["javascript", "python", "cpp"]
+  }
 };
 
 const registerMatchHandlers = (io, socket) => {
@@ -48,12 +103,20 @@ const registerMatchHandlers = (io, socket) => {
 
       let updateQuery = { $addToSet: { players: socket.userId } };
 
-      if (room.battleFormat === "2v2" && !isAlreadyJoined) {
-        const teamASpace = 2 - room.teamA.length;
-        if (teamASpace > 0) {
-          updateQuery.$addToSet.teamA = socket.userId;
+      if (!isAlreadyJoined) {
+        if (room.battleFormat === "2v2") {
+          const teamASpace = 2 - room.teamA.length;
+          if (teamASpace > 0) {
+            updateQuery.$addToSet.teamA = socket.userId;
+          } else {
+            updateQuery.$addToSet.teamB = socket.userId;
+          }
         } else {
-          updateQuery.$addToSet.teamB = socket.userId;
+          if (socket.userId.toString() === room.creatorId.toString()) {
+            updateQuery.$addToSet.teamA = socket.userId;
+          } else {
+            updateQuery.$addToSet.teamB = socket.userId;
+          }
         }
       }
 
@@ -66,8 +129,26 @@ const registerMatchHandlers = (io, socket) => {
         .populate("teamA", "username eloRating college avatar")
         .populate("teamB", "username eloRating college avatar");
 
+      const isLobbyFull = updatedRoom.players.length >= maxPlayers;
+
+      let timerStarted = false;
+      if (isLobbyFull && !updatedRoom.setupExpiresAt && updatedRoom.status === "waiting_for_players") {
+        const setupDuration = updatedRoom.isBlitz === true ? 5 * 60 * 1000 : 30 * 60 * 1000;
+        const setupExpiresAt = new Date(Date.now() + setupDuration);
+        
+        await Room.updateOne({ roomId }, { setupExpiresAt });
+        updatedRoom.setupExpiresAt = setupExpiresAt;
+        timerStarted = true;
+        
+        logger.info(`Lobby full. Custom framing countdown initialized for Room ${roomId}`);
+      }
+
       socket.roomId = roomId;
       socket.join(roomId);
+
+      if (timerStarted) {
+        io.to(roomId).emit("room:timerStarted", { setupExpiresAt: updatedRoom.setupExpiresAt });
+      }
 
       if (!activeRooms.has(roomId)) {
         activeRooms.set(roomId, {
@@ -75,6 +156,8 @@ const registerMatchHandlers = (io, socket) => {
           spectators: new Set(),
           status: updatedRoom.status,
           matchWon: false,
+          problemA: updatedRoom.problemA,
+          problemB: updatedRoom.problemB,
           problem: updatedRoom.problem,
           submissions: new Map(),
         });
@@ -154,7 +237,7 @@ const registerMatchHandlers = (io, socket) => {
     }
   });
 
-  socket.on("room:start", async ({ roomId }) => {
+  socket.on("room:start", async ({ roomId, force }) => {
     try {
       if (!roomId) {
         return socket.emit("error", { message: "Room ID is required" });
@@ -182,8 +265,24 @@ const registerMatchHandlers = (io, socket) => {
         return socket.emit("error", { message: "Room active state not tracked" });
       }
 
+      const isExpired = room.setupExpiresAt <= new Date();
+      const forceStart = force === true || isExpired;
+
+      if (!room.problemA || !room.problemB) {
+        if (forceStart) {
+          const defaultProb = FALLBACK_CHALLENGES[room.difficulty || "easy"] || FALLBACK_CHALLENGES.easy;
+          if (!room.problemA) room.problemA = defaultProb;
+          if (!room.problemB) room.problemB = defaultProb;
+          await room.save();
+        } else {
+          return socket.emit("error", { message: "Both participants must frame their challenges before starting the battle." });
+        }
+      }
+
       const roomState = activeRooms.get(roomId);
       roomState.status = "active";
+      roomState.problemA = room.problemA;
+      roomState.problemB = room.problemB;
 
       let count = 3;
       io.to(roomId).emit("room:countdown", { count });
@@ -203,24 +302,31 @@ const registerMatchHandlers = (io, socket) => {
           });
           await room.save();
 
-          io.to(roomId).emit("room:ready", {
-            problem: {
-              title: room.problem.title,
-              statement: room.problem.statement,
-              visibleExamples: room.problem.visibleExamples,
-              timeLimit: room.problem.timeLimit,
-              difficulty: room.problem.difficulty,
-              allowedLanguages: room.problem.allowedLanguages,
-            },
-          });
+          // Emit customized room:ready to each player socket based on their team swap
+          const socketsInRoom = await io.in(roomId).fetchSockets();
+          for (const s of socketsInRoom) {
+            const isTeamA = room.teamA.some(p => p.toString() === s.userId?.toString()) || room.creatorId.toString() === s.userId?.toString();
+            const targetProblem = isTeamA ? room.problemB : room.problemA;
+
+            s.emit("room:ready", {
+              problem: {
+                title: targetProblem.title,
+                statement: targetProblem.statement,
+                visibleExamples: targetProblem.visibleExamples,
+                timeLimit: targetProblem.timeLimit,
+                difficulty: targetProblem.difficulty,
+                allowedLanguages: targetProblem.allowedLanguages,
+              }
+            });
+          }
 
           io.emit("global:activity", {
             type: "battle_start",
-            message: `Battle Room ${roomId} has launched! The race to pass hidden test cases is ON!`,
+            message: `Battle Room ${roomId} has launched! The race to pass custom-framed test cases is ON!`,
             timestamp: new Date(),
           });
 
-          logger.info(`Synchronized countdown finished. Battle active for Room ${roomId}`);
+          logger.info(`Synchronized countdown finished. Swapped Battle active for Room ${roomId}`);
         }
       }, 1000);
     } catch (error) {
@@ -366,7 +472,9 @@ const registerMatchHandlers = (io, socket) => {
         return socket.emit("error", { message: "You are not registered as a competitor in this match" });
       }
 
-      const testCases = room.problem.hiddenTestCases;
+      const isTeamA = room.teamA.some((p) => p._id.toString() === socket.userId.toString()) || room.creatorId.toString() === socket.userId.toString();
+      const targetProblem = isTeamA ? room.problemB : room.problemA;
+      const testCases = targetProblem.hiddenTestCases;
       const results = [];
       let allPassed = true;
 
@@ -400,7 +508,7 @@ const registerMatchHandlers = (io, socket) => {
                   "x-rapidapi-host": "judge0-ce.p.rapidapi.com",
                   "Content-Type": "application/json",
                 },
-                timeout: Number(process.env.JUDGE0_TIMEOUT_MS) || 5000,
+                timeout: Number(process.env.JUDGE0_TIMEOUT_MS) || 15000,
               }
             );
             const { stdout, status } = response.data;
@@ -412,6 +520,24 @@ const registerMatchHandlers = (io, socket) => {
             logger.error(`Judge0 API error during battle submit: ${apiError.message}`);
             if (language === "javascript") {
               const localResult = executeJS(sourceCode, input);
+              const actualOutput = (localResult.output || "").trim();
+              const passed = localResult.success && actualOutput === expectedOutput;
+              if (!passed) allPassed = false;
+              results.push({ passed });
+            } else if (language === "python") {
+              const localResult = executePython(sourceCode, input);
+              const actualOutput = (localResult.output || "").trim();
+              const passed = localResult.success && actualOutput === expectedOutput;
+              if (!passed) allPassed = false;
+              results.push({ passed });
+            } else if (language === "cpp") {
+              const localResult = executeCPP(sourceCode, input);
+              const actualOutput = (localResult.output || "").trim();
+              const passed = localResult.success && actualOutput === expectedOutput;
+              if (!passed) allPassed = false;
+              results.push({ passed });
+            } else if (language === "c") {
+              const localResult = executeC(sourceCode, input);
               const actualOutput = (localResult.output || "").trim();
               const passed = localResult.success && actualOutput === expectedOutput;
               if (!passed) allPassed = false;

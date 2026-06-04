@@ -144,3 +144,21 @@ select {
   background-size: 200% 100%;
   animation: shimmer 1.5s ease-in-out infinite;
 }
+
+/* Slim scrollbar for editor panels */
+.pe-scrollbar::-webkit-scrollbar {
+  width: 5px;
+}
+
+.pe-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.pe-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--color-border-default);
+  border-radius: 10px;
+}
+
+.pe-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--color-border-hover);
+}

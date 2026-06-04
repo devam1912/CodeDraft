@@ -1,7 +1,7 @@
 const Room = require("../models/Room");
 const generateRoomId = require("../utils/generateRoomId");
 const { sendSuccess, sendError } = require("../utils/response");
-const { executeJS } = require("../utils/codeExecutor");
+const { executeJS, executePython, executeCPP, executeC } = require("../utils/codeExecutor");
 const logger = require("../utils/logger");
 const axios = require("axios");
 
@@ -9,6 +9,10 @@ const LANGUAGE_IDS = {
   javascript: 63,
   python: 71,
   cpp: 54,
+  java: 62,
+  go: 60,
+  rust: 73,
+  c: 50,
 };
 
 const createRoom = async (req, res, next) => {
@@ -31,13 +35,12 @@ const createRoom = async (req, res, next) => {
       }
     }
 
-    const setupExpiresAt = isBlitz === true ? new Date(Date.now() + 5 * 60 * 1000) : new Date(Date.now() + 30 * 60 * 1000);
-
     const room = new Room({
       roomId,
       creatorId: req.userId,
-      status: "setting_up",
-      setupExpiresAt,
+      status: "waiting_for_players",
+      players: [req.userId],
+      teamA: [req.userId],
     });
 
     if (creatorCompeting !== undefined) {
@@ -80,13 +83,18 @@ const validateReferenceSolution = async (req, res, next) => {
       return sendError(res, 400, "Missing required validation parameters.");
     }
 
-    if (testCases.length < 4) {
-      return sendError(res, 400, "A minimum of 4 test cases is required.");
+    if (testCases.length < 1) {
+      return sendError(res, 400, "At least 1 test case is required.");
     }
 
-    const room = await Room.findOne({ roomId, creatorId: req.userId });
+    const room = await Room.findOne({ roomId });
     if (!room) {
-      return sendError(res, 404, "Room not found or you are not the creator.");
+      return sendError(res, 404, "Room not found.");
+    }
+
+    const isPlayer = room.players.some((p) => p.toString() === req.userId.toString());
+    if (!isPlayer) {
+      return sendError(res, 403, "You are not a participant in this battle room.");
     }
 
     const results = [];
@@ -127,7 +135,7 @@ const validateReferenceSolution = async (req, res, next) => {
                 "x-rapidapi-host": "judge0-ce.p.rapidapi.com",
                 "Content-Type": "application/json",
               },
-              timeout: Number(process.env.JUDGE0_TIMEOUT_MS) || 5000,
+              timeout: Number(process.env.JUDGE0_TIMEOUT_MS) || 15000,
             }
           );
 
@@ -146,13 +154,49 @@ const validateReferenceSolution = async (req, res, next) => {
           });
         } catch (apiError) {
           logger.error(`Judge0 API error: ${apiError.message}`);
-          results.push({
-            passed: false,
-            output: "",
-            expectedOutput,
-            executionTime: 0,
-            error: "Code compilation server temporarily unavailable. Fall back to JavaScript for local execution.",
-          });
+          // Fallback: try local execution
+          if (language === "python") {
+            const localResult = executePython(sourceCode, input);
+            const actualOutput = (localResult.output || "").trim();
+            const passed = localResult.success && actualOutput === expectedOutput;
+            results.push({
+              passed,
+              output: actualOutput,
+              expectedOutput,
+              executionTime: localResult.executionTime,
+              error: localResult.error,
+            });
+          } else if (language === "cpp") {
+            const localResult = executeCPP(sourceCode, input);
+            const actualOutput = (localResult.output || "").trim();
+            const passed = localResult.success && actualOutput === expectedOutput;
+            results.push({
+              passed,
+              output: actualOutput,
+              expectedOutput,
+              executionTime: localResult.executionTime,
+              error: localResult.error,
+            });
+          } else if (language === "c") {
+            const localResult = executeC(sourceCode, input);
+            const actualOutput = (localResult.output || "").trim();
+            const passed = localResult.success && actualOutput === expectedOutput;
+            results.push({
+              passed,
+              output: actualOutput,
+              expectedOutput,
+              executionTime: localResult.executionTime,
+              error: localResult.error,
+            });
+          } else {
+            results.push({
+              passed: false,
+              output: "",
+              expectedOutput,
+              executionTime: 0,
+              error: `Code compilation server temporarily unavailable for ${language}. Try using JavaScript, Python, C++, or C for local execution.`,
+            });
+          }
         }
       }
     }
@@ -173,16 +217,21 @@ const submitProblem = async (req, res, next) => {
       return sendError(res, 400, "Missing required parameters for problem submission.");
     }
 
-    const room = await Room.findOne({ roomId, creatorId: req.userId });
+    const room = await Room.findOne({ roomId });
     if (!room) {
-      return sendError(res, 404, "Room not found or you are not the creator.");
+      return sendError(res, 404, "Room not found.");
     }
 
-    if (room.status !== "setting_up") {
-      return sendError(res, 400, "Room is not in setting up phase.");
+    const isPlayer = room.players.some((p) => p.toString() === req.userId.toString());
+    if (!isPlayer) {
+      return sendError(res, 403, "You are not a participant in this battle room.");
     }
 
-    room.problem = {
+    if (room.status !== "waiting_for_players") {
+      return sendError(res, 400, "Room is not in lobby phase.");
+    }
+
+    const newProblem = {
       title,
       statement,
       visibleExamples,
@@ -192,16 +241,32 @@ const submitProblem = async (req, res, next) => {
       allowedLanguages,
       validatedAt: new Date(),
     };
-    room.status = "waiting_for_players";
-    room.players = [req.userId];
-    
-    if (room.battleFormat === "2v2") {
-      room.teamA = [req.userId];
+
+    const isTeamA = room.teamA.some((p) => p.toString() === req.userId.toString()) || room.creatorId.toString() === req.userId.toString();
+
+    if (isTeamA) {
+      room.problemA = newProblem;
+    } else {
+      room.problemB = newProblem;
+    }
+
+    // Set default problem fallback
+    if (!room.problem) {
+      room.problem = newProblem;
     }
 
     await room.save();
 
-    logger.info(`Problem submitted and lobby activated for Room: ${roomId}`);
+    logger.info(`Problem submitted for Team ${isTeamA ? "A" : "B"} in Room: ${roomId}`);
+
+    const io = req.app.get("io");
+    if (io) {
+      io.to(roomId).emit("room:problemSubmitted", {
+        team: isTeamA ? "A" : "B",
+        problemTitle: title,
+        problemDifficulty: difficulty,
+      });
+    }
 
     return sendSuccess(
       res,
@@ -209,13 +274,14 @@ const submitProblem = async (req, res, next) => {
       {
         roomId: room.roomId,
         status: room.status,
+        teamSubmitted: isTeamA ? "A" : "B",
         problem: {
-          title: room.problem.title,
-          difficulty: room.problem.difficulty,
-          timeLimit: room.problem.timeLimit,
+          title,
+          difficulty,
+          timeLimit,
         },
       },
-      "Problem submitted and room activated"
+      "Problem submitted successfully"
     );
   } catch (error) {
     logger.error(`Error in submitProblem: ${error.message}`);
@@ -245,7 +311,18 @@ const getRoom = async (req, res, next) => {
       return sendError(res, 400, "Room has expired");
     }
 
-    return sendSuccess(res, 200, room, "Room details retrieved successfully");
+    const roomObj = room.toObject();
+
+    if (req.userId) {
+      const isTeamA = room.teamA.some((p) => p.toString() === req.userId.toString()) || room.creatorId.toString() === req.userId.toString();
+      if (room.status === "active" || room.status === "finished") {
+        roomObj.problem = isTeamA ? room.problemB : room.problemA;
+      } else {
+        roomObj.problem = isTeamA ? room.problemA : room.problemB;
+      }
+    }
+
+    return sendSuccess(res, 200, roomObj, "Room details retrieved successfully");
   } catch (error) {
     logger.error(`Error in getRoom: ${error.message}`);
     next(error);

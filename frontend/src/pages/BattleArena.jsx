@@ -12,6 +12,10 @@ const CODE_TEMPLATES = {
   javascript: `// Write your solution here\nfunction solve(input) {\n  \n}`,
   python: `# Write your solution here\ndef solve(stdin_str):\n    pass`,
   cpp: `#include <iostream>\nusing namespace std;\n\nint main() {\n    // Write your solution here\n    return 0;\n}`,
+  java: `import java.io.*;\nimport java.util.*;\n\npublic class Main {\n    public static void main(String[] args) throws IOException {\n        // Write your solution here\n    }\n}`,
+  go: `package main\n\nimport "fmt"\n\nfunc main() {\n    // Write your solution here\n}`,
+  rust: `use std::io;\n\nfn main() {\n    // Write your solution here\n}`,
+  c: `#include <stdio.h>\n\nint main() {\n    // Write your solution here\n    return 0;\n}`,
 };
 
 function BattleArena() {
@@ -99,15 +103,17 @@ function BattleArena() {
     });
 
     socket.on("battle:submitResult", ({ success, results }) => {
+      toast.dismiss("submit-toast");
       setIsSubmitting(false);
+      setConsoleTab("results");
       if (!success) {
         toast.error("Hidden test case checks failed! Keep optimizing.");
         setRunResults(results);
-        setConsoleTab("results");
       }
     });
 
     socket.on("battle:finished", ({ winnerId, eloChanges }) => {
+      toast.dismiss("submit-toast");
       setIsSubmitting(false);
       setBattleFinishedState({ winnerId, eloChanges });
     });
@@ -243,8 +249,15 @@ function BattleArena() {
   };
 
   const handleSubmitCode = () => {
-    if (isSubmitting || !socket) return;
+    if (isSubmitting) return;
+    if (!socket) {
+      toast.error("Socket not connected. Please refresh the page.");
+      return;
+    }
     setIsSubmitting(true);
+    setRunResults(null);
+    setConsoleTab("results");
+    toast.loading("Submitting against hidden test cases...", { id: "submit-toast", duration: 30000 });
     socket.emit("battle:submit", {
       roomId,
       sourceCode,
@@ -718,8 +731,22 @@ function BattleArena() {
                       <Button size="sm" onClick={handleRunCode} disabled={isRunning || isSubmitting}>
                         {isRunning ? "Executing Run..." : "Run Example Tests"}
                       </Button>
-                      <Button size="sm" onClick={handleSubmitCode} disabled={isRunning || isSubmitting}>
-                        {isSubmitting ? "Compiling Submission..." : "Submit Answer"}
+                      <Button
+                        size="sm"
+                        onClick={handleSubmitCode}
+                        disabled={isRunning || isSubmitting}
+                        style={{
+                          background: isSubmitting ? undefined : "linear-gradient(135deg, #6366f1, #818cf8)",
+                          color: "#fff",
+                          fontWeight: 700,
+                        }}
+                      >
+                        {isSubmitting ? (
+                          <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                            <span style={{ width: 10, height: 10, border: "2px solid rgba(255,255,255,0.3)", borderTopColor: "#fff", borderRadius: "50%", display: "inline-block", animation: "spin 0.8s linear infinite" }} />
+                            Submitting...
+                          </span>
+                        ) : "🚀 Submit Answer"}
                       </Button>
                     </div>
                   )}

@@ -72,7 +72,7 @@ const PORT = parseInt(process.env.PORT, 10);
 const startServer = async () => {
   try {
     await connectDB();
-    initExpiryCron();
+    initExpiryCron(io);
     initTournamentCron();
 
     server.listen(PORT, () => {
