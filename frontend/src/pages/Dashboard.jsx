@@ -62,6 +62,18 @@ function Dashboard() {
   const [collegeEmailInput, setCollegeEmailInput] = useState("");
   const [activeTab, setActiveTab] = useState("dashboard");
   const [telemetry, setTelemetry] = useState(null);
+  // Profile edit
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [profileForm, setProfileForm] = useState({ college: "", degree: "", year: "", bio: "" });
+  const [savingProfile, setSavingProfile] = useState(false);
+  // Friends
+  const [friends, setFriends] = useState([]);
+  const [friendRequests, setFriendRequests] = useState([]);
+  const [userSearch, setUserSearch] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [friendsLoading, setFriendsLoading] = useState(false);
+  const [invitingFriend, setInvitingFriend] = useState(null);
 
   const [activities, setActivities] = useState([
     { id: 1, message: "Welcome to CodeDraft! Live battle activity scrolling feed active.", timestamp: new Date() }
@@ -124,6 +136,85 @@ function Dashboard() {
     }
   };
 
+  const loadFriends = async () => {
+    setFriendsLoading(true);
+    try {
+      const [frRes, reqRes] = await Promise.allSettled([
+        userAPI.getFriends(),
+        userAPI.getFriendRequests(),
+      ]);
+      if (frRes.status === "fulfilled") setFriends(frRes.value.data?.friends || []);
+      if (reqRes.status === "fulfilled") setFriendRequests(reqRes.value.data?.requests || []);
+    } catch (err) { /* silent */ } finally { setFriendsLoading(false); }
+  };
+
+  const handleSaveProfile = async () => {
+    setSavingProfile(true);
+    try {
+      await userAPI.updateProfile(profileForm);
+      const res = await userAPI.getProfile();
+      setProfile(res.data || res);
+      setShowProfileModal(false);
+      toast.success("Profile updated!");
+    } catch (err) {
+      toast.error(err.message || "Failed to update profile");
+    } finally { setSavingProfile(false); }
+  };
+
+  const handleSearchUsers = async (q) => {
+    setUserSearch(q);
+    if (q.length < 2) { setSearchResults([]); return; }
+    setSearchLoading(true);
+    try {
+      const res = await userAPI.searchUsers(q);
+      setSearchResults(res.data?.users || []);
+    } catch { setSearchResults([]); } finally { setSearchLoading(false); }
+  };
+
+  const handleSendRequest = async (username) => {
+    try {
+      await userAPI.sendFriendRequest(username);
+      toast.success(`Friend request sent to ${username}!`);
+      setSearchResults(prev => prev.filter(u => u.username !== username));
+    } catch (err) { toast.error(err.message || "Failed to send request"); }
+  };
+
+  const handleAcceptRequest = async (username) => {
+    try {
+      await userAPI.acceptFriendRequest(username);
+      toast.success(`Now friends with ${username}!`);
+      await loadFriends();
+    } catch (err) { toast.error(err.message || "Failed to accept"); }
+  };
+
+  const handleRejectRequest = async (username) => {
+    try {
+      await userAPI.rejectFriendRequest(username);
+      toast.success("Request rejected.");
+      setFriendRequests(prev => prev.filter(r => r.from?.username !== username));
+    } catch (err) { toast.error(err.message || "Failed to reject"); }
+  };
+
+  const handleRemoveFriend = async (username) => {
+    try {
+      await userAPI.removeFriend(username);
+      toast.success(`Removed ${username} from friends.`);
+      setFriends(prev => prev.filter(f => f.username !== username));
+    } catch (err) { toast.error(err.message || "Failed to remove"); }
+  };
+
+  const handleInviteToBattle = async (username) => {
+    setInvitingFriend(username);
+    try {
+      const res = await userAPI.inviteFriendToBattle(username, { battleFormat: "1v1" });
+      const roomId = res.data?.roomId || res.roomId;
+      toast.success(`Battle invite sent to ${username}!`);
+      navigate(`/room/${roomId}`);
+    } catch (err) {
+      toast.error(err.message || "Failed to send invite");
+    } finally { setInvitingFriend(null); }
+  };
+
   useEffect(() => {
     const load = async () => {
       try {
@@ -133,7 +224,11 @@ function Dashboard() {
           matchAPI.getMyMatchHistory(),
           adminAPI.getTelemetry(),
         ]);
-        if (profileRes.status === "fulfilled") setProfile(profileRes.value.data || profileRes.value);
+        if (profileRes.status === "fulfilled") {
+          const p = profileRes.value.data || profileRes.value;
+          setProfile(p);
+          setProfileForm({ college: p.college || "", degree: p.degree || "", year: p.year || "", bio: p.bio || "" });
+        }
         if (probRes.status === "fulfilled") setProblems(probRes.value.data?.problems || []);
         if (histRes.status === "fulfilled") setMatchHistory(histRes.value.data?.history || histRes.value?.history || []);
         if (telRes.status === "fulfilled") setTelemetry(telRes.value.data || telRes.value);
@@ -142,6 +237,7 @@ function Dashboard() {
       }
     };
     load();
+    loadFriends();
   }, []);
 
   useEffect(() => {
@@ -215,37 +311,26 @@ function Dashboard() {
           </div>
         </motion.div>
 
-        <motion.div variants={itemVariants} style={{ display: "flex", gap: "12px", borderBottom: "1px solid #1e1e2e", paddingBottom: "12px", marginBottom: "24px" }}>
-          <button
-            onClick={() => setActiveTab("dashboard")}
-            style={{
-              padding: "8px 16px",
-              borderRadius: "8px",
-              backgroundColor: activeTab === "dashboard" ? "rgba(99, 102, 241, 0.15)" : "transparent",
-              border: activeTab === "dashboard" ? "1px solid #6366f1" : "1px solid transparent",
-              color: activeTab === "dashboard" ? "#a5b4fc" : "#94a3b8",
-              fontWeight: 600,
-              cursor: "pointer",
-              transition: "all 0.2s"
-            }}
-          >
-            👤 My Dashboard
-          </button>
-          <button
-            onClick={() => setActiveTab("telemetry")}
-            style={{
-              padding: "8px 16px",
-              borderRadius: "8px",
-              backgroundColor: activeTab === "telemetry" ? "rgba(34, 211, 238, 0.15)" : "transparent",
-              border: activeTab === "telemetry" ? "1px solid #22d3ee" : "1px solid transparent",
-              color: activeTab === "telemetry" ? "#81e6d9" : "#94a3b8",
-              fontWeight: 600,
-              cursor: "pointer",
-              transition: "all 0.2s"
-            }}
-          >
-            📊 System Telemetry
-          </button>
+        <motion.div variants={itemVariants} style={{ display: "flex", gap: "12px", borderBottom: "1px solid #1e1e2e", paddingBottom: "12px", marginBottom: "24px", flexWrap: "wrap" }}>
+          {[
+            { id: "dashboard", label: "👤 My Dashboard", color: "#6366f1" },
+            { id: "friends", label: `👥 Friends${friendRequests.length > 0 ? ` (${friendRequests.length})` : ""}`, color: "#22d3ee" },
+            { id: "telemetry", label: "📊 System Telemetry", color: "#22d3ee" },
+          ].map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              style={{
+                padding: "8px 16px", borderRadius: "8px",
+                backgroundColor: activeTab === tab.id ? `${tab.color}22` : "transparent",
+                border: activeTab === tab.id ? `1px solid ${tab.color}` : "1px solid transparent",
+                color: activeTab === tab.id ? tab.color : "#94a3b8",
+                fontWeight: 600, cursor: "pointer", transition: "all 0.2s", fontSize: "14px",
+              }}
+            >
+              {tab.label}
+            </button>
+          ))}
         </motion.div>
 
         {activeTab === "dashboard" ? (
@@ -314,6 +399,21 @@ function Dashboard() {
                 <div style={{ marginTop: "12px", padding: "10px", backgroundColor: "#0a0a0f", borderRadius: "8px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <span style={{ fontSize: "12px", color: "#64748b" }}>Win Rate</span>
                   <span style={{ fontFamily: "JetBrains Mono, monospace", fontSize: "14px", fontWeight: 700, color: winPct >= 50 ? "#10b981" : "#ef4444" }}>{winPct}%</span>
+                </div>
+
+                <div style={{ marginTop: "12px", padding: "12px", backgroundColor: "#0a0a0f", borderRadius: "8px", display: "flex", flexDirection: "column", gap: "6px" }}>
+                  {profile?.degree && <div style={{ fontSize: "12px", color: "#94a3b8" }}>🎓 {profile.degree}{profile?.year ? ` · ${profile.year} Year` : ""}</div>}
+                  {profile?.college && !displayUser?.collegeVerified && <div style={{ fontSize: "12px", color: "#94a3b8" }}>🏛 {profile.college}</div>}
+                  {profile?.bio && <div style={{ fontSize: "12px", color: "#94a3b8", fontStyle: "italic", lineHeight: 1.4 }}>"{profile.bio}"</div>}
+                  <button
+                    onClick={() => {
+                      setProfileForm({ college: profile?.college || "", degree: profile?.degree || "", year: profile?.year || "", bio: profile?.bio || "" });
+                      setShowProfileModal(true);
+                    }}
+                    style={{ marginTop: "4px", fontSize: "11px", color: "#6366f1", background: "none", border: "none", cursor: "pointer", textAlign: "left", padding: 0, textDecoration: "underline", fontWeight: 600 }}
+                  >
+                    ✏️ Edit Profile
+                  </button>
                 </div>
               </Card>
     
@@ -400,8 +500,8 @@ function Dashboard() {
                     <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px" }}>
                       <thead>
                         <tr style={{ borderBottom: "1px solid #1e1e2e", backgroundColor: "rgba(30,30,46,0.4)" }}>
-                          {["Opponent", "Result", "Problem", "Time", "ELO Δ", "Replay"].map((h) => (
-                            <th key={h} style={{ padding: "12px 20px", textAlign: h === "Replay" ? "center" : "left", fontSize: "11px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em", fontFamily: "JetBrains Mono, monospace" }}>{h}</th>
+                          {["Opponent", "Result", "Problem", "Time", "ELO Δ"].map((h) => (
+                            <th key={h} style={{ padding: "12px 20px", textAlign: "left", fontSize: "11px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em", fontFamily: "JetBrains Mono, monospace" }}>{h}</th>
                           ))}
                         </tr>
                       </thead>
@@ -439,11 +539,6 @@ function Dashboard() {
                               <td style={{ padding: "14px 20px", fontFamily: "JetBrains Mono, monospace", fontWeight: 700, color: eloDelta == null ? "#64748b" : eloDelta >= 0 ? "#10b981" : "#ef4444" }}>
                                 {eloDelta == null ? "—" : eloDelta >= 0 ? `+${eloDelta}` : eloDelta}
                               </td>
-                              <td style={{ padding: "14px 20px", textAlign: "center" }}>
-                                <Button size="sm" variant="ghost" onClick={() => navigate(`/room/${match.roomId}/replay`)}>
-                                  ▶ Replay
-                                </Button>
-                              </td>
                             </tr>
                           );
                         })}
@@ -456,8 +551,112 @@ function Dashboard() {
     
 
           </>
+        ) : activeTab === "friends" ? (
+          <motion.div variants={itemVariants} style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+            {/* Add Friends Search */}
+            <Card style={{ padding: "24px" }}>
+              <div style={{ fontSize: "14px", fontWeight: 700, color: "#f8fafc", marginBottom: "16px", display: "flex", alignItems: "center", gap: "8px" }}>
+                🔍 Find & Add Friends
+              </div>
+              <div style={{ position: "relative" }}>
+                <input
+                  type="text"
+                  placeholder="Search by username..."
+                  value={userSearch}
+                  onChange={e => handleSearchUsers(e.target.value)}
+                  style={{ width: "100%", padding: "10px 16px", backgroundColor: "#0a0a0f", border: "1px solid #1e1e2e", borderRadius: "10px", color: "#f8fafc", fontSize: "14px", outline: "none", boxSizing: "border-box" }}
+                />
+              </div>
+              {searchLoading && <div style={{ fontSize: "12px", color: "#64748b", marginTop: "8px" }}>Searching...</div>}
+              {searchResults.length > 0 && (
+                <div style={{ marginTop: "12px", display: "flex", flexDirection: "column", gap: "8px" }}>
+                  {searchResults.map(u => (
+                    <div key={u._id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 14px", backgroundColor: "#0a0a0f", border: "1px solid #1e1e2e", borderRadius: "8px" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                        <div style={{ width: "32px", height: "32px", borderRadius: "50%", backgroundColor: "rgba(99,102,241,0.15)", border: "1px solid rgba(99,102,241,0.3)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "13px", fontWeight: 700, color: "#a5b4fc" }}>{u.avatar || u.username.slice(0, 2).toUpperCase()}</div>
+                        <div>
+                          <div style={{ fontWeight: 600, color: "#f8fafc", fontSize: "14px" }}>{u.username}</div>
+                          <div style={{ fontSize: "11px", color: "#64748b" }}>{u.college || "Independent"} · ELO {u.eloRating}</div>
+                        </div>
+                      </div>
+                      <Button size="sm" onClick={() => handleSendRequest(u.username)}>+ Add Friend</Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </Card>
+
+            {/* Pending Friend Requests */}
+            {friendRequests.length > 0 && (
+              <Card style={{ padding: "24px" }}>
+                <div style={{ fontSize: "14px", fontWeight: 700, color: "#f59e0b", marginBottom: "16px", display: "flex", alignItems: "center", gap: "8px" }}>
+                  📩 Pending Requests <span style={{ fontSize: "11px", background: "rgba(245,158,11,0.15)", border: "1px solid rgba(245,158,11,0.3)", color: "#f59e0b", padding: "1px 8px", borderRadius: "999px" }}>{friendRequests.length}</span>
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                  {friendRequests.map((req, i) => (
+                    <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", backgroundColor: "rgba(245,158,11,0.05)", border: "1px solid rgba(245,158,11,0.2)", borderRadius: "10px" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                        <div style={{ width: "36px", height: "36px", borderRadius: "50%", backgroundColor: "rgba(245,158,11,0.15)", border: "1px solid rgba(245,158,11,0.3)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "14px", fontWeight: 700, color: "#f59e0b" }}>{req.from?.avatar || req.from?.username?.slice(0, 2).toUpperCase()}</div>
+                        <div>
+                          <div style={{ fontWeight: 600, color: "#f8fafc" }}>{req.from?.username}</div>
+                          <div style={{ fontSize: "11px", color: "#64748b" }}>{req.from?.college || "Independent"} · ELO {req.from?.eloRating}</div>
+                        </div>
+                      </div>
+                      <div style={{ display: "flex", gap: "8px" }}>
+                        <Button size="sm" onClick={() => handleAcceptRequest(req.from?.username)} style={{ background: "linear-gradient(135deg,#10b981,#059669)", color: "#fff", border: "none" }}>✓ Accept</Button>
+                        <Button size="sm" variant="ghost" onClick={() => handleRejectRequest(req.from?.username)}>✗ Reject</Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            )}
+
+            {/* Friends List */}
+            <Card style={{ padding: "24px" }}>
+              <div style={{ fontSize: "14px", fontWeight: 700, color: "#f8fafc", marginBottom: "16px", display: "flex", alignItems: "center", gap: "8px" }}>
+                👥 My Friends <span style={{ fontSize: "11px", color: "#64748b" }}>({friends.length})</span>
+              </div>
+              {friendsLoading ? (
+                <div style={{ color: "#64748b", fontSize: "13px" }}>Loading friends...</div>
+              ) : friends.length === 0 ? (
+                <div style={EMPTY_STATE}>
+                  <div style={EMPTY_ICON}>🤝</div>
+                  <div style={EMPTY_HEADING}>No friends yet</div>
+                  <div style={EMPTY_DESC}>Search for users above and send a friend request to get started!</div>
+                </div>
+              ) : (
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: "12px" }}>
+                  {friends.map(f => (
+                    <div key={f._id} style={{ padding: "16px", backgroundColor: "#0a0a0f", border: "1px solid #1e1e2e", borderRadius: "12px", display: "flex", flexDirection: "column", gap: "12px" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                        <div style={{ width: "40px", height: "40px", borderRadius: "50%", backgroundColor: "rgba(99,102,241,0.12)", border: "2px solid rgba(99,102,241,0.3)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "18px", fontWeight: 700, color: "#a5b4fc" }}>{f.avatar || f.username?.slice(0, 2).toUpperCase()}</div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontWeight: 700, color: "#f8fafc", fontSize: "14px" }}>{f.username}</div>
+                          <div style={{ fontSize: "11px", color: "#64748b", fontFamily: "JetBrains Mono, monospace" }}>ELO {f.eloRating} {f.degree && `· ${f.degree}`}</div>
+                          {f.college && <div style={{ fontSize: "11px", color: "#94a3b8", marginTop: "2px" }}>🏛 {f.college}</div>}
+                        </div>
+                      </div>
+                      <div style={{ display: "flex", gap: "8px" }}>
+                        <Button
+                          size="sm"
+                          style={{ flex: 1, background: "linear-gradient(135deg,#6366f1,#818cf8)", color: "#fff", border: "none", fontWeight: 700 }}
+                          onClick={() => handleInviteToBattle(f.username)}
+                          disabled={invitingFriend === f.username}
+                        >
+                          {invitingFriend === f.username ? "Sending..." : "⚔️ Invite to Battle"}
+                        </Button>
+                        <Button size="sm" variant="ghost" onClick={() => handleRemoveFriend(f.username)} style={{ color: "#ef4444" }}>✕</Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </Card>
+          </motion.div>
         ) : (
           <motion.div variants={itemVariants} style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+
             <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "20px" }}>
               <Card style={{ padding: "20px", display: "flex", flexDirection: "column", gap: "8px", border: "1px solid #1e1e2e", borderRadius: "12px", background: "linear-gradient(135deg, #111118, rgba(99,102,241,0.05))" }}>
                 <span style={{ fontSize: "11px", color: "#818cf8", textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 700 }}>Total Registered Combatants</span>
@@ -793,6 +992,92 @@ function Dashboard() {
             <div style={{ display: "flex", gap: "12px" }}>
               <Button variant="ghost" style={{ flex: 1 }} onClick={() => setShowVerifyModal(false)}>Cancel</Button>
               <Button variant="primary" style={{ flex: 2 }} onClick={handleVerifyCollege}>Verify Suffix</Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Edit Profile Modal ── */}
+      {showProfileModal && (
+        <div style={{ position: "fixed", inset: 0, backgroundColor: "rgba(5,5,8,0.92)", backdropFilter: "blur(16px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100, padding: "16px" }}>
+          <div style={{ backgroundColor: "#111118", border: "1px solid #1e1e2e", borderRadius: "20px", padding: "32px", width: "100%", maxWidth: "480px", display: "flex", flexDirection: "column", gap: "20px", boxShadow: "0 24px 80px rgba(0,0,0,0.6)" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div>
+                <div style={{ fontSize: "20px", fontWeight: 800, color: "#f8fafc" }}>Edit Profile</div>
+                <div style={{ fontSize: "12px", color: "#64748b", marginTop: "4px" }}>Update your academic info and bio</div>
+              </div>
+              <button onClick={() => setShowProfileModal(false)} style={{ background: "none", border: "none", color: "#64748b", fontSize: "22px", cursor: "pointer", lineHeight: 1 }}>×</button>
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+              <div>
+                <label style={{ fontSize: "11px", fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em", display: "block", marginBottom: "6px" }}>🏛 College / University</label>
+                <input
+                  type="text"
+                  placeholder="e.g. IIT Bombay, MIT, Stanford..."
+                  value={profileForm.college}
+                  onChange={e => setProfileForm(p => ({ ...p, college: e.target.value }))}
+                  style={{ width: "100%", padding: "10px 14px", backgroundColor: "#0a0a0f", border: "1px solid #1e1e2e", borderRadius: "10px", color: "#f8fafc", fontSize: "14px", outline: "none", boxSizing: "border-box" }}
+                />
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                <div>
+                  <label style={{ fontSize: "11px", fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em", display: "block", marginBottom: "6px" }}>📚 Degree</label>
+                  <select
+                    value={profileForm.degree}
+                    onChange={e => setProfileForm(p => ({ ...p, degree: e.target.value }))}
+                    style={{ width: "100%", padding: "10px 14px", backgroundColor: "#0a0a0f", border: "1px solid #1e1e2e", borderRadius: "10px", color: profileForm.degree ? "#f8fafc" : "#64748b", fontSize: "14px", outline: "none", appearance: "none", cursor: "pointer" }}
+                  >
+                    <option value="">Select degree</option>
+                    <option>B.Tech</option>
+                    <option>B.Sc</option>
+                    <option>B.E.</option>
+                    <option>BCA</option>
+                    <option>MCA</option>
+                    <option>M.Tech</option>
+                    <option>M.Sc</option>
+                    <option>MBA</option>
+                    <option>Ph.D</option>
+                    <option>Other</option>
+                  </select>
+                </div>
+                <div>
+                  <label style={{ fontSize: "11px", fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em", display: "block", marginBottom: "6px" }}>📅 Year</label>
+                  <select
+                    value={profileForm.year}
+                    onChange={e => setProfileForm(p => ({ ...p, year: e.target.value }))}
+                    style={{ width: "100%", padding: "10px 14px", backgroundColor: "#0a0a0f", border: "1px solid #1e1e2e", borderRadius: "10px", color: profileForm.year ? "#f8fafc" : "#64748b", fontSize: "14px", outline: "none", appearance: "none", cursor: "pointer" }}
+                  >
+                    <option value="">Select year</option>
+                    <option>1st Year</option>
+                    <option>2nd Year</option>
+                    <option>3rd Year</option>
+                    <option>4th Year</option>
+                    <option>5th Year</option>
+                    <option>Alumni</option>
+                    <option>Working Professional</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label style={{ fontSize: "11px", fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em", display: "block", marginBottom: "6px" }}>📝 Bio <span style={{ fontWeight: 400, textTransform: "none", letterSpacing: "normal" }}>({profileForm.bio.length}/200)</span></label>
+                <textarea
+                  placeholder="A short intro about yourself..."
+                  value={profileForm.bio}
+                  onChange={e => setProfileForm(p => ({ ...p, bio: e.target.value.slice(0, 200) }))}
+                  rows={3}
+                  style={{ width: "100%", padding: "10px 14px", backgroundColor: "#0a0a0f", border: "1px solid #1e1e2e", borderRadius: "10px", color: "#f8fafc", fontSize: "14px", outline: "none", resize: "vertical", fontFamily: "inherit", lineHeight: 1.5, boxSizing: "border-box" }}
+                />
+              </div>
+            </div>
+
+            <div style={{ display: "flex", gap: "12px" }}>
+              <Button variant="ghost" style={{ flex: 1 }} onClick={() => setShowProfileModal(false)}>Cancel</Button>
+              <Button variant="primary" style={{ flex: 2 }} onClick={handleSaveProfile} disabled={savingProfile}>
+                {savingProfile ? "Saving..." : "💾 Save Profile"}
+              </Button>
             </div>
           </div>
         </div>

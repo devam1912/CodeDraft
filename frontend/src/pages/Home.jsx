@@ -357,7 +357,6 @@ function Home() {
           <div style={{ display: "flex", gap: "24px", alignItems: "center" }}>
             <Link to="/leaderboard" style={{ textDecoration: "none", color: "#94a3b8", fontSize: "14px", fontWeight: 500 }} className="hover:text-white transition-colors">Leaderboard</Link>
             <Link to="/dashboard" style={{ textDecoration: "none", color: "#94a3b8", fontSize: "14px", fontWeight: 500 }} className="hover:text-white transition-colors">Tournaments</Link>
-            <Link to="/dashboard" style={{ textDecoration: "none", color: "#94a3b8", fontSize: "14px", fontWeight: 500 }} className="hover:text-white transition-colors">Spectate</Link>
           </div>
         </div>
         <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
@@ -470,64 +469,6 @@ function Home() {
         </div>
       </div>
 
-      {/* Live Discover Battles Feed Section */}
-      <div style={{ padding: "80px 40px", borderTop: "1px solid rgba(255,255,255,0.05)", backgroundColor: "#030305", position: "relative", zIndex: 5 }}>
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", maxWidth: "1200px", margin: "0 auto" }}>
-          <div style={BRAND_BADGE}>Discover battles</div>
-          <h2 style={{ fontSize: "32px", fontWeight: 800, marginBottom: "12px", letterSpacing: "-0.02em", textAlign: "center" }}>
-            Active Public Arenas
-          </h2>
-          <p style={{ fontSize: "15px", color: "#94a3b8", marginBottom: "40px", maxWidth: "600px", textAlign: "center", lineHeight: 1.6 }}>
-            Spectate active competitive coding battles currently being solved by developers live.
-          </p>
-
-          <div style={{ display: "flex", flexDirection: "column", gap: "16px", width: "100%", maxWidth: "900px" }}>
-            {[
-              { format: "1v1 Duel", playerA: { name: "lambda_wizard", elo: 1420 }, playerB: { name: "null_ptr", elo: 1390 }, problem: "Invert Binary Tree", spectators: 142, duration: "3m 42s" },
-              { format: "2v2 Battle", playerA: { name: "Team Alpha", elo: 1310 }, playerB: { name: "Team Beta", elo: 1290 }, problem: "Dijkstra Shortest Path", spectators: 285, duration: "11m 15s" }
-            ].map((duel, i) => (
-              <div 
-                key={i} 
-                style={{ 
-                  display: "flex", 
-                  justifyContent: "space-between", 
-                  alignItems: "center", 
-                  backgroundColor: "#0a0a0f", 
-                  border: "1px solid rgba(255,255,255,0.05)", 
-                  borderRadius: "12px", 
-                  padding: "16px 24px",
-                  transition: "border-color 0.2s"
-                }}
-              >
-                <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-                  <span style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "10px", fontWeight: 800, textTransform: "uppercase", color: "#ef4444", backgroundColor: "rgba(239, 68, 68, 0.1)", padding: "2px 8px", borderRadius: "999px" }}>
-                    <span style={{ width: "6px", height: "6px", backgroundColor: "#ef4444", borderRadius: "50%", display: "inline-block" }} />
-                    LIVE
-                  </span>
-                  <div>
-                    <div style={{ fontSize: "14px", fontWeight: 700, color: "#f8fafc" }}>
-                      {duel.playerA.name} <span style={{ color: "#64748b", fontWeight: 400 }}>vs</span> {duel.playerB.name}
-                    </div>
-                    <div style={{ fontSize: "11px", color: "#64748b", marginTop: "2px" }}>
-                      Problem: <span style={{ color: "#22d3ee", fontWeight: 600 }}>{duel.problem}</span> · Elapsed: {duel.duration}
-                    </div>
-                  </div>
-                </div>
-
-                <div style={{ display: "flex", alignItems: "center", gap: "24px" }}>
-                  <div style={{ textAlign: "right" }}>
-                    <div style={{ fontSize: "14px", fontWeight: 700, color: "#f8fafc" }}>👁 {duel.spectators}</div>
-                    <div style={{ fontSize: "9px", color: "#64748b", textTransform: "uppercase" }}>Spectating</div>
-                  </div>
-                  <Link to="/dashboard" style={{ textDecoration: "none" }}>
-                    <Button variant="ghost" size="sm">Spectate Arena</Button>
-                  </Link>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
 
       <div style={{ padding: "80px 40px", borderTop: "1px solid rgba(255,255,255,0.05)", position: "relative", zIndex: 5, backgroundColor: "#06060a" }}>
         <h2 style={{ fontSize: "32px", fontWeight: 800, marginBottom: "48px", textAlign: "center", letterSpacing: "-0.02em" }}>

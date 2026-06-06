@@ -26,50 +26,38 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    eloRating: {
-      type: Number,
-      default: 1000,
-      index: true,
-    },
-    wins: {
-      type: Number,
-      default: 0,
-    },
-    losses: {
-      type: Number,
-      default: 0,
-    },
-    draws: {
-      type: Number,
-      default: 0,
-    },
-    matchesPlayed: {
-      type: Number,
-      default: 0,
-    },
-    college: {
-      type: String,
-      trim: true,
-      default: "",
-      index: true,
-    },
-    collegeEmail: {
-      type: String,
-      trim: true,
-      default: "",
-    },
-    collegeVerified: {
-      type: Boolean,
-      default: false,
-    },
-    avatar: {
-      type: String,
-      default: "",
-    },
-    spectatorPredictions: {
-      correct: { type: Number, default: 0 },
-      total: { type: Number, default: 0 },
-    },
+    eloRating: { type: Number, default: 1000, index: true },
+    wins: { type: Number, default: 0 },
+    losses: { type: Number, default: 0 },
+    draws: { type: Number, default: 0 },
+    matchesPlayed: { type: Number, default: 0 },
+
+    // Academic profile
+    college: { type: String, trim: true, default: "", index: true },
+    degree: { type: String, trim: true, default: "" },
+    year: { type: String, trim: true, default: "" },
+    bio: { type: String, trim: true, default: "", maxlength: 200 },
+
+    // College verification
+    collegeEmail: { type: String, trim: true, default: "" },
+    collegeVerified: { type: Boolean, default: false },
+
+    avatar: { type: String, default: "" },
+
+    // Friends system
+    friends: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    friendRequests: [
+      {
+        from: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+        status: {
+          type: String,
+          enum: ["pending", "accepted", "rejected"],
+          default: "pending",
+        },
+        createdAt: { type: Date, default: Date.now },
+      },
+    ],
+
     eloHistory: [
       {
         eloRating: { type: Number },
@@ -78,26 +66,21 @@ const userSchema = new mongoose.Schema(
       },
     ],
   },
-  {
-    timestamps: true,
-  }
+  { timestamps: true }
 );
 
 userSchema.index({ eloRating: -1, wins: -1 });
 userSchema.index({ college: 1, eloRating: -1 });
 
 userSchema.pre("save", async function (next) {
-  if (!this.isModified("passwordHash")) {
-    return next();
-  }
+  if (!this.isModified("passwordHash")) return next();
   this.passwordHash = await bcrypt.hash(this.passwordHash, SALT_ROUNDS);
   next();
 });
 
 userSchema.pre("save", function (next) {
   if (!this.avatar && this.username) {
-    const initials = this.username.slice(0, 2).toUpperCase();
-    this.avatar = initials;
+    this.avatar = this.username.slice(0, 2).toUpperCase();
   }
   next();
 });
@@ -117,14 +100,15 @@ userSchema.methods.toPublicJSON = function () {
     draws: this.draws,
     matchesPlayed: this.matchesPlayed,
     college: this.college,
+    degree: this.degree,
+    year: this.year,
+    bio: this.bio,
     collegeEmail: this.collegeEmail,
     collegeVerified: this.collegeVerified,
     avatar: this.avatar,
-    spectatorPredictions: this.spectatorPredictions,
     createdAt: this.createdAt,
   };
 };
 
 const User = mongoose.model("User", userSchema);
-
 module.exports = User;

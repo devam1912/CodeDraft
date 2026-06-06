@@ -215,7 +215,10 @@ function PublicProfile() {
               <div>
                 <h1 style={{ fontSize: "24px", fontWeight: 800, color: "#f8fafc", marginBottom: "2px" }}>{profile.username}</h1>
                 {profile.college && (
-                  <div style={{ fontSize: "13px", color: "#64748b", marginBottom: "4px" }}>🏛 {profile.college}</div>
+                  <div style={{ fontSize: "13px", color: "#64748b", marginBottom: "4px" }}>🏛 {profile.college}{profile.degree ? ` · ${profile.degree}` : ""}{profile.year ? ` · ${profile.year}` : ""}</div>
+                )}
+                {profile.bio && (
+                  <div style={{ fontSize: "13px", color: "#94a3b8", fontStyle: "italic", marginBottom: "4px", maxWidth: "320px" }}>"{profile.bio}"</div>
                 )}
                 <div style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap" }}>
                   <span
@@ -339,9 +342,6 @@ function PublicProfile() {
                           {m.eloChange >= 0 ? "+" : ""}{m.eloChange}
                         </span>
                       )}
-                      <Button size="sm" variant="ghost" onClick={() => navigate(`/room/${m.roomId}/replay`)} style={{ fontSize: "11px", padding: "2px 10px" }}>
-                        ▶
-                      </Button>
                     </div>
                   </div>
                 ))}

@@ -208,7 +208,7 @@ function Leaderboard() {
           <div style={{ display: "flex", gap: "24px", alignItems: "center" }}>
             <Link to="/leaderboard" style={{ textDecoration: "none", color: "#ffffff", fontSize: "14px", fontWeight: 700 }}>Leaderboard</Link>
             <Link to="/dashboard" style={{ textDecoration: "none", color: "#94a3b8", fontSize: "14px", fontWeight: 500 }} className="hover:text-white transition-colors">Tournaments</Link>
-            <Link to="/dashboard" style={{ textDecoration: "none", color: "#94a3b8", fontSize: "14px", fontWeight: 500 }} className="hover:text-white transition-colors">Spectate</Link>
+
           </div>
         </div>
         <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>

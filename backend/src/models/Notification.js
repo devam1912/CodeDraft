@@ -14,7 +14,7 @@ const notificationSchema = new mongoose.Schema(
     },
     type: {
       type: String,
-      enum: ["challenge_invite", "match_result", "tournament_invite", "system"],
+      enum: ["challenge_invite", "match_result", "tournament_invite", "system", "friend_request", "friend_accepted"],
       required: true,
     },
     title: {

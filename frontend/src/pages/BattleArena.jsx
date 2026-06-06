@@ -39,10 +39,6 @@ function BattleArena() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [battleFinishedState, setBattleFinishedState] = useState(null);
 
-  const [hasVoted, setHasVoted] = useState(null);
-  const [votePercentages, setVotePercentages] = useState({});
-  const [totalVotes, setTotalVotes] = useState(0);
-
   const lastTypingEmit = useRef(0);
   const typingTimeoutRefs = useRef({});
   const isRemoteChange = useRef(false);
@@ -118,11 +114,6 @@ function BattleArena() {
       setBattleFinishedState({ winnerId, eloChanges });
     });
 
-    socket.on("spectator:voteUpdate", ({ percentages, totalVotes }) => {
-      setVotePercentages(percentages);
-      setTotalVotes(totalVotes);
-    });
-
     socket.on("battle:codeSync", ({ sourceCode: remoteCode }) => {
       isRemoteChange.current = true;
       setSourceCode(remoteCode);
@@ -145,7 +136,6 @@ function BattleArena() {
       socket.off("battle:typing");
       socket.off("battle:submitResult");
       socket.off("battle:finished");
-      socket.off("spectator:voteUpdate");
       socket.off("battle:codeSync");
       socket.off("error");
 
@@ -265,13 +255,6 @@ function BattleArena() {
     });
   };
 
-  const handleVoteCast = (coderId) => {
-    if (!socket || hasVoted) return;
-    setHasVoted(coderId);
-    socket.emit("spectator:voteCast", { roomId, coderId });
-    toast.success("Prediction recorded successfully!");
-  };
-
   const handleRateProblem = async (ratingVal) => {
     try {
       await roomAPI.rateProblem(roomId, { rating: ratingVal });
@@ -294,12 +277,16 @@ function BattleArena() {
   if (!room) return null;
 
   const isCompetitor = room.players.some((p) => p && (p._id || p) === user._id);
+
+  // Non-players cannot watch — redirect immediately
+  if (!isCompetitor) {
+    navigate("/dashboard");
+    return null;
+  }
+
   const opponentUser = room.players.find((p) => p && (p._id || p) !== user._id);
   const isWinner = battleFinishedState?.winnerId === user._id;
   const userEloChange = battleFinishedState?.eloChanges?.[user._id] || 0;
-
-  const playerA = room.players[0];
-  const playerB = room.players[1];
 
   return (
     <div className="min-h-screen flex flex-col bg-bg-primary font-sans text-text-primary overflow-hidden relative">
@@ -311,19 +298,15 @@ function BattleArena() {
                 Match Concluded
               </span>
               <div className="text-7xl mt-1">
-                {isCompetitor ? (isWinner ? "🏆" : "💀") : "📣"}
+                {isWinner ? "🏆" : "💀"}
               </div>
-              <h2 className={`text-3xl font-extrabold tracking-tight ${isCompetitor ? (isWinner ? "text-success" : "text-error") : "text-primary"}`}>
-                {isCompetitor ? (isWinner ? "Victory!" : "Defeated") : "Battle Finished!"}
+              <h2 className={`text-3xl font-extrabold tracking-tight ${isWinner ? "text-success" : "text-error"}`}>
+                {isWinner ? "Victory!" : "Defeated"}
               </h2>
               <p className="text-sm text-text-secondary">
-                {isCompetitor ? (
-                  isWinner
-                    ? "Flawless execution. You passed all hidden test cases first!"
-                    : "Opponent secured the victory. Keep refactoring and try again!"
-                ) : (
-                  `The battle has concluded. Winner: ${room.players.find(p => p._id === battleFinishedState.winnerId)?.username || "Competitor"}`
-                )}
+                {isWinner
+                  ? "Flawless execution. You passed all hidden test cases first!"
+                  : "Opponent secured the victory. Keep refactoring and try again!"}
               </p>
             </div>
 
@@ -341,7 +324,7 @@ function BattleArena() {
               </div>
             </div>
 
-            {isCompetitor && (
+            {(
               <div className="w-full border-t border-border-default pt-4 flex flex-col items-center gap-3">
                 <span className="text-xs font-semibold text-text-secondary uppercase tracking-wider">
                   Rate the Creator's Problem
@@ -377,17 +360,12 @@ function BattleArena() {
       <header className="border-b border-border-default bg-bg-surface px-6 py-4 flex items-center justify-between z-10">
         <div className="flex items-center gap-4">
           <span className="text-xl font-extrabold tracking-tight text-primary">
-            CodeDraft <span className="text-text-muted font-normal text-xs">{isCompetitor ? "Battle Arena" : "Spectator Box"}</span>
+            CodeDraft <span className="text-text-muted font-normal text-xs">Battle Arena</span>
           </span>
           <div className="h-4 w-px bg-border-default" />
           <div className="px-3 py-1 rounded bg-bg-elevated border border-border-default text-xs font-mono">
             Room ID: {roomId}
           </div>
-          {!isCompetitor && (
-            <div className="px-2 py-0.5 rounded bg-secondary-muted border border-secondary text-[10px] font-bold text-secondary uppercase font-mono tracking-wider animate-pulse">
-              Spectator Mode
-            </div>
-          )}
         </div>
 
         <div className="flex items-center gap-6">
@@ -429,77 +407,6 @@ function BattleArena() {
               {room.problem?.allowedLanguages?.join(", ") || "javascript"}
             </p>
           </div>
-
-          {!isCompetitor && (
-            <div className="flex flex-col gap-4">
-              <h3 className="text-xs font-bold text-text-secondary uppercase tracking-wider border-b border-border-default pb-2">
-                Spectator Prediction Poll
-              </h3>
-              <Card className="p-5 bg-bg-surface border border-border-default rounded-xl flex flex-col gap-4">
-                <div className="text-xs text-text-secondary">
-                  Cast your prediction. Who will solve the problem and win the ELO stakes first?
-                </div>
-
-                <div className="flex gap-4">
-                  {playerA && (
-                    <button
-                      onClick={() => handleVoteCast(playerA._id)}
-                      disabled={hasVoted !== null}
-                      className={`flex-1 p-4 rounded-xl border flex flex-col items-center gap-1.5 transition-all duration-200 ${
-                        hasVoted === playerA._id
-                          ? "bg-primary-muted/20 border-primary"
-                          : hasVoted !== null
-                          ? "bg-bg-elevated/40 border-border-default cursor-not-allowed opacity-50"
-                          : "bg-bg-elevated border-border-default hover:border-border-hover"
-                      }`}
-                    >
-                      <span className="text-xs font-bold text-text-primary">{playerA.username}</span>
-                      <span className="text-[10px] text-text-secondary font-mono">ELO: {playerA.eloRating}</span>
-                    </button>
-                  )}
-
-                  {playerB && (
-                    <button
-                      onClick={() => handleVoteCast(playerB._id)}
-                      disabled={hasVoted !== null}
-                      className={`flex-1 p-4 rounded-xl border flex flex-col items-center gap-1.5 transition-all duration-200 ${
-                        hasVoted === playerB._id
-                          ? "bg-secondary-muted/20 border-secondary"
-                          : hasVoted !== null
-                          ? "bg-bg-elevated/40 border-border-default cursor-not-allowed opacity-50"
-                          : "bg-bg-elevated border-border-default hover:border-border-hover"
-                      }`}
-                    >
-                      <span className="text-xs font-bold text-text-primary">{playerB.username}</span>
-                      <span className="text-[10px] text-text-secondary font-mono">ELO: {playerB.eloRating}</span>
-                    </button>
-                  )}
-                </div>
-
-                {totalVotes > 0 && (
-                  <div className="flex flex-col gap-1.5 font-mono text-[10px] mt-1 text-text-secondary">
-                    <div className="flex justify-between font-bold">
-                      <span>{playerA?.username}: {votePercentages[playerA?._id] || 0}%</span>
-                      <span>{playerB?.username}: {votePercentages[playerB?._id] || 0}%</span>
-                    </div>
-                    <div className="w-full h-2.5 bg-bg-elevated rounded-full overflow-hidden border border-border-default flex">
-                      <div
-                        className="h-full bg-gradient-to-r from-primary to-primary-hover transition-all duration-300"
-                        style={{ width: `${votePercentages[playerA?._id] || 0}%` }}
-                      />
-                      <div
-                        className="h-full bg-gradient-to-r from-secondary to-secondary-muted transition-all duration-300"
-                        style={{ width: `${votePercentages[playerB?._id] || 0}%` }}
-                      />
-                    </div>
-                    <div className="text-[9px] text-text-muted text-right">
-                      Total Predictions Cast: {totalVotes}
-                    </div>
-                  </div>
-                )}
-              </Card>
-            </div>
-          )}
 
           {isCompetitor && opponentUser && (
             <Card className="flex flex-col gap-3 p-4 bg-bg-surface border border-border-default rounded-xl">
@@ -547,61 +454,6 @@ function BattleArena() {
                 </div>
               </div>
             </Card>
-          )}
-
-          {!isCompetitor && (
-            <div className="flex flex-col gap-4">
-              <h3 className="text-xs font-bold text-text-secondary uppercase tracking-wider border-b border-border-default pb-2">
-                Live Competitors Telemetry
-              </h3>
-              <div className="flex flex-col gap-4">
-                {room.players.map((plyr, idx) => (
-                  <Card key={plyr._id || idx} className="flex flex-col gap-3 p-4 bg-bg-surface border border-border-default rounded-xl">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-primary-muted border border-primary flex items-center justify-center font-mono font-bold text-xs text-primary">
-                          {plyr.avatar || plyr.username.slice(0, 2).toUpperCase()}
-                        </div>
-                        <div>
-                          <h4 className="text-sm font-bold text-text-primary">{plyr.username}</h4>
-                          <span className="text-[10px] text-text-muted font-mono uppercase">
-                            ELO: {plyr.eloRating} | {plyr.college || "Independent Coder"}
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-1.5">
-                        <span className={`w-2 h-2 rounded-full ${coderTypingState[plyr._id] ? "bg-success animate-ping" : "bg-text-muted"}`} />
-                        <span className={`text-[10px] uppercase font-mono ${coderTypingState[plyr._id] ? "text-success font-bold" : "text-text-muted"}`}>
-                          {coderTypingState[plyr._id] ? "Active Coding..." : "Idle"}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="flex flex-col gap-1 mt-1">
-                      <div className="flex items-center justify-between text-[10px] font-mono text-text-secondary">
-                        <span>Examples Passed:</span>
-                        <span className="font-bold">
-                          {playerProgress[plyr._id] ? `${playerProgress[plyr._id].passedCount} / ${playerProgress[plyr._id].totalCount}` : `0 / ${room.problem?.visibleExamples?.length || 0}`}
-                        </span>
-                      </div>
-                      <div className="w-full h-1.5 bg-bg-elevated rounded-full overflow-hidden border border-border-default">
-                        <div
-                          className="h-full bg-gradient-to-r from-primary to-secondary transition-all duration-300"
-                          style={{
-                            width: `${
-                              playerProgress[plyr._id]
-                                ? (playerProgress[plyr._id].passedCount / playerProgress[plyr._id].totalCount) * 100
-                                : 0
-                            }%`,
-                          }}
-                        />
-                      </div>
-                    </div>
-                  </Card>
-                ))}
-              </div>
-            </div>
           )}
 
           <Card className="flex flex-col gap-4 p-5 bg-bg-surface border border-border-default rounded-xl">
@@ -835,30 +687,7 @@ function BattleArena() {
               </div>
             </>
           ) : (
-            <div className="flex-1 flex flex-col items-center justify-center p-8 bg-bg-surface border-l border-border-default text-center gap-6">
-              <div className="text-5xl animate-bounce">📣</div>
-              <div className="flex flex-col gap-2">
-                <h3 className="text-xl font-bold tracking-tight">Spectator Broadcast Center</h3>
-                <p className="text-sm text-text-secondary max-w-sm">
-                  You are inside the spectator box watching the battle unfold in real time. Use the telemetry widgets on the left to track coding progress.
-                </p>
-              </div>
-
-              <div className="flex flex-col gap-3 max-w-sm w-full bg-bg-elevated/40 border border-border-default rounded-xl p-5 font-mono text-xs text-text-secondary">
-                <div className="flex justify-between">
-                  <span>Match Status:</span>
-                  <span className="font-bold text-success uppercase animate-pulse">Live Duel</span>
-                </div>
-                <div className="flex justify-between border-t border-border-default pt-2.5">
-                  <span>Allowed Languages:</span>
-                  <span className="font-bold text-text-primary">JS, PY, CPP</span>
-                </div>
-                <div className="flex justify-between border-t border-border-default pt-2.5">
-                  <span>Battle Format:</span>
-                  <span className="font-bold text-secondary uppercase">{room.battleFormat || "1v1"}</span>
-                </div>
-              </div>
-            </div>
+          <></>
           )}
         </section>
       </main>

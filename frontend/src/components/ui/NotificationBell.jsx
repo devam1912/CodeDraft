@@ -154,8 +154,6 @@ function NotificationBell() {
     if (notif.payload?.roomId) {
       if (notif.type === "challenge_invite") {
         navigate(`/room/${notif.payload.roomId}`);
-      } else {
-        navigate(`/room/${notif.payload.roomId}/replay`);
       }
       setIsOpen(false);
     }

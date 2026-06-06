@@ -112,7 +112,7 @@ const getProfile = async (req, res, next) => {
     const userId = req.userId;
 
     const user = await User.findById(userId)
-      .select("username email eloRating wins losses draws matchesPlayed college avatar spectatorPredictions eloHistory createdAt")
+      .select("username email eloRating wins losses draws matchesPlayed college degree year bio avatar eloHistory createdAt friends")
       .lean();
 
     if (!user) {
@@ -120,7 +120,6 @@ const getProfile = async (req, res, next) => {
     }
 
     const globalRank = await User.countDocuments({ eloRating: { $gt: user.eloRating } });
-
     const recentEloHistory = (user.eloHistory || []).slice(-20);
 
     return sendSuccess(
@@ -130,6 +129,7 @@ const getProfile = async (req, res, next) => {
         ...user,
         eloHistory: recentEloHistory,
         globalRank: globalRank + 1,
+        friendsCount: (user.friends || []).length,
       },
       "User profile retrieved successfully"
     );
@@ -138,6 +138,7 @@ const getProfile = async (req, res, next) => {
     next(error);
   }
 };
+
 
 const getProblemsCreated = async (req, res, next) => {
   try {

@@ -10,7 +10,7 @@ const getPublicProfile = async (req, res, next) => {
     const { username } = req.params;
 
     const user = await User.findOne({ username })
-      .select("username eloRating wins losses draws matchesPlayed college avatar spectatorPredictions eloHistory createdAt")
+      .select("username eloRating wins losses draws matchesPlayed college degree year bio avatar eloHistory createdAt")
       .lean();
 
     if (!user) {

@@ -229,16 +229,7 @@ function TournamentArena() {
                           </Button>
                         )}
 
-                        {hasFinished && match.roomId && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="w-full py-2 text-[10px] font-bold uppercase tracking-wider border border-border-default bg-bg-elevated/30"
-                            onClick={() => navigate(`/room/${match.roomId}/replay`)}
-                          >
-                            Watch Replay Teleplay
-                          </Button>
-                        )}
+
                       </Card>
                     );
                   })}

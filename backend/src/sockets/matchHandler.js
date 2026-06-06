@@ -421,34 +421,6 @@ const registerMatchHandlers = (io, socket) => {
     }
   });
 
-  socket.on("spectator:voteCast", ({ roomId, coderId }) => {
-    try {
-      if (!roomId || !coderId) return;
-      if (!activeRooms.has(roomId)) return;
-      const roomState = activeRooms.get(roomId);
-      if (!roomState.votes) {
-        roomState.votes = {};
-      }
-      roomState.votes[socket.userId.toString()] = coderId.toString();
-
-      const counts = {};
-      let totalVotes = 0;
-      Object.values(roomState.votes).forEach((cId) => {
-        counts[cId] = (counts[cId] || 0) + 1;
-        totalVotes++;
-      });
-
-      const percentages = {};
-      Object.keys(counts).forEach((cId) => {
-        percentages[cId] = Math.round((counts[cId] / totalVotes) * 100);
-      });
-
-      io.to(roomId).emit("spectator:voteUpdate", { percentages, totalVotes });
-    } catch (error) {
-      logger.error(`Error in socket spectator:voteCast: ${error.message}`);
-    }
-  });
-
   socket.on("battle:submit", async ({ roomId, sourceCode, language }) => {
     try {
       if (!roomId || !sourceCode || !language) {

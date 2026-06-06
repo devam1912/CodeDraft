@@ -11,7 +11,6 @@ import ProblemEditor from "./pages/ProblemEditor";
 import Lobby from "./pages/Lobby";
 import BattleArena from "./pages/BattleArena";
 import Leaderboard from "./pages/Leaderboard";
-import MatchReplay from "./pages/MatchReplay";
 import TournamentArena from "./pages/TournamentArena";
 import PublicProfile from "./pages/PublicProfile";
 
@@ -86,14 +85,6 @@ function App() {
             element={
               <ProtectedRoute>
                 <Leaderboard />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/room/:roomId/replay"
-            element={
-              <ProtectedRoute>
-                <MatchReplay />
               </ProtectedRoute>
             }
           />

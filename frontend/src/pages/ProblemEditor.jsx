@@ -151,6 +151,7 @@ function ProblemEditor() {
   const [statement, setStatement] = useState("");
   const [difficulty, setDifficulty] = useState("easy");
   const [timeLimit, setTimeLimit] = useState(10);
+  const [extraFiveMin, setExtraFiveMin] = useState(false);
   const [allowedLanguages, setAllowedLanguages] = useState(["javascript", "python", "cpp"]);
   const [activeLanguage, setActiveLanguage] = useState("javascript");
   const [referenceSolution, setReferenceSolution] = useState(STARTER_CODES.javascript);
@@ -383,7 +384,7 @@ function ProblemEditor() {
         statement,
         visibleExamples: visibleExamples.filter(ex => ex.input.trim() && ex.output.trim()),
         hiddenTestCases,
-        timeLimit,
+        timeLimit: timeLimit + (extraFiveMin ? 5 : 0),
         difficulty,
         allowedLanguages,
         referenceSolution,
@@ -598,7 +599,14 @@ function ProblemEditor() {
                   </label>
                   <select
                     value={difficulty}
-                    onChange={(e) => setDifficulty(e.target.value)}
+                    onChange={(e) => {
+                      const d = e.target.value;
+                      setDifficulty(d);
+                      setExtraFiveMin(false);
+                      if (d === "easy") setTimeLimit(10);
+                      else if (d === "medium") setTimeLimit(20);
+                      else if (d === "hard") setTimeLimit(30);
+                    }}
                     className="w-full bg-bg-surface border border-border-default rounded-xl px-3 py-3 text-sm text-text-primary focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200 appearance-none cursor-pointer"
                     style={{
                       backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%2394a3b8' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E")`,
@@ -616,22 +624,33 @@ function ProblemEditor() {
                   <label className="text-[11px] font-semibold uppercase tracking-[0.1em] text-text-muted">
                     Time Limit
                   </label>
-                  <select
-                    value={timeLimit}
-                    onChange={(e) => setTimeLimit(Number(e.target.value))}
-                    className="w-full bg-bg-surface border border-border-default rounded-xl px-3 py-3 text-sm text-text-primary focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200 appearance-none cursor-pointer"
-                    style={{
-                      backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%2394a3b8' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E")`,
-                      backgroundRepeat: "no-repeat",
-                      backgroundPosition: "right 14px center",
-                    }}
-                  >
-                    <option value={5}>5 mins — Blitz ⚡</option>
-                    <option value={10}>10 mins</option>
-                    <option value={15}>15 mins</option>
-                    <option value={20}>20 mins</option>
-                    <option value={30}>30 mins</option>
-                  </select>
+                  <div className="flex flex-col gap-2">
+                    <div className="w-full bg-bg-surface border border-border-default rounded-xl px-3 py-3 text-sm text-text-primary font-semibold flex items-center gap-2">
+                      <span className="text-primary text-base">⏱</span>
+                      <span>
+                        {timeLimit + (extraFiveMin ? 5 : 0)} mins
+                      </span>
+                      <span className="text-text-muted text-xs font-normal ml-1">
+                        ({difficulty === "easy" ? "Easy" : difficulty === "medium" ? "Medium" : "Hard"} default)
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setExtraFiveMin((v) => !v)}
+                      className={`flex items-center gap-2 px-3 py-2 rounded-xl text-[12px] font-semibold border transition-all duration-200 ${
+                        extraFiveMin
+                          ? "bg-secondary/15 border-secondary/50 text-secondary"
+                          : "bg-bg-surface border-border-default text-text-muted hover:border-border-hover"
+                      }`}
+                    >
+                      <span className={`w-4 h-4 rounded flex items-center justify-center text-[10px] border ${
+                        extraFiveMin ? "bg-secondary border-secondary text-white" : "border-border-default"
+                      }`}>
+                        {extraFiveMin ? "✓" : ""}
+                      </span>
+                      +5 minutes extra
+                    </button>
+                  </div>
                 </div>
               </div>
 

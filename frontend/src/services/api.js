@@ -39,13 +39,22 @@ export const userAPI = {
   getLeaderboard: (params) => api.get("/users/leaderboard", { params }),
   getCollegeLeaderboard: () => api.get("/users/leaderboard/college"),
   getProfile: () => api.get("/users/profile"),
+  updateProfile: (data) => api.patch("/users/profile", data),
   getProblemsCreated: (params) => api.get("/users/problems-created", { params }),
   getPublicProfile: (username) => api.get(`/profiles/${username}`),
   sendChallengeInvite: (username) => api.post(`/profiles/${username}/challenge`),
   updateAvatar: (avatar) => api.patch("/users/avatar", { avatar }),
   verifyCollege: (email) => api.post("/users/verify-college", { email }),
+  searchUsers: (q) => api.get("/users/search", { params: { q } }),
+  // Friends
+  getFriends: () => api.get("/users/friends"),
+  getFriendRequests: () => api.get("/users/friends/requests"),
+  sendFriendRequest: (username) => api.post(`/users/friends/request/${username}`),
+  acceptFriendRequest: (username) => api.post(`/users/friends/accept/${username}`),
+  rejectFriendRequest: (username) => api.post(`/users/friends/reject/${username}`),
+  removeFriend: (username) => api.delete(`/users/friends/${username}`),
+  inviteFriendToBattle: (username, data) => api.post(`/users/friends/${username}/invite`, data),
 };
-
 
 export const tournamentAPI = {
   createTournament: (data) => api.post("/tournaments", data),
