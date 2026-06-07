@@ -19,6 +19,7 @@ const {
   inviteFriendToBattle,
   searchUsers,
 } = require("../controllers/friendsController");
+const { convertCode, generateSolution } = require("../controllers/aiController");
 
 const router = express.Router();
 
@@ -46,5 +47,9 @@ router.post("/friends/accept/:username", auth, acceptFriendRequest);
 router.post("/friends/reject/:username", auth, rejectFriendRequest);
 router.delete("/friends/:username", auth, removeFriend);
 router.post("/friends/:username/invite", auth, inviteFriendToBattle);
+
+// AI helpers
+router.post("/ai/convert", auth, convertCode);
+router.post("/ai/generate-solution", auth, generateSolution);
 
 module.exports = router;

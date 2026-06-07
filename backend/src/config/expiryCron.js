@@ -88,7 +88,7 @@ const initExpiryCron = (io) => {
             // Emit customized room:ready to each player socket based on their team swap
             const socketsInRoom = await io.in(room.roomId).fetchSockets();
             for (const s of socketsInRoom) {
-              const isTeamA = room.teamA.some(p => p.toString() === s.userId?.toString()) || room.creatorId.toString() === s.userId?.toString();
+              const isTeamA = room.teamA.some(p => p.toString() === s.userId?.toString());
               const targetProblem = isTeamA ? room.problemB : room.problemA;
 
               s.emit("room:ready", {

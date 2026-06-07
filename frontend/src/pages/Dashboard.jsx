@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from "recharts";
@@ -74,6 +74,7 @@ function Dashboard() {
   const [searchLoading, setSearchLoading] = useState(false);
   const [friendsLoading, setFriendsLoading] = useState(false);
   const [invitingFriend, setInvitingFriend] = useState(null);
+  const searchTimeoutRef = useRef(null);
 
   const [activities, setActivities] = useState([
     { id: 1, message: "Welcome to CodeDraft! Live battle activity scrolling feed active.", timestamp: new Date() }
@@ -161,14 +162,29 @@ function Dashboard() {
     } finally { setSavingProfile(false); }
   };
 
-  const handleSearchUsers = async (q) => {
+  const handleSearchUsers = (q) => {
     setUserSearch(q);
-    if (q.length < 2) { setSearchResults([]); return; }
+    if (q.length < 2) {
+      setSearchResults([]);
+      if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
+      return;
+    }
+
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+
     setSearchLoading(true);
-    try {
-      const res = await userAPI.searchUsers(q);
-      setSearchResults(res.data?.users || []);
-    } catch { setSearchResults([]); } finally { setSearchLoading(false); }
+    searchTimeoutRef.current = setTimeout(async () => {
+      try {
+        const res = await userAPI.searchUsers(q);
+        setSearchResults(res.data?.users || []);
+      } catch {
+        setSearchResults([]);
+      } finally {
+        setSearchLoading(false);
+      }
+    }, 400);
   };
 
   const handleSendRequest = async (username) => {

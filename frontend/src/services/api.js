@@ -54,6 +54,8 @@ export const userAPI = {
   rejectFriendRequest: (username) => api.post(`/users/friends/reject/${username}`),
   removeFriend: (username) => api.delete(`/users/friends/${username}`),
   inviteFriendToBattle: (username, data) => api.post(`/users/friends/${username}/invite`, data),
+  convertCode: (data) => api.post("/users/ai/convert", data),
+  generateSolution: (data) => api.post("/users/ai/generate-solution", data),
 };
 
 export const tournamentAPI = {

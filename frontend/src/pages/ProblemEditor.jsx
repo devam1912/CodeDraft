@@ -3,10 +3,12 @@ import { useParams, useNavigate } from "react-router-dom";
 import ExampleRow from "../components/problem-editor/ExampleRow";
 import TestCaseRow from "../components/problem-editor/TestCaseRow";
 import CodeEditor from "../components/ui/CodeEditor";
-import { roomAPI } from "../services/api";
+import { roomAPI, userAPI } from "../services/api";
 import toast from "react-hot-toast";
 import { useSocket } from "../context/SocketContext";
 import { motion, AnimatePresence } from "framer-motion";
+import AICodeConverter from "../components/ui/AICodeConverter";
+import { useAuth } from "../context/AuthContext";
 
 const STARTER_CODES = {
   javascript: `const fs = require('fs');
@@ -146,6 +148,7 @@ function SectionHeader({ icon, title, subtitle, children }) {
 function ProblemEditor() {
   const { roomId } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const [title, setTitle] = useState("");
   const [statement, setStatement] = useState("");
@@ -155,6 +158,36 @@ function ProblemEditor() {
   const [allowedLanguages, setAllowedLanguages] = useState(["javascript", "python", "cpp"]);
   const [activeLanguage, setActiveLanguage] = useState("javascript");
   const [referenceSolution, setReferenceSolution] = useState(STARTER_CODES.javascript);
+
+  const [isGeneratingSolution, setIsGeneratingSolution] = useState(false);
+
+  const handleGenerateSolutionWithAI = async () => {
+    if (!title.trim() || !statement.trim()) {
+      toast.error("Please fill in the Challenge Title and Problem Statement first.");
+      return;
+    }
+    setIsGeneratingSolution(true);
+    const toastId = toast.loading(`Generating solution in ${activeLanguage.toUpperCase()} using Gemini AI...`);
+    try {
+      const res = await userAPI.generateSolution({
+        title,
+        statement,
+        language: activeLanguage
+      });
+      const solution = res.data?.solution || res.solution || "";
+      if (!solution) {
+        throw new Error("Gemini returned an empty solution.");
+      }
+      setReferenceSolution(solution);
+      setIsValidated(false);
+      setValidationResults([]);
+      toast.success("AI generated Reference Solution successfully!", { id: toastId });
+    } catch (err) {
+      toast.error(`Failed to generate solution: ${err.message || "Unknown error"}`, { id: toastId });
+    } finally {
+      setIsGeneratingSolution(false);
+    }
+  };
 
   const [visibleExamples, setVisibleExamples] = useState([
     { input: "", output: "", explanation: "" },
@@ -173,8 +206,11 @@ function ProblemEditor() {
 
   const [room, setRoom] = useState(null);
   const [timeLeft, setTimeLeft] = useState("");
+  const [isLowTime, setIsLowTime] = useState(false);
   const [countdown, setCountdown] = useState(null);
   const socket = useSocket();
+  const [showAiHelper, setShowAiHelper] = useState(false);
+  const [lastWarnedLang, setLastWarnedLang] = useState(null);
 
   /* ─── Fetch Room Details on Mount ─── */
   useEffect(() => {
@@ -213,10 +249,24 @@ function ProblemEditor() {
       navigate(`/room/${roomId}/battle`, { state: { problem } });
     });
 
-    socket.on("room:playerJoined", ({ player, currentPlayers }) => {
+    socket.on("room:playerJoined", ({ player, currentPlayers, teamA, teamB }) => {
       setRoom((prev) => {
         if (!prev) return prev;
-        return { ...prev, players: currentPlayers };
+        return { ...prev, players: currentPlayers, teamA, teamB };
+      });
+    });
+
+    socket.on("room:teamUpdated", ({ teamA, teamB, players: ps }) => {
+      setRoom((prev) => {
+        if (!prev) return prev;
+        return { ...prev, teamA, teamB, players: ps };
+      });
+    });
+
+    socket.on("room:languageUpdated", ({ userId: uId, language, playerLanguages }) => {
+      setRoom((prev) => {
+        if (!prev) return prev;
+        return { ...prev, playerLanguages };
       });
     });
 
@@ -225,22 +275,95 @@ function ProblemEditor() {
       socket.off("room:countdown");
       socket.off("room:ready");
       socket.off("room:playerJoined");
+      socket.off("room:teamUpdated");
+      socket.off("room:languageUpdated");
     };
   }, [socket, roomId, navigate]);
+
+  /* ─── Opponent Language Matching Popup ─── */
+  useEffect(() => {
+    if (!room || !user) return;
+    const opponent = room.players?.find((p) => {
+      const pId = p._id || p;
+      return pId.toString() !== user._id?.toString();
+    });
+    if (!opponent) return;
+
+    const opponentId = opponent._id || opponent;
+    const opponentLang = room.playerLanguages?.[opponentId];
+    if (opponentLang && opponentLang !== activeLanguage && opponentLang !== lastWarnedLang) {
+      toast((t) => (
+        <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+          <div style={{ fontWeight: 700, color: "#f8fafc" }}>✨ Language Match Recommendation</div>
+          <div style={{ fontSize: "12px", color: "#94a3b8", lineHeight: 1.4 }}>
+            Please use our AI helper to convert your code to <strong>{opponent.username || "B"}'s</strong> selected language (<strong>{opponentLang.toUpperCase()}</strong>).
+          </div>
+          <div style={{ display: "flex", gap: "8px", marginTop: "4px" }}>
+            <button
+              onClick={() => {
+                toast.dismiss(t.id);
+                setShowAiHelper(true);
+              }}
+              style={{
+                background: "linear-gradient(135deg,#6366f1,#818cf8)",
+                color: "#fff",
+                border: "none",
+                borderRadius: "6px",
+                padding: "6px 12px",
+                fontSize: "11px",
+                fontWeight: 700,
+                cursor: "pointer",
+              }}
+            >
+              Use AI Helper
+            </button>
+            <button
+              onClick={() => toast.dismiss(t.id)}
+              style={{
+                background: "transparent",
+                border: "1px solid #1e1e2e",
+                color: "#94a3b8",
+                borderRadius: "6px",
+                padding: "6px 12px",
+                fontSize: "11px",
+                fontWeight: 600,
+                cursor: "pointer",
+              }}
+            >
+              Ignore
+            </button>
+          </div>
+        </div>
+      ), { duration: 10000, id: `lang-warn-${opponentLang}` });
+      setLastWarnedLang(opponentLang);
+    }
+  }, [room, user, activeLanguage, lastWarnedLang]);
 
   /* ─── Timer countdown calculation ─── */
   useEffect(() => {
     if (!room || !room.setupExpiresAt) return;
-    const interval = setInterval(() => {
+
+    const checkTime = () => {
       const expiry = new Date(room.setupExpiresAt).getTime();
       const diff = expiry - Date.now();
       if (diff <= 0) {
         setTimeLeft("00:00");
-        clearInterval(interval);
+        setIsLowTime(true);
+        return false;
       } else {
         const mins = Math.floor(diff / 60000);
         const secs = Math.floor((diff % 60000) / 1000);
         setTimeLeft(`${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`);
+        setIsLowTime(diff < 10 * 60 * 1000);
+        return true;
+      }
+    };
+
+    checkTime();
+    const interval = setInterval(() => {
+      const active = checkTime();
+      if (!active) {
+        clearInterval(interval);
       }
     }, 1000);
     return () => clearInterval(interval);
@@ -512,10 +635,20 @@ function ProblemEditor() {
 
         <div className="flex items-center gap-3 pr-2">
           {room && room.setupExpiresAt ? (
-            <div className="px-4 py-2 rounded-full bg-gradient-to-r from-amber-500/15 to-amber-600/15 border border-amber-500/30 text-[11px] font-bold text-amber-500 font-mono tracking-wide uppercase flex items-center gap-2 shadow-[0_0_15px_rgba(245,158,11,0.15)] animate-pulse">
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-              ⏳ {timeLeft || "30:00"} Left
-            </div>
+            isLowTime ? (
+              <div className="px-4 py-2 rounded-full bg-gradient-to-r from-red-500/20 to-red-600/20 border border-red-500/40 text-[11px] font-bold text-red-500 font-mono tracking-wide uppercase flex items-center gap-2 shadow-[0_0_15px_rgba(239,68,68,0.25)] animate-[pulse_1s_infinite]">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                </span>
+                ⏳ {timeLeft || "30:00"} Left
+              </div>
+            ) : (
+              <div className="px-4 py-2 rounded-full bg-gradient-to-r from-amber-500/15 to-amber-600/15 border border-amber-500/30 text-[11px] font-bold text-amber-500 font-mono tracking-wide uppercase flex items-center gap-2 shadow-[0_0_15px_rgba(245,158,11,0.15)] animate-pulse">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                ⏳ {timeLeft || "30:00"} Left
+              </div>
+            )
           ) : (
             <div className="px-4 py-2 rounded-full bg-gradient-to-r from-primary/15 to-secondary/15 border border-primary/30 text-[11px] font-bold text-primary font-mono tracking-wide uppercase flex items-center gap-2 animate-pulse-glow">
               <span className="w-1.5 h-1.5 rounded-full bg-primary" />
@@ -531,39 +664,6 @@ function ProblemEditor() {
         {/* ═══════ LEFT PANEL — FORM ═══════ */}
         <section className="overflow-y-auto border-r border-border-default pe-scrollbar">
           <div className="p-8 flex flex-col gap-8 max-w-[680px]">
-
-            {/* Countdown / Status Banner */}
-            {room && (
-              <div className="mb-2">
-                {room.setupExpiresAt ? (
-                  <div className="bg-gradient-to-r from-amber-500/10 to-amber-600/10 border border-amber-500/25 rounded-2xl p-4 flex items-center justify-between shadow-[0_0_20px_rgba(245,158,11,0.08)] animate-pulse-glow">
-                    <div className="flex items-center gap-3">
-                      <span className="text-xl">⏳</span>
-                      <div className="flex flex-col">
-                        <span className="text-[10px] font-bold text-amber-500 uppercase tracking-widest font-mono">Framing Countdown</span>
-                        <span className="text-xs text-text-secondary">Finish framing your challenge before time runs out!</span>
-                      </div>
-                    </div>
-                    <span className="text-3xl font-black font-mono text-amber-500 tracking-wider pr-2">
-                      {timeLeft || "30:00"}
-                    </span>
-                  </div>
-                ) : (
-                  <div className="bg-gradient-to-r from-primary/10 to-secondary/10 border border-primary/25 rounded-2xl p-4 flex items-center justify-between shadow-[0_0_20px_rgba(99,102,241,0.08)]">
-                    <div className="flex items-center gap-3">
-                      <span className="text-xl">⏳</span>
-                      <div className="flex flex-col">
-                        <span className="text-[10px] font-bold text-primary uppercase tracking-widest font-mono">Awaiting Challenger</span>
-                        <span className="text-xs text-text-secondary">The timer will start once both players enter the lobby.</span>
-                      </div>
-                    </div>
-                    <span className="text-xs font-bold font-mono text-primary uppercase tracking-wider bg-primary/10 border border-primary/20 px-3 py-1.5 rounded-xl animate-pulse">
-                      Waiting...
-                    </span>
-                  </div>
-                )}
-              </div>
-            )}
 
             {/* Page heading */}
             <div className="flex flex-col gap-2">
@@ -833,17 +933,40 @@ function ProblemEditor() {
                 />
               </div>
 
-              <button
-                type="button"
-                onClick={handleValidateReferenceSolution}
-                disabled={isValidating}
-                className={`py-3.5 rounded-xl text-[12px] font-bold uppercase tracking-wider transition-all duration-200 flex items-center justify-center gap-2 ${
-                  !isValidating
-                    ? "bg-bg-surface border border-primary text-primary hover:bg-primary hover:text-white active:scale-[0.99] cursor-pointer shadow-[0_0_20px_rgba(99,102,241,0.08)]"
-                    : "bg-bg-surface border border-border-default text-text-muted cursor-not-allowed"
-                }`}
-              >
-                {isValidating ? (
+              <div className="grid grid-cols-2 gap-4">
+                <button
+                  type="button"
+                  onClick={handleGenerateSolutionWithAI}
+                  disabled={isGeneratingSolution || isValidating}
+                  className={`py-3.5 rounded-xl text-[12px] font-bold uppercase tracking-wider transition-all duration-200 flex items-center justify-center gap-2 ${
+                    !isGeneratingSolution && !isValidating
+                      ? "bg-gradient-to-r from-primary to-[#818cf8] text-white hover:brightness-110 active:scale-[0.99] cursor-pointer shadow-[0_0_20px_rgba(99,102,241,0.15)]"
+                      : "bg-bg-surface border border-border-default text-text-muted cursor-not-allowed"
+                  }`}
+                >
+                  {isGeneratingSolution ? (
+                    <>
+                      <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      AI Generating...
+                    </>
+                  ) : (
+                    <>
+                      ✨ AI Generate Solution
+                    </>
+                  )}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleValidateReferenceSolution}
+                  disabled={isValidating || isGeneratingSolution}
+                  className={`py-3.5 rounded-xl text-[12px] font-bold uppercase tracking-wider transition-all duration-200 flex items-center justify-center gap-2 ${
+                    !isValidating && !isGeneratingSolution
+                      ? "bg-bg-surface border border-primary text-primary hover:bg-primary hover:text-white active:scale-[0.99] cursor-pointer shadow-[0_0_20px_rgba(99,102,241,0.08)]"
+                      : "bg-bg-surface border border-border-default text-text-muted cursor-not-allowed"
+                  }`}
+                >
+                  {isValidating ? (
                   <>
                     <span className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
                     Validating Execution Sandbox...
@@ -857,6 +980,7 @@ function ProblemEditor() {
                   </>
                 )}
               </button>
+            </div>
 
               {/* Validation Results */}
               {isValidated && validationResults.length > 0 && (
@@ -1110,6 +1234,29 @@ function ProblemEditor() {
           </div>
         </section>
       </main>
+
+      {/* Floating AI Helper Button */}
+      <div className="fixed bottom-6 right-6 z-40">
+        <button
+          type="button"
+          onClick={() => setShowAiHelper(true)}
+          className="flex items-center gap-2 px-5 py-3.5 rounded-full bg-gradient-to-r from-primary to-[#818cf8] hover:brightness-110 text-white font-bold text-xs uppercase tracking-wider shadow-lg hover:shadow-[0_0_30px_rgba(99,102,241,0.4)] cursor-pointer transition-all border border-white/10"
+        >
+          ✨ AI Code Helper
+        </button>
+      </div>
+
+      <AICodeConverter
+        isOpen={showAiHelper}
+        onClose={() => setShowAiHelper(false)}
+        initialLanguage={activeLanguage}
+        onApplyCode={(code, lang) => {
+          setReferenceSolution(code);
+          if (lang) {
+            setActiveLanguage(lang);
+          }
+        }}
+      />
     </div>
   );
 }

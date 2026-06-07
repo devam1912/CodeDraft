@@ -305,7 +305,7 @@ const registerMatchHandlers = (io, socket) => {
           // Emit customized room:ready to each player socket based on their team swap
           const socketsInRoom = await io.in(roomId).fetchSockets();
           for (const s of socketsInRoom) {
-            const isTeamA = room.teamA.some(p => p.toString() === s.userId?.toString()) || room.creatorId.toString() === s.userId?.toString();
+            const isTeamA = room.teamA.some(p => p.toString() === s.userId?.toString());
             const targetProblem = isTeamA ? room.problemB : room.problemA;
 
             s.emit("room:ready", {
@@ -444,7 +444,7 @@ const registerMatchHandlers = (io, socket) => {
         return socket.emit("error", { message: "You are not registered as a competitor in this match" });
       }
 
-      const isTeamA = room.teamA.some((p) => p._id.toString() === socket.userId.toString()) || room.creatorId.toString() === socket.userId.toString();
+      const isTeamA = room.teamA.some((p) => p._id.toString() === socket.userId.toString());
       const targetProblem = isTeamA ? room.problemB : room.problemA;
       const testCases = targetProblem.hiddenTestCases;
       const results = [];
@@ -827,6 +827,30 @@ const registerMatchHandlers = (io, socket) => {
     } catch (error) {
       logger.error(`Error in socket battle:submit: ${error.message}`);
       socket.emit("error", { message: "Internal submission compiler error occurred" });
+    }
+  });
+
+  socket.on("room:selectLanguage", async ({ roomId, language }) => {
+    try {
+      if (!roomId || !language) return;
+      const room = await Room.findOne({ roomId });
+      if (!room) return;
+
+      if (!room.playerLanguages) {
+        room.playerLanguages = new Map();
+      }
+      room.playerLanguages.set(socket.userId.toString(), language);
+      await room.save();
+
+      io.to(roomId).emit("room:languageUpdated", {
+        userId: socket.userId.toString(),
+        language,
+        playerLanguages: Object.fromEntries(room.playerLanguages),
+      });
+
+      logger.info(`User ${socket.userId} selected language ${language} in room ${roomId}`);
+    } catch (err) {
+      logger.error(`Error in socket room:selectLanguage: ${err.message}`);
     }
   });
 

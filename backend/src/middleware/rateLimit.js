@@ -19,8 +19,11 @@ const createLimiter = (windowMs, max, message) => {
   });
 };
 
-const authLimiter = createLimiter(15 * 60 * 1000, 5, RATE_LIMIT_MESSAGES.auth);
-const executeLimiter = createLimiter(60 * 1000, 10, RATE_LIMIT_MESSAGES.execute);
-const generalLimiter = createLimiter(60 * 1000, 100, RATE_LIMIT_MESSAGES.general);
+const isProd = process.env.NODE_ENV === "production";
+
+const authLimiter = createLimiter(15 * 60 * 1000, isProd ? 5 : 100, RATE_LIMIT_MESSAGES.auth);
+const executeLimiter = createLimiter(60 * 1000, isProd ? 10 : 200, RATE_LIMIT_MESSAGES.execute);
+const generalLimiter = createLimiter(60 * 1000, isProd ? 100 : 1000, RATE_LIMIT_MESSAGES.general);
 
 module.exports = { authLimiter, executeLimiter, generalLimiter };
+

@@ -197,6 +197,11 @@ const roomSchema = new mongoose.Schema(
         },
       },
     ],
+    playerLanguages: {
+      type: Map,
+      of: String,
+      default: {},
+    },
   },
   {
     timestamps: true,

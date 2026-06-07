@@ -2,15 +2,12 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useSocket } from "../context/SocketContext";
-import { roomAPI } from "../services/api";
+import { roomAPI, userAPI } from "../services/api";
 import toast from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
 
 /* ── Inline PlayerCard (self-contained, no import needed) ── */
-function PlayerCard({ player, team }) {
-  const isAlpha = team === "A";
-  const glow = isAlpha ? "#6366f1" : "#22d3ee";
-  const glowRgb = isAlpha ? "99,102,241" : "34,211,238";
+function PlayerCard({ player, team, selectedLanguage, isMe, onChangeLanguage, glow, glowRgb }) {
 
   if (!player) {
     return (
@@ -61,12 +58,144 @@ function PlayerCard({ player, team }) {
           ) : (
             <span style={{ fontSize: 10, color: "#64748b", fontStyle: "italic" }}>No college standing</span>
           )}
+          
+          {isMe ? (
+            <div style={{ marginTop: 6, display: "flex", alignItems: "center", gap: 6 }}>
+              <span style={{ fontSize: 9, color: "#64748b", textTransform: "uppercase" }}>Coding In:</span>
+              <select
+                value={selectedLanguage || "javascript"}
+                onChange={(e) => onChangeLanguage(e.target.value)}
+                style={{
+                  backgroundColor: "#0a0a0f",
+                  border: "1px solid rgba(255,255,255,0.1)",
+                  borderRadius: 6,
+                  color: "#22d3ee",
+                  fontSize: 9,
+                  fontWeight: 600,
+                  padding: "2px 4px",
+                  cursor: "pointer",
+                  outline: "none"
+                }}
+              >
+                <option value="javascript">JavaScript</option>
+                <option value="python">Python</option>
+                <option value="cpp">C++</option>
+                <option value="java">Java</option>
+                <option value="go">Go</option>
+                <option value="rust">Rust</option>
+                <option value="c">C</option>
+              </select>
+            </div>
+          ) : (
+            <div style={{ marginTop: 6, display: "flex", alignItems: "center", gap: 6 }}>
+              <span style={{ fontSize: 9, color: "#64748b", textTransform: "uppercase" }}>Coding In:</span>
+              <span style={{ fontSize: 9, fontWeight: 700, color: "#f59e0b", background: "rgba(245,158,11,0.1)", padding: "1px 6px", borderRadius: 4, textTransform: "uppercase" }}>
+                {selectedLanguage || "Selecting..."}
+              </span>
+            </div>
+          )}
         </div>
       </div>
       <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4, position: "relative", zIndex: 1 }}>
         <span style={{ fontSize: 9, color: "#64748b", textTransform: "uppercase", fontWeight: 700, letterSpacing: "0.1em", fontFamily: "monospace" }}>ELO</span>
         <span style={{ fontSize: 22, fontWeight: 800, fontFamily: "JetBrains Mono, monospace", background: `linear-gradient(135deg, ${glow}, #f8fafc)`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>{player.eloRating}</span>
       </div>
+    </div>
+  );
+}
+
+function ChallengeFramingCard({ teamLabel, isMyTeam, problem, roomId, color, rgb }) {
+  const navigate = useNavigate();
+
+  return (
+    <div style={{
+      background: "rgba(17,17,24,0.5)",
+      backdropFilter: "blur(12px)",
+      border: `1px solid rgba(${rgb}, 0.25)`,
+      borderRadius: 16,
+      padding: "16px 20px",
+      display: "flex",
+      flexDirection: "column",
+      gap: 12,
+      position: "relative",
+      overflow: "hidden",
+      marginTop: 8,
+    }}>
+      <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, background: `linear-gradient(90deg, transparent, ${color}, transparent)` }} />
+      
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <span style={{ fontSize: 9, fontWeight: 800, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.08em", fontFamily: "monospace" }}>
+          {isMyTeam ? "YOUR TEAM'S CHALLENGE" : `${teamLabel}'S CHALLENGE`}
+        </span>
+      </div>
+
+      {isMyTeam ? (
+        problem ? (
+          <div style={{
+            display: "flex", alignItems: "center", justifyContent: "space-between",
+            background: "rgba(16,185,129,0.05)", border: "1px solid rgba(16,185,129,0.15)",
+            borderRadius: 12, padding: "10px 14px",
+          }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+              <span style={{ fontSize: 9, fontWeight: 800, color: "#10b981", letterSpacing: "0.08em" }}>✅ READY</span>
+              <span style={{ fontSize: 12, fontWeight: 600, color: "#f8fafc" }}>{problem.title}</span>
+            </div>
+            <button
+              onClick={() => navigate(`/room/${roomId}/edit`)}
+              style={{
+                padding: "6px 12px", borderRadius: 8, fontSize: 9, fontWeight: 700,
+                background: "rgba(26,26,36,0.8)", border: "1px solid #1e1e2e", color: "#94a3b8",
+                cursor: "pointer", textTransform: "uppercase",
+                transition: "all 0.2s",
+              }}
+              onMouseEnter={(e) => { e.target.style.borderColor = color; e.target.style.color = color; }}
+              onMouseLeave={(e) => { e.target.style.borderColor = "#1e1e2e"; e.target.style.color = "#94a3b8"; }}
+            >Edit</button>
+          </div>
+        ) : (
+          <div style={{
+            display: "flex", flexDirection: "column", gap: 10,
+            background: `rgba(${rgb}, 0.04)`, border: `1px solid rgba(${rgb}, 0.15)`,
+            borderRadius: 12, padding: "12px 14px",
+          }}>
+            <span style={{ fontSize: 9, fontWeight: 800, color: "#f59e0b" }}>⚠️ PENDING</span>
+            <button
+              onClick={() => navigate(`/room/${roomId}/edit`)}
+              style={{
+                width: "100%", padding: "10px", borderRadius: 10, border: "none",
+                background: `linear-gradient(135deg, ${color}, #818cf8)`, color: "#fff",
+                fontSize: 10, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.05em",
+                cursor: "pointer", boxShadow: `0 4px 12px rgba(${rgb}, 0.2)`,
+                transition: "all 0.2s",
+              }}
+              onMouseEnter={(e) => e.target.style.filter = "brightness(1.15)"}
+              onMouseLeave={(e) => e.target.style.filter = "brightness(1)"}
+            >
+              📝 FRAME CHALLENGE
+            </button>
+          </div>
+        )
+      ) : (
+        problem ? (
+          <div style={{
+            display: "flex", alignItems: "center", gap: 8,
+            background: "rgba(16,185,129,0.05)", border: "1px solid rgba(16,185,129,0.15)",
+            borderRadius: 12, padding: "10px 14px",
+          }}>
+            <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#10b981" }} />
+            <span style={{ fontSize: 10, fontWeight: 700, color: "#10b981", textTransform: "uppercase" }}>✅ CUSTOM CHALLENGE READY</span>
+          </div>
+        ) : (
+          <div style={{
+            display: "flex", alignItems: "center", gap: 8,
+            background: "rgba(17,17,24,0.6)", border: "1px solid rgba(30,30,46,0.4)",
+            borderRadius: 12, padding: "10px 14px",
+          }}>
+            <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#64748b", animation: "pulse 2s ease-in-out infinite" }} />
+            <span style={{ fontSize: 10, fontWeight: 600, color: "#64748b", textTransform: "uppercase" }}>Opponent is framing...</span>
+          </div>
+        )
+      )}
     </div>
   );
 }
@@ -85,14 +214,36 @@ function Lobby() {
   const [countdown, setCountdown] = useState(null);
   const [timeLeft, setTimeLeft] = useState("");
 
-  const isCreator = room && (user._id === room.creatorId._id || user._id === room.creatorId);
+  const [friends, setFriends] = useState([]);
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  const [friendsLoading, setFriendsLoading] = useState(false);
+  const [invitingFriend, setInvitingFriend] = useState(null);
+  const [showLanguageModal, setShowLanguageModal] = useState(false);
+
+  const isCreator = room && user && (user._id === (room.creatorId?._id || room.creatorId));
   const maxPlayers = room ? (room.battleFormat === "2v2" ? 4 : 2) : 2;
   const canStart = players.length >= maxPlayers;
-  const isTeamA = room && (teamA.some((p) => (p._id || p) === user._id) || (room.creatorId && (room.creatorId._id || room.creatorId) === user._id));
-  const isTeamB = room && teamB.some((p) => (p._id || p) === user._id);
+  const isTeamA = room && user && teamA.some((p) => (p._id || p) === user._id);
+  const isTeamB = room && user && teamB.some((p) => (p._id || p) === user._id);
   const isParticipant = isTeamA || isTeamB;
   const myProblem = isParticipant ? (isTeamA ? room.problemA : room.problemB) : null;
   const opponentProblem = isParticipant ? (isTeamA ? room.problemB : room.problemA) : null;
+
+  // Colors configuration based on user's team
+  const myTeamColor = "#6366f1";
+  const myTeamRgb = "99,102,241";
+  const opponentTeamColor = "#ef4444";
+  const opponentTeamRgb = "239,68,68";
+
+  // Symmetrical check: Team A is styled blue for Team A members or spectators
+  const teamAIsMe = isTeamA || (!isTeamA && !isTeamB);
+  
+  const teamAColor = teamAIsMe ? myTeamColor : opponentTeamColor;
+  const teamARgb = teamAIsMe ? myTeamRgb : opponentTeamRgb;
+  const teamBColor = teamAIsMe ? opponentTeamColor : myTeamColor;
+  const teamBRgb = teamAIsMe ? opponentTeamRgb : myTeamRgb;
+
+  const roomLoaded = !!room;
 
   /* ─── Timer effect ─── */
   useEffect(() => {
@@ -117,6 +268,7 @@ function Lobby() {
 
   /* ─── Fetch room ─── */
   useEffect(() => {
+    if (!user) return;
     const fetchRoom = async () => {
       try {
         const response = await roomAPI.getRoomDetails(roomId);
@@ -124,6 +276,11 @@ function Lobby() {
         setPlayers(response.data.players || []);
         setTeamA(response.data.teamA || []);
         setTeamB(response.data.teamB || []);
+
+        const myLang = response.data.playerLanguages?.[user._id];
+        if (!myLang) {
+          setShowLanguageModal(true);
+        }
       } catch (err) {
         toast.error(err.message || "Failed to load lobby details");
         navigate("/dashboard");
@@ -132,7 +289,7 @@ function Lobby() {
       }
     };
     fetchRoom();
-  }, [roomId, navigate]);
+  }, [roomId, navigate, user?._id]);
 
   /* ─── Socket listeners ─── */
   useEffect(() => {
@@ -144,8 +301,9 @@ function Lobby() {
       setPlayers(currentPlayers);
       if (tA) setTeamA(tA);
       if (tB) setTeamB(tB);
-      if (player && player._id !== user._id) {
+      if (player && player._id !== user?._id) {
         toast.success(`Competitor "${player.username}" entered the lobby!`);
+        setShowInviteModal(false);
       }
     });
 
@@ -188,6 +346,16 @@ function Lobby() {
       toast.success("All players joined! The framing clock has started!");
     });
 
+    socket.on("room:languageUpdated", ({ userId: uId, language, playerLanguages }) => {
+      setRoom((prev) => {
+        if (!prev) return prev;
+        return { ...prev, playerLanguages };
+      });
+      if (uId !== user?._id) {
+        toast(`Opponent changed their language to ${language.toUpperCase()}!`, { icon: "⚙️" });
+      }
+    });
+
     socket.on("error", ({ message }) => {
       toast.error(message);
       navigate("/dashboard");
@@ -200,9 +368,10 @@ function Lobby() {
       socket.off("room:ready");
       socket.off("room:problemSubmitted");
       socket.off("room:timerStarted");
+      socket.off("room:languageUpdated");
       socket.off("error");
     };
-  }, [socket, room, roomId, navigate, user._id]);
+  }, [socket, roomLoaded, roomId, navigate, user?._id]);
 
   const handleStartBattle = (force = false) => {
     if (!socket || !canStart) return;
@@ -212,6 +381,42 @@ function Lobby() {
   const handleCopyRoomId = () => {
     navigator.clipboard.writeText(room.roomId);
     toast.success("Room ID copied!");
+  };
+
+  const handleSelectLanguage = (lang) => {
+    if (!socket) return;
+    socket.emit("room:selectLanguage", { roomId, language: lang });
+    setRoom((prev) => {
+      if (!prev) return prev;
+      const updated = { ...prev };
+      if (!updated.playerLanguages) updated.playerLanguages = {};
+      if (user) updated.playerLanguages[user._id] = lang;
+      return updated;
+    });
+  };
+
+  const loadFriendsList = async () => {
+    setFriendsLoading(true);
+    try {
+      const res = await userAPI.getFriends();
+      setFriends(res.data?.friends || []);
+    } catch (err) {
+      toast.error("Failed to load friends list");
+    } finally {
+      setFriendsLoading(false);
+    }
+  };
+
+  const handleInviteFriend = async (friendUsername) => {
+    setInvitingFriend(friendUsername);
+    try {
+      await userAPI.inviteFriendToBattle(friendUsername, { roomId, battleFormat: room.battleFormat });
+      toast.success(`Battle invite sent to ${friendUsername}!`);
+    } catch (err) {
+      toast.error(err.message || "Failed to send invite");
+    } finally {
+      setInvitingFriend(null);
+    }
   };
 
   /* ─── Loading ─── */
@@ -379,14 +584,16 @@ function Lobby() {
         {/* ══════ VS MATCHUP SECTION ══════ */}
         <section style={{
           display: "grid", gridTemplateColumns: "1fr auto 1fr", gap: 24,
-          alignItems: "center", padding: "0 0 28px",
+          alignItems: "stretch", padding: "0 0 28px",
         }}>
           {/* Team Alpha */}
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 4px" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#6366f1", boxShadow: "0 0 8px rgba(99,102,241,0.5)" }} />
-                <span style={{ fontSize: 11, fontWeight: 800, color: "#6366f1", textTransform: "uppercase", letterSpacing: "0.15em", fontFamily: "monospace" }}>ALPHA SQUAD</span>
+                <div style={{ width: 6, height: 6, borderRadius: "50%", background: teamAColor, boxShadow: `0 0 8px rgba(${teamARgb},0.5)` }} />
+                <span style={{ fontSize: 11, fontWeight: 800, color: teamAColor, textTransform: "uppercase", letterSpacing: "0.15em", fontFamily: "monospace" }}>
+                  ALPHA SQUAD {teamAIsMe ? "(MY TEAM)" : "(OPPONENT)"}
+                </span>
               </div>
               {/* Challenge status */}
               {room.problemA ? (
@@ -395,23 +602,51 @@ function Lobby() {
                 <span style={{ fontSize: 9, fontWeight: 700, color: "#f59e0b", textTransform: "uppercase", letterSpacing: "0.1em", animation: "pulse 2s ease-in-out infinite" }}>⏳ FRAMING</span>
               )}
             </div>
-            <PlayerCard player={teamA[0] || null} team="A" />
-            {room.battleFormat === "2v2" && <PlayerCard player={teamA[1] || null} team="A" />}
+            <PlayerCard
+              player={teamA[0] || null}
+              team="A"
+              selectedLanguage={room.playerLanguages?.[teamA[0]?._id || teamA[0]]}
+              isMe={(teamA[0]?._id || teamA[0]) === user?._id}
+              onChangeLanguage={handleSelectLanguage}
+              glow={teamAColor}
+              glowRgb={teamARgb}
+            />
+            {room.battleFormat === "2v2" && (
+              <PlayerCard
+                player={teamA[1] || null}
+                team="A"
+                selectedLanguage={room.playerLanguages?.[teamA[1]?._id || teamA[1]]}
+                isMe={(teamA[1]?._id || teamA[1]) === user?._id}
+                onChangeLanguage={handleSelectLanguage}
+                glow={teamAColor}
+                glowRgb={teamARgb}
+              />
+            )}
+            
+            {/* Alpha Challenge Card */}
+            <ChallengeFramingCard
+              teamLabel="ALPHA SQUAD"
+              isMyTeam={teamAIsMe}
+              problem={room.problemA}
+              roomId={room.roomId}
+              color={teamAColor}
+              rgb={teamARgb}
+            />
           </div>
 
           {/* Central VS Orb */}
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12, padding: "0 12px" }}>
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12, padding: "0 12px" }}>
             <div
               className="orb-anim"
               style={{
                 width: 72, height: 72, borderRadius: "50%",
-                background: "radial-gradient(circle, #6366f1 0%, #22d3ee 50%, transparent 100%)",
-                boxShadow: "0 0 30px #6366f1, 0 0 60px rgba(34,211,238,0.3)",
+                background: `radial-gradient(circle, ${teamAColor} 0%, ${teamBColor} 50%, transparent 100%)`,
+                boxShadow: `0 0 30px ${teamAColor}, 0 0 60px rgba(${teamBRgb},0.3)`,
                 display: "flex", alignItems: "center", justifyContent: "center",
                 position: "relative",
               }}
             >
-              <div style={{ position: "absolute", inset: 3, border: "1px solid rgba(34,211,238,0.3)", borderRadius: "50%", animation: "orbFloat 6s ease-in-out infinite reverse" }} />
+              <div style={{ position: "absolute", inset: 3, border: "1px solid rgba(255,255,255,0.1)", borderRadius: "50%", animation: "orbFloat 6s ease-in-out infinite reverse" }} />
               <span style={{ fontSize: 16, fontWeight: 900, color: "#f8fafc", fontStyle: "italic", letterSpacing: "0.1em", textShadow: "0 0 10px rgba(255,255,255,0.5)" }}>VS</span>
             </div>
           </div>
@@ -420,8 +655,10 @@ function Lobby() {
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 4px" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#22d3ee", boxShadow: "0 0 8px rgba(34,211,238,0.5)" }} />
-                <span style={{ fontSize: 11, fontWeight: 800, color: "#22d3ee", textTransform: "uppercase", letterSpacing: "0.15em", fontFamily: "monospace" }}>BETA SQUAD</span>
+                <div style={{ width: 6, height: 6, borderRadius: "50%", background: teamBColor, boxShadow: `0 0 8px rgba(${teamBRgb},0.5)` }} />
+                <span style={{ fontSize: 11, fontWeight: 800, color: teamBColor, textTransform: "uppercase", letterSpacing: "0.15em", fontFamily: "monospace" }}>
+                  BETA SQUAD {!teamAIsMe ? "(MY TEAM)" : "(OPPONENT)"}
+                </span>
               </div>
               {room.problemB ? (
                 <span style={{ fontSize: 9, fontWeight: 700, color: "#10b981", textTransform: "uppercase", letterSpacing: "0.1em" }}>✅ READY</span>
@@ -429,146 +666,67 @@ function Lobby() {
                 <span style={{ fontSize: 9, fontWeight: 700, color: "#f59e0b", textTransform: "uppercase", letterSpacing: "0.1em", animation: "pulse 2s ease-in-out infinite" }}>⏳ FRAMING</span>
               )}
             </div>
-            <PlayerCard player={teamB[0] || null} team="B" />
-            {room.battleFormat === "2v2" && <PlayerCard player={teamB[1] || null} team="B" />}
+            <PlayerCard
+              player={teamB[0] || null}
+              team="B"
+              selectedLanguage={room.playerLanguages?.[teamB[0]?._id || teamB[0]]}
+              isMe={(teamB[0]?._id || teamB[0]) === user?._id}
+              onChangeLanguage={handleSelectLanguage}
+              glow={teamBColor}
+              glowRgb={teamBRgb}
+            />
+            {room.battleFormat === "2v2" && (
+              <PlayerCard
+                player={teamB[1] || null}
+                team="B"
+                selectedLanguage={room.playerLanguages?.[teamB[1]?._id || teamB[1]]}
+                isMe={(teamB[1]?._id || teamB[1]) === user?._id}
+                onChangeLanguage={handleSelectLanguage}
+                glow={teamBColor}
+                glowRgb={teamBRgb}
+              />
+            )}
+
+            {/* Beta Challenge Card */}
+            <ChallengeFramingCard
+              teamLabel="BETA SQUAD"
+              isMyTeam={!teamAIsMe}
+              problem={room.problemB}
+              roomId={room.roomId}
+              color={teamBColor}
+              rgb={teamBRgb}
+            />
           </div>
         </section>
 
-        {/* ══════ BOTTOM GRID: Challenge + Room ID + Actions ══════ */}
+        {/* ══════ BOTTOM GRID: Room Config & Room ID / Launch ══════ */}
         <section style={{
           display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20,
-          flex: 1,
+          marginTop: 12
         }}>
-          {/* Left: Challenge Framing Panel */}
+          {/* Left: Room Config */}
           <div style={{
             background: "rgba(17,17,24,0.5)", backdropFilter: "blur(12px)",
             border: "1px solid rgba(30,30,46,0.5)", borderRadius: 20,
-            padding: 24, display: "flex", flexDirection: "column", gap: 20,
-            position: "relative", overflow: "hidden",
+            padding: 24, display: "flex", flexDirection: "column", gap: 16,
           }}>
-            {/* Top accent line */}
-            <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, background: "linear-gradient(90deg, transparent, #22d3ee, transparent)", animation: "pulse 3s ease-in-out infinite" }} />
+            <span style={{ fontSize: 11, fontWeight: 800, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.12em", fontFamily: "monospace", borderBottom: "1px solid rgba(30,30,46,0.5)", paddingBottom: 10 }}>ROOM CONFIG</span>
 
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-              <span style={{ fontSize: 11, fontWeight: 800, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.12em", fontFamily: "monospace" }}>CUSTOM CHALLENGES</span>
-              <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#f59e0b", animation: "pulse 1.5s ease-in-out infinite" }} />
-            </div>
-
-            {isParticipant ? (
-              <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-                {/* Your challenge */}
-                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                  <span style={{ fontSize: 9, fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.12em", fontFamily: "monospace" }}>YOUR TEAM'S CHALLENGE</span>
-                  {myProblem ? (
-                    <div style={{
-                      display: "flex", alignItems: "center", justifyContent: "space-between",
-                      background: "rgba(16,185,129,0.05)", border: "1px solid rgba(16,185,129,0.2)",
-                      borderRadius: 14, padding: "14px 18px",
-                    }}>
-                      <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
-                        <span style={{ fontSize: 10, fontWeight: 800, color: "#10b981", textTransform: "uppercase", letterSpacing: "0.08em" }}>✅ SUBMITTED</span>
-                        <span style={{ fontSize: 13, fontWeight: 600, color: "#f8fafc" }}>{myProblem.title}</span>
-                      </div>
-                      <button
-                        onClick={() => navigate(`/room/${room.roomId}/edit`)}
-                        style={{
-                          padding: "8px 16px", borderRadius: 10, fontSize: 10, fontWeight: 700,
-                          background: "rgba(26,26,36,0.8)", border: "1px solid #1e1e2e", color: "#94a3b8",
-                          cursor: "pointer", textTransform: "uppercase", letterSpacing: "0.06em",
-                          transition: "all 0.2s",
-                        }}
-                        onMouseEnter={(e) => { e.target.style.borderColor = "#22d3ee"; e.target.style.color = "#22d3ee"; }}
-                        onMouseLeave={(e) => { e.target.style.borderColor = "#1e1e2e"; e.target.style.color = "#94a3b8"; }}
-                      >Edit</button>
-                    </div>
-                  ) : (
-                    <div style={{
-                      display: "flex", flexDirection: "column", gap: 12,
-                      background: "rgba(245,158,11,0.04)", border: "1px solid rgba(245,158,11,0.15)",
-                      borderRadius: 14, padding: "16px 18px",
-                    }}>
-                      <span style={{ fontSize: 10, fontWeight: 800, color: "#f59e0b", textTransform: "uppercase" }}>⚠️ CHALLENGE PENDING</span>
-                      <button
-                        onClick={() => navigate(`/room/${room.roomId}/edit`)}
-                        style={{
-                          width: "100%", padding: "14px", borderRadius: 12, border: "none",
-                          background: "linear-gradient(135deg, #6366f1, #818cf8)", color: "#fff",
-                          fontSize: 12, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.12em",
-                          cursor: "pointer", boxShadow: "0 4px 20px rgba(99,102,241,0.3)",
-                          transition: "all 0.2s",
-                        }}
-                        onMouseEnter={(e) => e.target.style.filter = "brightness(1.15)"}
-                        onMouseLeave={(e) => e.target.style.filter = "brightness(1)"}
-                      >
-                        📝 FRAME YOUR CHALLENGE
-                      </button>
-                    </div>
-                  )}
-                </div>
-
-                {/* Opponent's challenge */}
-                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                  <span style={{ fontSize: 9, fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.12em", fontFamily: "monospace" }}>OPPONENT'S CHALLENGE</span>
-                  {opponentProblem ? (
-                    <div style={{
-                      display: "flex", alignItems: "center", gap: 10,
-                      background: "rgba(16,185,129,0.05)", border: "1px solid rgba(16,185,129,0.2)",
-                      borderRadius: 14, padding: "14px 18px",
-                    }}>
-                      <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#10b981", boxShadow: "0 0 8px rgba(16,185,129,0.5)" }} />
-                      <span style={{ fontSize: 11, fontWeight: 700, color: "#10b981", textTransform: "uppercase", letterSpacing: "0.08em" }}>✅ CUSTOM PROBLEM READY</span>
-                    </div>
-                  ) : (
-                    <div style={{
-                      display: "flex", alignItems: "center", gap: 10,
-                      background: "rgba(17,17,24,0.6)", border: "1px solid rgba(30,30,46,0.5)",
-                      borderRadius: 14, padding: "14px 18px", animation: "pulse 2s ease-in-out infinite",
-                    }}>
-                      <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#64748b" }} />
-                      <span style={{ fontSize: 11, fontWeight: 600, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em" }}>Opponent is framing challenge...</span>
-                    </div>
-                  )}
-                </div>
+            {[
+              ["Architect", room.creatorId?.username || "Host"],
+              ["Format", `${room.battleFormat} Duel`],
+              ["Difficulty", room.problem?.difficulty || "Custom"],
+              ["Time Limit", `${room.problem?.timeLimit || 10} Minutes`],
+            ].map(([label, value]) => (
+              <div key={label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 12 }}>
+                <span style={{ color: "#64748b", textTransform: "uppercase", fontSize: 10, letterSpacing: "0.06em" }}>{label}</span>
+                <span style={{ fontWeight: 700, color: "#f8fafc" }}>{value}</span>
               </div>
-            ) : (
-              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 16px", borderRadius: 12, background: room.problemA ? "rgba(16,185,129,0.05)" : "rgba(17,17,24,0.5)", border: `1px solid ${room.problemA ? "rgba(16,185,129,0.2)" : "rgba(30,30,46,0.4)"}` }}>
-                  <span style={{ fontSize: 11, fontWeight: 700, color: room.problemA ? "#10b981" : "#64748b", textTransform: "uppercase" }}>
-                    {room.problemA ? `✅ Alpha Ready (${room.problemA.title})` : "⏳ Alpha framing..."}
-                  </span>
-                </div>
-                <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 16px", borderRadius: 12, background: room.problemB ? "rgba(16,185,129,0.05)" : "rgba(17,17,24,0.5)", border: `1px solid ${room.problemB ? "rgba(16,185,129,0.2)" : "rgba(30,30,46,0.4)"}` }}>
-                  <span style={{ fontSize: 11, fontWeight: 700, color: room.problemB ? "#10b981" : "#64748b", textTransform: "uppercase" }}>
-                    {room.problemB ? `✅ Beta Ready (${room.problemB.title})` : "⏳ Beta framing..."}
-                  </span>
-                </div>
-              </div>
-            )}
+            ))}
           </div>
 
-          {/* Right: Room Info + Actions */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-            {/* Room Config */}
-            <div style={{
-              background: "rgba(17,17,24,0.5)", backdropFilter: "blur(12px)",
-              border: "1px solid rgba(30,30,46,0.5)", borderRadius: 20,
-              padding: 24, display: "flex", flexDirection: "column", gap: 16,
-            }}>
-              <span style={{ fontSize: 11, fontWeight: 800, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.12em", fontFamily: "monospace", borderBottom: "1px solid rgba(30,30,46,0.5)", paddingBottom: 10 }}>ROOM CONFIG</span>
-
-              {[
-                ["Architect", room.creatorId?.username || "Host"],
-                ["Format", `${room.battleFormat} Duel`],
-                ["Difficulty", room.problem?.difficulty || "Custom"],
-                ["Time Limit", `${room.problem?.timeLimit || 10} Minutes`],
-              ].map(([label, value]) => (
-                <div key={label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 12 }}>
-                  <span style={{ color: "#64748b", textTransform: "uppercase", fontSize: 10, letterSpacing: "0.06em" }}>{label}</span>
-                  <span style={{ fontWeight: 700, color: "#f8fafc" }}>{value}</span>
-                </div>
-              ))}
-            </div>
-
+          {/* Right: Share Room ID + Launch Actions */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 16, justifyContent: "space-between" }}>
             {/* Room ID Copy */}
             <div style={{
               background: "rgba(17,17,24,0.5)", backdropFilter: "blur(12px)",
@@ -601,10 +759,28 @@ function Lobby() {
                   onMouseLeave={(e) => { e.target.style.background = "rgba(26,26,36,0.8)"; e.target.style.color = "#f8fafc"; }}
                 >COPY ID</button>
               </div>
+              {isCreator && players.length < maxPlayers && (
+                <button
+                  onClick={() => {
+                    loadFriendsList();
+                    setShowInviteModal(true);
+                  }}
+                  style={{
+                    width: "100%", padding: "12px", borderRadius: 12, border: "1px solid rgba(99,102,241,0.3)",
+                    background: "rgba(99,102,241,0.08)", color: "#818cf8", fontSize: 11, fontWeight: 700,
+                    textTransform: "uppercase", letterSpacing: "0.08em", cursor: "pointer",
+                    transition: "all 0.2s", marginTop: 4, display: "flex", alignItems: "center", justifyContent: "center", gap: 6
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(99,102,241,0.16)"; e.currentTarget.style.borderColor = "#6366f1"; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(99,102,241,0.08)"; e.currentTarget.style.borderColor = "rgba(99,102,241,0.3)"; }}
+                >
+                  🤝 Invite from Friends
+                </button>
+              )}
             </div>
 
             {/* Launch Button */}
-            <div style={{ marginTop: "auto" }}>
+            <div>
               {isCreator ? (
                 <button
                   onClick={() => handleStartBattle(false)}
@@ -649,6 +825,125 @@ function Lobby() {
           </div>
         </section>
       </main>
+
+      {/* Invite Friends Modal */}
+      <AnimatePresence>
+        {showInviteModal && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            style={{ position: "fixed", inset: 0, background: "rgba(5,5,8,0.85)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100 }}
+          >
+            <motion.div
+              initial={{ scale: 0.95, y: 10 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 10 }}
+              style={{
+                width: "440px", backgroundColor: "#111118", border: "1px solid #1e1e2e",
+                borderRadius: "20px", padding: "24px", display: "flex", flexDirection: "column", gap: "20px",
+                boxShadow: "0 20px 50px rgba(0,0,0,0.6)"
+              }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span style={{ fontSize: "16px", fontWeight: 800, color: "#f8fafc" }}>🤝 Invite Friends to Battle</span>
+                <button
+                  onClick={() => setShowInviteModal(false)}
+                  style={{ background: "none", border: "none", color: "#64748b", fontSize: "18px", cursor: "pointer" }}
+                >✕</button>
+              </div>
+
+              <div style={{ maxHeight: "300px", overflowY: "auto", display: "flex", flexDirection: "column", gap: "10px", paddingRight: "4px" }}>
+                {friendsLoading ? (
+                  <div style={{ color: "#64748b", fontSize: "13px", textAlign: "center", padding: "20px" }}>Loading friends...</div>
+                ) : friends.length === 0 ? (
+                  <div style={{ color: "#64748b", fontSize: "13px", textAlign: "center", padding: "20px" }}>
+                    No friends available. Search and add friends on your dashboard first.
+                  </div>
+                ) : (
+                  friends.map((f) => (
+                    <div key={f._id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 14px", backgroundColor: "#0a0a0f", border: "1px solid #1e1e2e", borderRadius: "12px" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                        <div style={{ width: "32px", height: "32px", borderRadius: "50%", backgroundColor: "rgba(99,102,241,0.15)", border: "1px solid rgba(99,102,241,0.3)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "13px", fontWeight: 700, color: "#a5b4fc" }}>
+                          {f.avatar || f.username.slice(0, 2).toUpperCase()}
+                        </div>
+                        <div>
+                          <div style={{ fontWeight: 600, color: "#f8fafc", fontSize: "13px" }}>{f.username}</div>
+                          <div style={{ fontSize: "11px", color: "#64748b" }}>ELO {f.eloRating}</div>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => handleInviteFriend(f.username)}
+                        disabled={invitingFriend === f.username}
+                        style={{
+                          padding: "6px 12px", borderRadius: "8px", border: "none",
+                          background: "linear-gradient(135deg, #6366f1, #818cf8)", color: "#fff",
+                          fontSize: "11px", fontWeight: 700, cursor: "pointer",
+                          transition: "all 0.2s"
+                        }}
+                      >
+                        {invitingFriend === f.username ? "Inviting..." : "⚔️ Invite"}
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Initial Language Selector Modal */}
+      <AnimatePresence>
+        {showLanguageModal && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            style={{ position: "fixed", inset: 0, background: "rgba(5,5,8,0.9)", backdropFilter: "blur(12px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100 }}
+          >
+            <motion.div
+              initial={{ scale: 0.95, y: 15 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 15 }}
+              style={{
+                width: "400px", backgroundColor: "#111118", border: "1px solid #1e1e2e",
+                borderRadius: "24px", padding: "28px", display: "flex", flexDirection: "column", gap: "24px",
+                textAlign: "center", boxShadow: "0 20px 50px rgba(0,0,0,0.6)"
+              }}
+            >
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                <span style={{ fontSize: 24 }}>⚔️</span>
+                <h3 style={{ fontSize: "18px", fontWeight: 800, color: "#f8fafc", margin: 0 }}>Select Coding Language</h3>
+                <p style={{ fontSize: "12px", color: "#64748b", margin: 0, lineHeight: 1.5 }}>
+                  Choose your target language for this battle. Your opponent will see this to frame your challenge appropriately.
+                </p>
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+                {[
+                  { id: "javascript", label: "JavaScript" },
+                  { id: "python", label: "Python" },
+                  { id: "cpp", label: "C++" },
+                  { id: "java", label: "Java" },
+                  { id: "go", label: "Go" },
+                  { id: "rust", label: "Rust" },
+                  { id: "c", label: "C" },
+                ].map((lang) => (
+                  <button
+                    key={lang.id}
+                    onClick={() => {
+                      handleSelectLanguage(lang.id);
+                      setShowLanguageModal(false);
+                    }}
+                    style={{
+                      padding: "12px", borderRadius: "12px", border: "1px solid #1e1e2e",
+                      backgroundColor: "#0a0a0f", color: "#f8fafc", fontSize: "12px", fontWeight: 700,
+                      cursor: "pointer", transition: "all 0.2s",
+                    }}
+                    onMouseEnter={(e) => { e.target.style.borderColor = "#6366f1"; e.target.style.background = "rgba(99,102,241,0.05)"; }}
+                    onMouseLeave={(e) => { e.target.style.borderColor = "#1e1e2e"; e.target.style.background = "#0a0a0f"; }}
+                  >
+                    {lang.label}
+                  </button>
+                ))}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

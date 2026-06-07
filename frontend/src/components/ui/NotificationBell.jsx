@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 import { notificationAPI } from "../../services/api";
 import { useSocket } from "../../context/SocketContext";
 
@@ -114,6 +115,54 @@ function NotificationBell() {
     const handleNewNotif = ({ notification }) => {
       setNotifications((prev) => [notification, ...prev].slice(0, 20));
       setUnreadCount((prev) => prev + 1);
+
+      if (notification.type === "challenge_invite") {
+        toast((t) => (
+          <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+            <div style={{ fontWeight: 700, color: "#f8fafc" }}>🎯 {notification.title}</div>
+            <div style={{ fontSize: "12px", color: "#94a3b8" }}>{notification.message}</div>
+            <div style={{ display: "flex", gap: "8px", marginTop: "4px" }}>
+              <button
+                onClick={() => {
+                  toast.dismiss(t.id);
+                  navigate(`/room/${notification.payload?.roomId}`);
+                }}
+                style={{
+                  background: "linear-gradient(135deg,#6366f1,#818cf8)",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: "6px",
+                  padding: "6px 12px",
+                  fontSize: "12px",
+                  fontWeight: 700,
+                  cursor: "pointer",
+                }}
+              >
+                Accept & Join
+              </button>
+              <button
+                onClick={() => toast.dismiss(t.id)}
+                style={{
+                  background: "transparent",
+                  border: "1px solid #1e1e2e",
+                  color: "#94a3b8",
+                  borderRadius: "6px",
+                  padding: "6px 12px",
+                  fontSize: "12px",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                }}
+              >
+                Dismiss
+              </button>
+            </div>
+          </div>
+        ), { duration: 10000 });
+      } else {
+        toast(notification.message, {
+          icon: ICON_MAP[notification.type] || "🔔",
+        });
+      }
     };
 
     socket.on("notification:new", handleNewNotif);

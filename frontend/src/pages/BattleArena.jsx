@@ -7,6 +7,7 @@ import CodeEditor from "../components/ui/CodeEditor";
 import Button from "../components/ui/Button";
 import Card from "../components/ui/Card";
 import toast from "react-hot-toast";
+import AICodeConverter from "../components/ui/AICodeConverter";
 
 const CODE_TEMPLATES = {
   javascript: `// Write your solution here\nfunction solve(input) {\n  \n}`,
@@ -46,6 +47,7 @@ function BattleArena() {
   const teammateTypingTimeoutRef = useRef(null);
   const [userRating, setUserRating] = useState(0);
   const [hasRated, setHasRated] = useState(false);
+  const [showAiHelper, setShowAiHelper] = useState(false);
 
   useEffect(() => {
     const fetchRoom = async () => {
@@ -691,6 +693,27 @@ function BattleArena() {
           )}
         </section>
       </main>
+
+      {/* Floating AI Helper Button */}
+      <div className="fixed bottom-6 right-6 z-40">
+        <button
+          type="button"
+          onClick={() => setShowAiHelper(true)}
+          className="flex items-center gap-2 px-5 py-3.5 rounded-full bg-gradient-to-r from-primary to-[#818cf8] hover:brightness-110 text-white font-bold text-xs uppercase tracking-wider shadow-lg hover:shadow-[0_0_30px_rgba(99,102,241,0.4)] cursor-pointer transition-all border border-white/10"
+        >
+          ✨ AI Code Helper
+        </button>
+      </div>
+
+      <AICodeConverter
+        isOpen={showAiHelper}
+        onClose={() => setShowAiHelper(false)}
+        initialLanguage={selectedLanguage}
+        onApplyCode={(code, lang) => {
+          setSourceCode(code);
+          setSelectedLanguage(lang);
+        }}
+      />
     </div>
   );
 }

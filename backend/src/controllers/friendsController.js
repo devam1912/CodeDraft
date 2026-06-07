@@ -59,13 +59,18 @@ const sendFriendRequest = async (req, res, next) => {
     await target.save();
 
     // Send notification
-    await Notification.create({
+    const notification = await Notification.create({
       recipientId: target._id,
       type: "friend_request",
       title: "Friend Request",
       message: `${sender.username} sent you a friend request.`,
       payload: { fromUsername: sender.username, fromUserId: senderId },
     });
+
+    const io = req.app.get("io");
+    if (io) {
+      io.to(target._id.toString()).emit("notification:new", { notification });
+    }
 
     return sendSuccess(res, 200, {}, "Friend request sent.");
   } catch (error) {
@@ -103,13 +108,18 @@ const acceptFriendRequest = async (req, res, next) => {
     await requester.save();
 
     // Notify requester
-    await Notification.create({
+    const notification = await Notification.create({
       recipientId: requester._id,
       type: "friend_accepted",
       title: "Friend Request Accepted",
       message: `${me.username} accepted your friend request.`,
       payload: { fromUsername: me.username },
     });
+
+    const io = req.app.get("io");
+    if (io) {
+      io.to(requester._id.toString()).emit("notification:new", { notification });
+    }
 
     return sendSuccess(res, 200, {}, "Friend request accepted.");
   } catch (error) {
@@ -200,7 +210,7 @@ const getFriendRequests = async (req, res, next) => {
 const inviteFriendToBattle = async (req, res, next) => {
   try {
     const { username } = req.params;
-    const { battleFormat = "1v1" } = req.body;
+    const { battleFormat = "1v1", roomId } = req.body;
     const senderId = req.userId;
 
     const friend = await User.findOne({ username });
@@ -213,31 +223,40 @@ const inviteFriendToBattle = async (req, res, next) => {
     if (!sender.friends.map(String).includes(friend._id.toString()))
       return sendError(res, 403, "You can only invite friends to battle.");
 
-    // Create a room
-    let roomId = "";
-    // ensure unique
-    do {
-      roomId = generateRoomId();
-    } while (await Room.findOne({ roomId }).lean());
-    const room = await Room.create({
-      roomId,
-      creatorId: senderId,
-      battleFormat,
-      players: [senderId],
-      status: "waiting_for_players",
-    });
+    let targetRoomId = roomId;
+    if (targetRoomId) {
+      const existingRoom = await Room.findOne({ roomId: targetRoomId });
+      if (!existingRoom) return sendError(res, 404, "Room not found.");
+    } else {
+      // Create a room
+      do {
+        targetRoomId = generateRoomId();
+      } while (await Room.findOne({ roomId: targetRoomId }).lean());
+      await Room.create({
+        roomId: targetRoomId,
+        creatorId: senderId,
+        battleFormat,
+        players: [senderId],
+        status: "waiting_for_players",
+      });
+    }
 
     // Send notification to the friend
-    await Notification.create({
+    const notification = await Notification.create({
       recipientId: friend._id,
       type: "challenge_invite",
       title: "Battle Invite",
       message: `${sender.username} invited you to a ${battleFormat} battle!`,
-      payload: { roomId, fromUsername: sender.username },
+      payload: { roomId: targetRoomId, fromUsername: sender.username },
     });
 
-    logger.info(`User ${senderId} invited ${username} to room ${roomId}`);
-    return sendSuccess(res, 200, { roomId }, "Battle invite sent. Waiting for friend to join.");
+    const io = req.app.get("io");
+    if (io) {
+      io.to(friend._id.toString()).emit("notification:new", { notification });
+    }
+
+    logger.info(`User ${senderId} invited ${username} to room ${targetRoomId}`);
+    return sendSuccess(res, 200, { roomId: targetRoomId }, "Battle invite sent. Waiting for friend to join.");
   } catch (error) {
     logger.error(`Error in inviteFriendToBattle: ${error.message}`);
     next(error);

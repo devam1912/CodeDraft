@@ -242,7 +242,7 @@ const submitProblem = async (req, res, next) => {
       validatedAt: new Date(),
     };
 
-    const isTeamA = room.teamA.some((p) => p.toString() === req.userId.toString()) || room.creatorId.toString() === req.userId.toString();
+    const isTeamA = room.teamA.some((p) => p.toString() === req.userId.toString());
 
     if (isTeamA) {
       room.problemA = newProblem;
@@ -314,7 +314,7 @@ const getRoom = async (req, res, next) => {
     const roomObj = room.toObject();
 
     if (req.userId) {
-      const isTeamA = room.teamA.some((p) => p.toString() === req.userId.toString()) || room.creatorId.toString() === req.userId.toString();
+      const isTeamA = room.teamA.some((p) => p.toString() === req.userId.toString());
       if (room.status === "active" || room.status === "finished") {
         roomObj.problem = isTeamA ? room.problemB : room.problemA;
       } else {
