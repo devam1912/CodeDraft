@@ -278,6 +278,11 @@ function BattleArena() {
 
   if (!room) return null;
 
+  if (room.status !== "active" && room.status !== "finished") {
+    navigate(`/room/${roomId}`);
+    return null;
+  }
+
   const isCompetitor = room.players.some((p) => p && (p._id || p) === user._id);
 
   // Non-players cannot watch — redirect immediately
@@ -517,11 +522,11 @@ function BattleArena() {
                     onChange={(e) => handleLanguageChange(e.target.value)}
                     className="px-2.5 py-1 text-xs rounded bg-bg-elevated border border-border-default font-mono focus:outline-none cursor-pointer"
                   >
-                    {room.problem?.allowedLanguages?.map((lang) => (
+                    {Object.keys(CODE_TEMPLATES).map((lang) => (
                       <option key={lang} value={lang}>
-                        {lang}
+                        {lang === "cpp" ? "C++" : lang}
                       </option>
-                    )) || <option value="javascript">javascript</option>}
+                    ))}
                   </select>
                   {teammateTyping && (
                     <span className="text-xs text-success animate-pulse font-medium">
@@ -694,16 +699,6 @@ function BattleArena() {
         </section>
       </main>
 
-      {/* Floating AI Helper Button */}
-      <div className="fixed bottom-6 right-6 z-40">
-        <button
-          type="button"
-          onClick={() => setShowAiHelper(true)}
-          className="flex items-center gap-2 px-5 py-3.5 rounded-full bg-gradient-to-r from-primary to-[#818cf8] hover:brightness-110 text-white font-bold text-xs uppercase tracking-wider shadow-lg hover:shadow-[0_0_30px_rgba(99,102,241,0.4)] cursor-pointer transition-all border border-white/10"
-        >
-          ✨ AI Code Helper
-        </button>
-      </div>
 
       <AICodeConverter
         isOpen={showAiHelper}

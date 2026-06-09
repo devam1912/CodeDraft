@@ -15,6 +15,14 @@ const LANGUAGE_IDS = {
   c: 50,
 };
 
+const getUserId = (p) => {
+  if (!p) return "";
+  if (typeof p === "string") return p;
+  if (p._id) return p._id.toString();
+  return p.toString();
+};
+
+
 const createRoom = async (req, res, next) => {
   try {
     const { battleFormat, creatorCompeting, isBlitz } = req.body;
@@ -92,7 +100,7 @@ const validateReferenceSolution = async (req, res, next) => {
       return sendError(res, 404, "Room not found.");
     }
 
-    const isPlayer = room.players.some((p) => p.toString() === req.userId.toString());
+    const isPlayer = room.players.some((p) => getUserId(p) === req.userId.toString());
     if (!isPlayer) {
       return sendError(res, 403, "You are not a participant in this battle room.");
     }
@@ -222,7 +230,7 @@ const submitProblem = async (req, res, next) => {
       return sendError(res, 404, "Room not found.");
     }
 
-    const isPlayer = room.players.some((p) => p.toString() === req.userId.toString());
+    const isPlayer = room.players.some((p) => getUserId(p) === req.userId.toString());
     if (!isPlayer) {
       return sendError(res, 403, "You are not a participant in this battle room.");
     }
@@ -242,7 +250,7 @@ const submitProblem = async (req, res, next) => {
       validatedAt: new Date(),
     };
 
-    const isTeamA = room.teamA.some((p) => p.toString() === req.userId.toString());
+    const isTeamA = room.teamA.some((p) => getUserId(p) === req.userId.toString());
 
     if (isTeamA) {
       room.problemA = newProblem;
@@ -314,11 +322,11 @@ const getRoom = async (req, res, next) => {
     const roomObj = room.toObject();
 
     if (req.userId) {
-      const isTeamA = room.teamA.some((p) => p.toString() === req.userId.toString());
+      const isTeamA = room.teamA.some((p) => getUserId(p) === req.userId.toString());
       if (room.status === "active" || room.status === "finished") {
-        roomObj.problem = isTeamA ? room.problemB : room.problemA;
+        roomObj.problem = isTeamA ? roomObj.problemB : roomObj.problemA;
       } else {
-        roomObj.problem = isTeamA ? room.problemA : room.problemB;
+        roomObj.problem = isTeamA ? roomObj.problemA : roomObj.problemB;
       }
     }
 
@@ -348,7 +356,7 @@ const rateProblem = async (req, res, next) => {
     }
 
     const alreadyRated = room.problemRatings.some(
-      (r) => r.userId.toString() === req.userId.toString()
+      (r) => getUserId(r.userId) === req.userId.toString()
     );
 
     if (alreadyRated) {

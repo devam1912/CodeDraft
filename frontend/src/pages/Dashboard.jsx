@@ -11,7 +11,7 @@ import NotificationBell from "../components/ui/NotificationBell";
 import toast from "react-hot-toast";
 
 const PAGE_STYLE = { minHeight: "100vh", display: "flex", flexDirection: "column", backgroundColor: "#0a0a0f", color: "#f8fafc", fontFamily: "Inter, sans-serif" };
-const NAV_STYLE = { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "20px 40px", borderBottom: "1px solid #1e1e2e", backdropFilter: "blur(12px)", backgroundColor: "rgba(10, 10, 15, 0.8)" };
+const NAV_STYLE = { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "20px 40px", borderBottom: "1px solid #1e1e2e", backdropFilter: "blur(12px)", backgroundColor: "rgba(10, 10, 15, 0.8)", position: "relative", zIndex: 100 };
 const LOGO_STYLE = { fontSize: "24px", fontWeight: 800, background: "linear-gradient(135deg, #6366f1, #22d3ee)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", letterSpacing: "-0.02em" };
 const CONTENT_STYLE = { flex: 1, padding: "40px", maxWidth: "1200px", margin: "0 auto", width: "100%" };
 const GREETING_STYLE = { fontSize: "28px", fontWeight: 700, marginBottom: "8px" };

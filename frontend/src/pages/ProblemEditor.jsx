@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import ExampleRow from "../components/problem-editor/ExampleRow";
 import TestCaseRow from "../components/problem-editor/TestCaseRow";
@@ -211,6 +211,57 @@ function ProblemEditor() {
   const socket = useSocket();
   const [showAiHelper, setShowAiHelper] = useState(false);
   const [lastWarnedLang, setLastWarnedLang] = useState(null);
+  const hasLoadedProblem = useRef(false);
+  const isPrefilling = useRef(false);
+
+  const handlePrefillSample = () => {
+    isPrefilling.current = true;
+    setTitle("Even or Odd");
+    setStatement(`Given an integer n, return "Even" if the number is even, or "Odd" if the number is odd.
+
+### Input Format
+A single line containing the integer n.
+
+### Output Format
+Print "Even" or "Odd".
+
+### Constraints
+-10^9 <= n <= 10^9`);
+    setDifficulty("easy");
+    setTimeLimit(10);
+    setExtraFiveMin(false);
+    if (!allowedLanguages.includes("cpp")) {
+      setAllowedLanguages([...allowedLanguages, "cpp"]);
+    }
+    setActiveLanguage("cpp");
+    setReferenceSolution(`#include <iostream>
+using namespace std;
+
+int main() {
+    long long n;
+    if (cin >> n) {
+        if (n % 2 == 0) {
+            cout << "Even" << endl;
+        } else {
+            cout << "Odd" << endl;
+        }
+    }
+    return 0;
+}`);
+    setVisibleExamples([
+      { input: "4", output: "Even", explanation: "4 is divisible by 2." },
+      { input: "7", output: "Odd", explanation: "7 is not divisible by 2." }
+    ]);
+    setHiddenTestCases([
+      { input: "0", expectedOutput: "Even" },
+      { input: "-5", expectedOutput: "Odd" },
+      { input: "1000000000", expectedOutput: "Even" },
+      { input: "-999999999", expectedOutput: "Odd" }
+    ]);
+    setIsValidated(false);
+    setValidationResults([]);
+    toast.success("Pre-filled Even or Odd (C++) sample question!");
+  };
 
   /* ─── Fetch Room Details on Mount ─── */
   useEffect(() => {
@@ -224,6 +275,29 @@ function ProblemEditor() {
     };
     fetchRoom();
   }, [roomId]);
+
+  /* ─── Populate Form from Existing Problem ─── */
+  useEffect(() => {
+    if (!room || !room.problem || hasLoadedProblem.current) return;
+    const prob = room.problem;
+    if (prob.title) setTitle(prob.title);
+    if (prob.statement) setStatement(prob.statement);
+    if (prob.difficulty) setDifficulty(prob.difficulty);
+    if (prob.timeLimit) {
+      const defaultLimit = prob.difficulty === "easy" ? 10 : prob.difficulty === "medium" ? 20 : 30;
+      if (prob.timeLimit > defaultLimit) {
+        setTimeLimit(defaultLimit);
+        setExtraFiveMin(true);
+      } else {
+        setTimeLimit(prob.timeLimit);
+        setExtraFiveMin(false);
+      }
+    }
+    if (prob.allowedLanguages?.length > 0) setAllowedLanguages(prob.allowedLanguages);
+    if (prob.visibleExamples?.length > 0) setVisibleExamples(prob.visibleExamples);
+    if (prob.hiddenTestCases?.length > 0) setHiddenTestCases(prob.hiddenTestCases);
+    hasLoadedProblem.current = true;
+  }, [room]);
 
   /* ─── Socket Room Listeners & Countdown/Ready redirection ─── */
   useEffect(() => {
@@ -370,6 +444,10 @@ function ProblemEditor() {
   }, [room]);
 
   useEffect(() => {
+    if (isPrefilling.current) {
+      isPrefilling.current = false;
+      return;
+    }
     setReferenceSolution(STARTER_CODES[activeLanguage] || "");
   }, [activeLanguage]);
 
@@ -666,13 +744,22 @@ function ProblemEditor() {
           <div className="p-8 flex flex-col gap-8 max-w-[680px]">
 
             {/* Page heading */}
-            <div className="flex flex-col gap-2">
-              <h1 className="text-2xl font-extrabold tracking-tight text-text-primary leading-none">
-                Create Coding Challenge
-              </h1>
-              <p className="text-[13px] text-text-muted leading-relaxed">
-                Define the problem statement, examples, and hidden test cases that opponents will battle against.
-              </p>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="flex flex-col gap-2">
+                <h1 className="text-2xl font-extrabold tracking-tight text-text-primary leading-none">
+                  Create Coding Challenge
+                </h1>
+                <p className="text-[13px] text-text-muted leading-relaxed">
+                  Define the problem statement, examples, and hidden test cases that opponents will battle against.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={handlePrefillSample}
+                className="px-4 py-2.5 rounded-xl text-[12px] font-bold uppercase tracking-wider bg-gradient-to-r from-primary/25 to-secondary/25 hover:from-primary/35 hover:to-secondary/35 text-text-primary border border-primary/30 hover:border-primary/50 transition-all duration-200 flex items-center gap-1.5 shadow-[0_0_15px_rgba(99,102,241,0.1)] active:scale-[0.98] cursor-pointer"
+              >
+                ✨ Pre-fill C++ Sample
+              </button>
             </div>
 
             {/* ── Challenge Meta ── */}
@@ -1235,16 +1322,6 @@ function ProblemEditor() {
         </section>
       </main>
 
-      {/* Floating AI Helper Button */}
-      <div className="fixed bottom-6 right-6 z-40">
-        <button
-          type="button"
-          onClick={() => setShowAiHelper(true)}
-          className="flex items-center gap-2 px-5 py-3.5 rounded-full bg-gradient-to-r from-primary to-[#818cf8] hover:brightness-110 text-white font-bold text-xs uppercase tracking-wider shadow-lg hover:shadow-[0_0_30px_rgba(99,102,241,0.4)] cursor-pointer transition-all border border-white/10"
-        >
-          ✨ AI Code Helper
-        </button>
-      </div>
 
       <AICodeConverter
         isOpen={showAiHelper}
