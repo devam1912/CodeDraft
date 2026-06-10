@@ -1,0 +1,26 @@
+# ── Stage 1: Build the React app ──
+FROM node:20-alpine AS build
+
+WORKDIR /app
+
+# Copy package files and install dependencies
+COPY frontend/package.json frontend/package-lock.json ./
+RUN npm ci
+
+# Copy frontend source code
+COPY frontend/ ./
+
+# Set production env vars (Vite bakes these at build time)
+# In production, frontend is served from the same origin as backend,
+# so we use relative paths — Nginx proxies /api and /socket.io to the backend.
+ENV VITE_API_BASE_URL=/api
+ENV VITE_WS_URL=
+
+# Build the production bundle
+RUN npm run build
+
+# ── Stage 2: Minimal image with just the static files ──
+FROM alpine:3.20 AS export
+
+# Copy the built static files — these will be shared with Nginx via a volume
+COPY --from=build /app/dist /usr/share/nginx/html

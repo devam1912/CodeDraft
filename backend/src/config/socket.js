@@ -6,9 +6,14 @@ const logger = require("../utils/logger");
 const registerMatchHandlers = require("../sockets/matchHandler");
 
 const configureSockets = (server) => {
+  // Support comma-separated CLIENT_URL for multiple allowed origins
+  const allowedOrigins = process.env.CLIENT_URL
+    ? process.env.CLIENT_URL.split(",").map((o) => o.trim())
+    : [];
+
   const io = new Server(server, {
     cors: {
-      origin: process.env.CLIENT_URL,
+      origin: allowedOrigins.length === 1 ? allowedOrigins[0] : allowedOrigins,
       credentials: true,
     },
   });

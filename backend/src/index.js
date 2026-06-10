@@ -33,9 +33,15 @@ const io = configureSockets(server);
 app.set("io", io);
 
 app.use(helmet());
+
+// Support comma-separated CLIENT_URL for multiple allowed origins
+const allowedOrigins = process.env.CLIENT_URL
+  ? process.env.CLIENT_URL.split(",").map((o) => o.trim())
+  : [];
+
 app.use(
   cors({
-    origin: process.env.CLIENT_URL,
+    origin: allowedOrigins.length === 1 ? allowedOrigins[0] : allowedOrigins,
     credentials: true,
   })
 );
@@ -75,7 +81,7 @@ const startServer = async () => {
     initExpiryCron(io);
     initTournamentCron();
 
-    server.listen(PORT, () => {
+    server.listen(PORT, "0.0.0.0", () => {
       logger.info(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
     });
   } catch (error) {
