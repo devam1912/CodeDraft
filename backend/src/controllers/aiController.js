@@ -3,7 +3,7 @@ const { sendSuccess, sendError } = require("../utils/response");
 const logger = require("../utils/logger");
 
 const callGeminiWithFallback = async (prompt, temperature = 0.15) => {
-  const apiKey = process.env.GEMINI_API_KEY || "AIzaSyAdIwmHLqkMD0CNJ4KBOuEfBtgWVi0QQ8s";
+  const apiKey = process.env.GEMINI_API_KEY;
   
   // List of models to try in sequence
   const models = [
