@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { tournamentAPI } from "../services/api";
@@ -157,7 +157,7 @@ function TournamentArena() {
                   </Button>
                 ) : (
                   <div className="p-3 bg-success-muted/10 border border-success/30 rounded-xl text-center text-xs font-semibold text-success font-mono">
-                    âœ“ Registered for this draft tournament
+                    ✓ Registered for this draft tournament
                   </div>
                 )}
 

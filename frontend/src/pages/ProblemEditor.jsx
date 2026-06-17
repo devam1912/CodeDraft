@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import ExampleRow from "../components/problem-editor/ExampleRow";
 import TestCaseRow from "../components/problem-editor/TestCaseRow";
@@ -90,7 +90,7 @@ int main() {
 }`,
 };
 
-/* â”€â”€â”€â”€â”€ tiny icon components â”€â”€â”€â”€â”€ */
+/* ───── tiny icon components ───── */
 const IconChevronLeft = () => (
   <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
@@ -103,7 +103,7 @@ const IconPlus = () => (
   </svg>
 );
 
-/* â”€â”€â”€â”€â”€ step progress indicator â”€â”€â”€â”€â”€ */
+/* ───── step progress indicator ───── */
 function StepIndicator({ step, label, active }) {
   return (
     <div className="flex items-center gap-2">
@@ -127,7 +127,7 @@ function StepIndicator({ step, label, active }) {
   );
 }
 
-/* â”€â”€â”€â”€â”€ section divider with title â”€â”€â”€â”€â”€ */
+/* ───── section divider with title ───── */
 function SectionHeader({ icon, title, subtitle, children }) {
   return (
     <div className="flex flex-col gap-1">
@@ -210,6 +210,7 @@ function ProblemEditor() {
   const [countdown, setCountdown] = useState(null);
   const socket = useSocket();
   const [showAiHelper, setShowAiHelper] = useState(false);
+  const [mobileTab, setMobileTab] = useState("define");
   const [lastWarnedLang, setLastWarnedLang] = useState(null);
   const hasLoadedProblem = useRef(false);
   const isPrefilling = useRef(false);
@@ -263,7 +264,7 @@ int main() {
     toast.success("Pre-filled Even or Odd (C++) sample question!");
   };
 
-  /* â”€â”€â”€ Fetch Room Details on Mount â”€â”€â”€ */
+  /* ─── Fetch Room Details on Mount ─── */
   useEffect(() => {
     const fetchRoom = async () => {
       try {
@@ -276,7 +277,7 @@ int main() {
     fetchRoom();
   }, [roomId]);
 
-  /* â”€â”€â”€ Populate Form from Existing Problem â”€â”€â”€ */
+  /* ─── Populate Form from Existing Problem ─── */
   useEffect(() => {
     if (!room || !room.problem || hasLoadedProblem.current) return;
     const prob = room.problem;
@@ -299,7 +300,7 @@ int main() {
     hasLoadedProblem.current = true;
   }, [room]);
 
-  /* â”€â”€â”€ Socket Room Listeners & Countdown/Ready redirection â”€â”€â”€ */
+  /* ─── Socket Room Listeners & Countdown/Ready redirection ─── */
   useEffect(() => {
     if (!socket) return;
 
@@ -354,7 +355,7 @@ int main() {
     };
   }, [socket, roomId, navigate]);
 
-  /* â”€â”€â”€ Opponent Language Matching Popup â”€â”€â”€ */
+  /* ─── Opponent Language Matching Popup ─── */
   useEffect(() => {
     if (!room || !user) return;
     const opponent = room.players?.find((p) => {
@@ -368,7 +369,7 @@ int main() {
     if (opponentLang && opponentLang !== activeLanguage && opponentLang !== lastWarnedLang) {
       toast((t) => (
         <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-          <div style={{ fontWeight: 700, color: "#eee8f5" }}>âœ¨ Language Match Recommendation</div>
+          <div style={{ fontWeight: 700, color: "#eee8f5" }}>✨ Language Match Recommendation</div>
           <div style={{ fontSize: "12px", color: "#a99bc2", lineHeight: 1.4 }}>
             Please use our AI helper to convert your code to <strong>{opponent.username || "B"}'s</strong> selected language (<strong>{opponentLang.toUpperCase()}</strong>).
           </div>
@@ -413,7 +414,7 @@ int main() {
     }
   }, [room, user, activeLanguage, lastWarnedLang]);
 
-  /* â”€â”€â”€ Timer countdown calculation â”€â”€â”€ */
+  /* ─── Timer countdown calculation ─── */
   useEffect(() => {
     if (!room || !room.setupExpiresAt) return;
 
@@ -602,9 +603,9 @@ int main() {
 
   const allPassed = validationResults.length > 0 && validationResults.every((r) => r.passed);
 
-  /* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+  /* ────────────────────────────────────────────────────────────── */
   /*  RENDER                                                      */
-  /* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+  /* ────────────────────────────────────────────────────────────── */
   return (
     <div className="min-height-100vh flex flex-col bg-bg-primary font-sans text-text-primary">
       <AnimatePresence>
@@ -683,7 +684,7 @@ int main() {
         )}
       </AnimatePresence>
 
-      {/* â”€â”€â”€ HEADER â”€â”€â”€ */}
+      {/* ─── HEADER ─── */}
       <header className="border-b border-border-default bg-bg-surface/80 backdrop-blur-xl px-8 py-3.5 flex items-center justify-between sticky top-0 z-50">
         <div className="flex items-center gap-5">
           <button
@@ -719,12 +720,12 @@ int main() {
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
                 </span>
-                â³ {timeLeft || "30:00"} Left
+                ⏳ {timeLeft || "30:00"} Left
               </div>
             ) : (
               <div className="px-4 py-2 rounded-full bg-gradient-to-r from-amber-500/15 to-amber-600/15 border border-amber-500/30 text-[11px] font-bold text-amber-500 font-mono tracking-wide uppercase flex items-center gap-2 shadow-[0_0_15px_rgba(212,160,83,0.15)] animate-pulse">
                 <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-                â³ {timeLeft || "30:00"} Left
+                ⏳ {timeLeft || "30:00"} Left
               </div>
             )
           ) : (
@@ -736,11 +737,26 @@ int main() {
         </div>
       </header>
 
-      {/* â”€â”€â”€ MAIN 2-COLUMN LAYOUT â”€â”€â”€ */}
-      <main className="flex-1 grid grid-cols-1 lg:grid-cols-[1fr_1fr] overflow-hidden h-[calc(100vh-57px)]">
+      {/* Mobile Tab Switcher */}
+      <div className="mobile-tab-switch-container">
+        <button
+          className={`mobile-tab-button ${mobileTab === "define" ? "active" : ""}`}
+          onClick={() => setMobileTab("define")}
+        >
+          Define Challenge
+        </button>
+        <button
+          className={`mobile-tab-button ${mobileTab === "preview" ? "active" : ""}`}
+          onClick={() => setMobileTab("preview")}
+        >
+          Live Preview
+        </button>
+      </div>
 
-        {/* â•â•â•â•â•â•â• LEFT PANEL â€” FORM â•â•â•â•â•â•â• */}
-        <section className="overflow-y-auto border-r border-border-default pe-scrollbar">
+      <main className="flex-1 grid grid-cols-1 lg:grid-cols-[1fr_1fr] overflow-hidden h-[calc(100vh-57px)] mobile-responsive-height">
+
+        {/* ═══════ LEFT PANEL — FORM ═══════ */}
+        <section className={`overflow-y-auto border-r border-border-default pe-scrollbar ${mobileTab === "define" ? "mobile-show-pane" : "mobile-hide-pane"}`}>
           <div className="p-8 flex flex-col gap-8 max-w-[680px]">
 
             {/* Page heading */}
@@ -758,13 +774,13 @@ int main() {
                 onClick={handlePrefillSample}
                 className="px-4 py-2.5 rounded-xl text-[12px] font-bold uppercase tracking-wider bg-gradient-to-r from-primary/25 to-secondary/25 hover:from-primary/35 hover:to-secondary/35 text-text-primary border border-primary/30 hover:border-primary/50 transition-all duration-200 flex items-center gap-1.5 shadow-[0_0_15px_rgba(126,93,189,0.1)] active:scale-[0.98] cursor-pointer"
               >
-                âœ¨ Pre-fill C++ Sample
+                ✨ Pre-fill C++ Sample
               </button>
             </div>
 
-            {/* â”€â”€ Challenge Meta â”€â”€ */}
+            {/* ── Challenge Meta ── */}
             <div className="flex flex-col gap-5">
-              <SectionHeader icon="ðŸ“" title="Challenge Details" />
+              <SectionHeader icon="📝" title="Challenge Details" />
 
               <div className="flex flex-col gap-1.5">
                 <label className="text-[11px] font-semibold uppercase tracking-[0.1em] text-text-muted">
@@ -813,7 +829,7 @@ int main() {
                   </label>
                   <div className="flex flex-col gap-2">
                     <div className="w-full bg-bg-surface border border-border-default rounded-xl px-3 py-3 text-sm text-text-primary font-semibold flex items-center gap-2">
-                      <span className="text-primary text-base">â±</span>
+                      <span className="text-primary text-base">⏱</span>
                       <span>
                         {timeLimit + (extraFiveMin ? 5 : 0)} mins
                       </span>
@@ -833,7 +849,7 @@ int main() {
                       <span className={`w-4 h-4 rounded flex items-center justify-center text-[10px] border ${
                         extraFiveMin ? "bg-secondary border-secondary text-white" : "border-border-default"
                       }`}>
-                        {extraFiveMin ? "âœ“" : ""}
+                        {extraFiveMin ? "✓" : ""}
                       </span>
                       +5 minutes extra
                     </button>
@@ -888,10 +904,10 @@ int main() {
             {/* Divider */}
             <div className="h-px bg-gradient-to-r from-transparent via-border-default to-transparent" />
 
-            {/* â”€â”€ Problem Statement â”€â”€ */}
+            {/* ── Problem Statement ── */}
             <div className="flex flex-col gap-3">
               <SectionHeader
-                icon="ðŸ“„"
+                icon="📄"
                 title="Problem Statement"
                 subtitle="Describe the problem, constraints, and input/output formats. Markdown is supported."
               />
@@ -907,10 +923,10 @@ int main() {
             {/* Divider */}
             <div className="h-px bg-gradient-to-r from-transparent via-border-default to-transparent" />
 
-            {/* â”€â”€ Visible Examples â”€â”€ */}
+            {/* ── Visible Examples ── */}
             <div className="flex flex-col gap-4">
               <SectionHeader
-                icon="ðŸ’¡"
+                icon="💡"
                 title="Visible Example Cases"
                 subtitle="These examples are shown to opponents during the battle."
               />
@@ -928,7 +944,7 @@ int main() {
                 ))}
               </div>
 
-              {/* Add button â€” dashed, full-width, at bottom */}
+              {/* Add button — dashed, full-width, at bottom */}
               <button
                 type="button"
                 onClick={handleAddExample}
@@ -944,10 +960,10 @@ int main() {
             {/* Divider */}
             <div className="h-px bg-gradient-to-r from-transparent via-border-default to-transparent" />
 
-            {/* â”€â”€ Hidden Test Cases â”€â”€ */}
+            {/* ── Hidden Test Cases ── */}
             <div className="flex flex-col gap-4">
               <SectionHeader
-                icon="ðŸ”’"
+                icon="🔒"
                 title="Hidden Test Cases"
                 subtitle="Opponents run code against these. Minimum 4 required."
               >
@@ -969,7 +985,7 @@ int main() {
                 ))}
               </div>
 
-              {/* Add button â€” dashed, full-width, at bottom */}
+              {/* Add button — dashed, full-width, at bottom */}
               <button
                 type="button"
                 onClick={handleAddTestCase}
@@ -985,11 +1001,11 @@ int main() {
             {/* Divider */}
             <div className="h-px bg-gradient-to-r from-transparent via-border-default to-transparent" />
 
-            {/* â”€â”€ Reference Solution â”€â”€ */}
+            {/* ── Reference Solution ── */}
             <div className="flex flex-col gap-4">
               <div className="flex justify-between items-start">
                 <SectionHeader
-                  icon="ðŸ§ª"
+                  icon="🧪"
                   title="Reference Solution Validator"
                   subtitle="Write code that passes 100% of your hidden test cases."
                 />
@@ -1038,7 +1054,7 @@ int main() {
                     </>
                   ) : (
                     <>
-                      âœ¨ AI Generate Solution
+                      ✨ AI Generate Solution
                     </>
                   )}
                 </button>
@@ -1084,8 +1100,8 @@ int main() {
                       }`}
                     >
                       {allPassed
-                        ? `âœ“ ${validationResults.length}/${validationResults.length} Passed`
-                        : `âœ— ${validationResults.filter(r => !r.passed).length} Failed`}
+                        ? `✓ ${validationResults.length}/${validationResults.length} Passed`
+                        : `✗ ${validationResults.filter(r => !r.passed).length} Failed`}
                     </span>
                   </div>
 
@@ -1104,7 +1120,7 @@ int main() {
                             Case #{idx + 1}
                           </span>
                           <span className={`text-[11px] font-bold ${res.passed ? "text-success" : "text-error"}`}>
-                            {res.passed ? "âœ“ PASS" : "âœ— FAIL"}
+                            {res.passed ? "✓ PASS" : "✗ FAIL"}
                           </span>
                         </div>
                         {res.error ? (
@@ -1128,7 +1144,7 @@ int main() {
                               </div>
                             </div>
                             <div className="text-[10px] text-text-muted text-right font-sans">
-                              â± {res.executionTime}ms
+                              ⏱ {res.executionTime}ms
                             </div>
                           </>
                         )}
@@ -1142,7 +1158,7 @@ int main() {
             {/* Divider */}
             <div className="h-px bg-gradient-to-r from-transparent via-border-default to-transparent" />
 
-            {/* â”€â”€ Submit â”€â”€ */}
+            {/* ── Submit ── */}
             <div className="flex flex-col gap-4 pb-8">
               {!isFormValid && (
                 <div className="p-4 bg-error/8 border border-error/30 rounded-xl flex flex-col gap-2.5 animate-fade-in">
@@ -1155,7 +1171,7 @@ int main() {
                   <ul className="list-none flex flex-col gap-1.5 text-[12px] text-error/80">
                     {validationErrors.map((err, idx) => (
                       <li key={idx} className="flex items-start gap-2">
-                        <span className="text-error/50 mt-0.5">â€¢</span>
+                        <span className="text-error/50 mt-0.5">•</span>
                         {err}
                       </li>
                     ))}
@@ -1201,8 +1217,8 @@ int main() {
           </div>
         </section>
 
-        {/* â•â•â•â•â•â•â• RIGHT PANEL â€” LIVE PREVIEW â•â•â•â•â•â•â• */}
-        <section className="bg-[#08080d] overflow-y-auto pe-scrollbar">
+        {/* ═══════ RIGHT PANEL — LIVE PREVIEW ═══════ */}
+        <section className={`bg-[#08080d] overflow-y-auto pe-scrollbar ${mobileTab === "preview" ? "mobile-show-pane" : "mobile-hide-pane"}`}>
           <div className="p-8 flex flex-col gap-6">
 
             {/* Preview header */}
@@ -1244,7 +1260,7 @@ int main() {
                     {difficulty}
                   </span>
                   <span className="px-2.5 py-1 rounded-lg bg-bg-elevated text-[10px] font-bold uppercase tracking-wider text-text-secondary border border-border-default">
-                    â± {timeLimit} mins
+                    ⏱ {timeLimit} mins
                   </span>
                   {allowedLanguages.map((l) => (
                     <span

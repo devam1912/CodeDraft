@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { notificationAPI } from "../../services/api";
@@ -82,10 +82,10 @@ const NOTIF_DOT = {
 };
 
 const ICON_MAP = {
-  match_result: "âš”ï¸",
-  challenge_invite: "ðŸŽ¯",
-  tournament_invite: "ðŸ†",
-  system: "ðŸ””",
+  match_result: "⚔️",
+  challenge_invite: "🎯",
+  tournament_invite: "🏆",
+  system: "🔔",
 };
 
 function NotificationBell() {
@@ -119,7 +119,7 @@ function NotificationBell() {
       if (notification.type === "challenge_invite") {
         toast((t) => (
           <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-            <div style={{ fontWeight: 700, color: "#eee8f5" }}>ðŸŽ¯ {notification.title}</div>
+            <div style={{ fontWeight: 700, color: "#eee8f5" }}>🎯 {notification.title}</div>
             <div style={{ fontSize: "12px", color: "#a99bc2" }}>{notification.message}</div>
             <div style={{ display: "flex", gap: "8px", marginTop: "4px" }}>
               <button
@@ -160,7 +160,7 @@ function NotificationBell() {
         ), { duration: 10000 });
       } else {
         toast(notification.message, {
-          icon: ICON_MAP[notification.type] || "ðŸ””",
+          icon: ICON_MAP[notification.type] || "🔔",
         });
       }
     };
@@ -225,7 +225,7 @@ function NotificationBell() {
         style={BELL_BTN}
         aria-label="Notifications"
       >
-        ðŸ””
+        🔔
         {unreadCount > 0 && (
           <span style={BADGE}>{unreadCount > 9 ? "9+" : unreadCount}</span>
         )}
@@ -271,13 +271,13 @@ function NotificationBell() {
                 key={notif._id}
                 style={NOTIF_ITEM(notif.read)}
                 onClick={() => handleClickNotif(notif)}
-                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "rgba(30,30,46,0.6)")}
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "rgba(42,24,69,0.6)")}
                 onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = notif.read ? "transparent" : "rgba(126,93,189,0.05)")}
               >
                 {!notif.read && <div style={NOTIF_DOT} />}
                 <div style={{ flex: 1 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "2px" }}>
-                    <span style={{ fontSize: "13px" }}>{ICON_MAP[notif.type] || "ðŸ””"}</span>
+                    <span style={{ fontSize: "13px" }}>{ICON_MAP[notif.type] || "🔔"}</span>
                     <span style={{ fontSize: "13px", fontWeight: 600, color: "#eee8f5" }}>
                       {notif.title}
                     </span>

@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { matchAPI } from "../services/api";
 import toast from "react-hot-toast";
@@ -104,7 +104,7 @@ const EVENT_ITEM = (type) => ({
       ? "rgba(93,184,133,0.12)"
       : type === "submission_attempt"
       ? "rgba(126,93,189,0.12)"
-      : "rgba(30,30,46,0.6)",
+      : "rgba(42,24,69,0.6)",
   color:
     type === "match_finished"
       ? "#5db885"
@@ -167,17 +167,17 @@ function describeEvent(event, players) {
 
   switch (event.eventType) {
     case "match_started":
-      return "âš”ï¸ Battle started";
+      return "⚔️ Battle started";
     case "progress_updated":
-      return `ðŸ“Š ${name} passed ${event.payload?.passedCount}/${event.payload?.totalCount}`;
+      return `📊 ${name} passed ${event.payload?.passedCount}/${event.payload?.totalCount}`;
     case "submission_attempt":
       return event.payload?.passed
-        ? `âœ… ${name} solved it!`
-        : `âŒ ${name} failed submission`;
+        ? `✅ ${name} solved it!`
+        : `❌ ${name} failed submission`;
     case "line_count_updated":
-      return `âŒ¨ï¸ ${name} at ${event.payload?.lineCount} lines`;
+      return `⌨️ ${name} at ${event.payload?.lineCount} lines`;
     case "match_finished":
-      return "ðŸ† Match finished";
+      return "🏆 Match finished";
     default:
       return `${event.eventType}`;
   }
@@ -323,7 +323,7 @@ function MatchReplay() {
   if (isLoading) {
     return (
       <div style={{ ...PAGE, alignItems: "center", justifyContent: "center", gap: "12px" }}>
-        <div style={{ fontSize: "24px" }}>â³</div>
+        <div style={{ fontSize: "24px" }}>⏳</div>
         <div style={{ color: "#a99bc2", fontFamily: "JetBrains Mono, monospace", fontSize: "13px" }}>
           Loading match replay...
         </div>
@@ -344,8 +344,8 @@ function MatchReplay() {
 
   return (
     <div style={PAGE}>
-      <nav style={NAV}>
-        <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+      <nav className="responsive-nav-bar">
+        <div style={{ display: "flex", alignItems: "center", gap: "16px", flexWrap: "wrap" }}>
           <button
             onClick={() => navigate("/dashboard")}
             style={{
@@ -359,12 +359,12 @@ function MatchReplay() {
               gap: "6px",
             }}
           >
-            â† Dashboard
+            ← Dashboard
           </button>
           <span style={{ color: "#2a1845" }}>|</span>
           <span style={LOGO}>Match Replay</span>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: "16px", fontSize: "13px", color: "#7a6b94" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "16px", fontSize: "13px", color: "#7a6b94", flexWrap: "wrap" }}>
           {problem?.title && (
             <span style={{ color: "#a99bc2" }}>{problem.title}</span>
           )}
@@ -377,15 +377,15 @@ function MatchReplay() {
                 borderRadius: "6px",
               }}
             >
-              â± {formatSec(durationSec)}
+              ⏱ {formatSec(durationSec)}
             </span>
           )}
         </div>
       </nav>
 
       <main style={MAIN}>
-        <div style={{ display: "flex", gap: "20px", alignItems: "flex-start" }}>
-          <div style={{ display: "flex", gap: "16px", flex: 1 }}>
+        <div style={{ display: "flex", gap: "20px", alignItems: "flex-start", flexWrap: "wrap" }}>
+          <div style={{ display: "flex", gap: "16px", flex: 1, flexWrap: "wrap", minWidth: "280px" }}>
             {players.map((player) => {
               const uid = player._id?.toString();
               const state = playerStates[uid] || { passed: 0, total: 0, lineCount: 0 };
@@ -522,13 +522,13 @@ function MatchReplay() {
                 style={CTRL_BTN}
                 title="Restart"
               >
-                â®
+                ⏮
               </button>
               <button
                 onClick={handlePlayPause}
                 style={{ ...CTRL_BTN, backgroundColor: isPlaying ? "rgba(126,93,189,0.2)" : "#1a1030", width: "44px", height: "44px", fontSize: "16px" }}
               >
-                {isPlaying ? "â¸" : "â–¶"}
+                {isPlaying ? "⏸" : "▶"}
               </button>
             </div>
 

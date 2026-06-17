@@ -1,4 +1,4 @@
-﻿import React, { useState } from "react";
+import React, { useState } from "react";
 import toast from "react-hot-toast";
 import { userAPI } from "../../services/api";
 
@@ -66,14 +66,14 @@ function AICodeConverter({ isOpen, onClose, initialLanguage, initialToLanguage, 
         {/* Header */}
         <div className="flex items-center justify-between border-b border-border-default pb-4 mb-5">
           <div className="flex items-center gap-2">
-            <span className="text-lg">âœ¨</span>
+            <span className="text-lg">✨</span>
             <h3 className="text-base font-bold text-text-primary">AI Code Converter</h3>
           </div>
           <button
             onClick={onClose}
             className="text-text-muted hover:text-text-primary text-lg transition-colors cursor-pointer"
           >
-            âœ•
+            ✕
           </button>
         </div>
 
@@ -141,7 +141,7 @@ function AICodeConverter({ isOpen, onClose, initialLanguage, initialToLanguage, 
                 Translating...
               </>
             ) : (
-              "âœ¨ Translate Code"
+              "✨ Translate Code"
             )}
           </button>
 
@@ -166,14 +166,14 @@ function AICodeConverter({ isOpen, onClose, initialLanguage, initialToLanguage, 
               onClick={handleCopy}
               className="flex-1 py-3 rounded-xl border border-border-default bg-bg-surface hover:bg-bg-elevated text-text-primary font-bold text-xs uppercase tracking-wider cursor-pointer transition-colors"
             >
-              ðŸ“‹ Copy Code
+              📋 Copy Code
             </button>
             {onApplyCode && (
               <button
                 onClick={handleApply}
                 className="flex-1 py-3 rounded-xl bg-success text-bg-primary hover:brightness-115 font-bold text-xs uppercase tracking-wider cursor-pointer transition-all"
               >
-                ðŸ“¥ Inject Code
+                📥 Inject Code
               </button>
             )}
           </div>

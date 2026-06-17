@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useAuth } from "../context/AuthContext";
@@ -38,7 +38,7 @@ const NAV_CONTAINER = {
   alignItems: "center",
   justifyContent: "space-between",
   padding: "20px 40px",
-  borderBottom: "1px solid rgba(126, 93, 189, 0.08)",
+  borderBottom: "1px solid rgba(255, 255, 255, 0.05)",
   backdropFilter: "blur(20px)",
   backgroundColor: "rgba(13, 8, 24, 0.75)",
   position: "sticky",
@@ -162,9 +162,9 @@ function Leaderboard() {
         user: podiumUsers[1],
         rank: 2,
         color: "#b49fdb",
-        bg: "rgba(180, 159, 219, 0.05)",
-        icon: "ðŸ¥ˆ",
-        gradient: "linear-gradient(135deg, rgba(180,159,219,0.08), rgba(180,159,219,0.02))",
+        bg: "rgba(203, 213, 225, 0.05)",
+        icon: "🥈",
+        gradient: "linear-gradient(135deg, rgba(203,213,225,0.08), rgba(203,213,225,0.02))",
         height: "220px"
       });
     }
@@ -175,7 +175,7 @@ function Leaderboard() {
         rank: 1,
         color: "#d4a053",
         bg: "rgba(212, 160, 83, 0.1)",
-        icon: "ðŸ†",
+        icon: "🏆",
         gradient: "linear-gradient(135deg, rgba(126,93,189,0.15), rgba(212,160,83,0.05))",
         height: "250px"
       });
@@ -185,10 +185,10 @@ function Leaderboard() {
       order.push({
         user: podiumUsers[2],
         rank: 3,
-        color: "#8b4513",
-        bg: "rgba(139, 69, 19, 0.05)",
-        icon: "ðŸ¥‰",
-        gradient: "linear-gradient(135deg, rgba(139,69,19,0.08), rgba(139,69,19,0.02))",
+        color: "#b45309",
+        bg: "rgba(180, 83, 9, 0.05)",
+        icon: "🥉",
+        gradient: "linear-gradient(135deg, rgba(180,83,9,0.08), rgba(180,83,9,0.02))",
         height: "200px"
       });
     }
@@ -200,15 +200,14 @@ function Leaderboard() {
       <div style={GLOW_ORB("-200px", null, "-100px", null, "rgba(126, 93, 189, 0.12)", "700px")} />
       <div style={GLOW_ORB(null, "-100px", null, "-200px", "rgba(212, 160, 83, 0.1)", "600px")} />
 
-      <nav style={NAV_CONTAINER}>
-        <div style={{ display: "flex", gap: "36px", alignItems: "center" }}>
+      <nav className="responsive-nav-bar">
+        <div style={{ display: "flex", gap: "24px", alignItems: "center", flexWrap: "wrap" }}>
           <Link to="/" style={{ textDecoration: "none" }}>
             <span style={LOGO_TEXT}>CodeDraft</span>
           </Link>
-          <div style={{ display: "flex", gap: "24px", alignItems: "center" }}>
+          <div style={{ display: "flex", gap: "16px", alignItems: "center" }}>
             <Link to="/leaderboard" style={{ textDecoration: "none", color: "#ffffff", fontSize: "14px", fontWeight: 700 }}>Leaderboard</Link>
             <Link to="/dashboard" style={{ textDecoration: "none", color: "#a99bc2", fontSize: "14px", fontWeight: 500 }} className="hover:text-white transition-colors">Tournaments</Link>
-
           </div>
         </div>
         <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
@@ -224,7 +223,7 @@ function Leaderboard() {
         initial="hidden"
         animate="visible"
       >
-        <motion.div variants={itemVariants} style={{ display: "flex", flexDirection: "column", gap: "16px", mdFlexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", width: "100%" }}>
+        <motion.div variants={itemVariants} style={{ display: "flex", flexDirection: "row", flexWrap: "wrap", gap: "16px", justifyContent: "space-between", alignItems: "flex-start", width: "100%" }}>
           <div>
             <div style={BRAND_BADGE}>Platform Standings</div>
             <h1 style={{ fontSize: "36px", fontWeight: 900, letterSpacing: "-0.03em", marginBottom: "8px" }}>
@@ -235,7 +234,7 @@ function Leaderboard() {
             </p>
           </div>
 
-          <div style={{ display: "flex", backgroundColor: "#120b22", border: "1px solid rgba(126, 93, 189, 0.08)", padding: "4px", borderRadius: "12px", gap: "4px", alignSelf: "flex-start", marginTop: "12px" }}>
+          <div style={{ display: "flex", backgroundColor: "#120b22", border: "1px solid rgba(255, 255, 255, 0.05)", padding: "4px", borderRadius: "12px", gap: "4px", alignSelf: "flex-start", marginTop: "12px" }}>
             {[
               { key: "global", label: "Global" },
               { key: "college", label: user?.college ? `${user.college} League` : "My College", disabled: !user?.college },
@@ -284,7 +283,7 @@ function Leaderboard() {
                 padding: "14px 20px 14px 48px",
                 borderRadius: "12px",
                 backgroundColor: "#120b22",
-                border: "1px solid rgba(126, 93, 189, 0.08)",
+                border: "1px solid rgba(255, 255, 255, 0.05)",
                 color: "#eee8f5",
                 fontSize: "14px",
                 fontFamily: "JetBrains Mono, monospace"
@@ -299,7 +298,7 @@ function Leaderboard() {
           </div>
         ) : users.length === 0 && filterType !== "colleges" ? (
           <Card style={{ textAlign: "center", padding: "64px 32px", display: "flex", flexDirection: "column", alignItems: "center", gap: "12px" }}>
-            <span style={{ fontSize: "40px" }}>ðŸ…</span>
+            <span style={{ fontSize: "40px" }}>🏅</span>
             <h3 style={{ fontSize: "18px", fontWeight: 700, color: "#eee8f5" }}>No competitors found</h3>
             <p style={{ fontSize: "13px", color: "#a99bc2" }}>
               Adjust your search criteria or register a college tag to broaden findings.
@@ -317,7 +316,7 @@ function Leaderboard() {
                     key={podUser._id}
                     style={{
                       background: gradient,
-                      border: rank === 1 ? "1px solid #7e5dbd" : "1px solid rgba(126, 93, 189, 0.08)",
+                      border: rank === 1 ? "1px solid #7e5dbd" : "1px solid rgba(255, 255, 255, 0.05)",
                       borderRadius: "16px",
                       padding: "32px 24px",
                       display: "flex",
@@ -328,14 +327,14 @@ function Leaderboard() {
                       position: "relative",
                       overflow: "hidden",
                       minHeight: height,
-                      boxShadow: rank === 1 ? "0 10px 30px rgba(126, 93, 189, 0.15)" : "0 4px 20px rgba(5, 3, 12, 0.3)"
+                      boxShadow: rank === 1 ? "0 10px 30px rgba(126, 93, 189, 0.15)" : "0 4px 20px rgba(0, 0, 0, 0.2)"
                     }}
                   >
                     <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: "3px", background: rank === 1 ? "linear-gradient(90deg, #7e5dbd, #d4a053)" : color }} />
                     
                     <div style={{ position: "relative" }}>
-                      <div style={{ width: "64px", height: "64px", borderRadius: "50%", backgroundColor: "rgba(126,93,189,0.04)", border: `2px solid rgba(126,93,189,0.12)`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "32px" }}>
-                        {podUser.avatar || "ðŸ‘¤"}
+                      <div style={{ width: "64px", height: "64px", borderRadius: "50%", backgroundColor: "rgba(255,255,255,0.03)", border: `2px solid rgba(255,255,255,0.08)`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "32px" }}>
+                        {podUser.avatar || "👤"}
                       </div>
                       <div style={{ position: "absolute", bottom: "-6px", right: "-6px", width: "26px", height: "26px", borderRadius: "50%", backgroundColor: "#0d0818", border: `2px solid ${color}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "12px", fontWeight: 900 }}>
                         {rank}
@@ -347,7 +346,7 @@ function Leaderboard() {
                         {podUser.username}
                       </h4>
                       <span style={{ fontSize: "10px", color: "#7a6b94", textTransform: "uppercase", fontWeight: 700, letterSpacing: "0.05em", fontFamily: "JetBrains Mono, monospace" }}>
-                        ðŸŽ“ {podUser.college || "Independent"}
+                        🎓 {podUser.college || "Independent"}
                       </span>
                     </div>
 
@@ -360,7 +359,7 @@ function Leaderboard() {
                       </span>
                     </div>
 
-                    <div style={{ fontSize: "11px", color: "#a99bc2", fontFamily: "JetBrains Mono, monospace", display: "flex", gap: "16px", borderTop: "1px solid rgba(126, 93, 189, 0.08)", paddingTop: "12px", width: "100%", justifyContent: "center" }}>
+                    <div style={{ fontSize: "11px", color: "#a99bc2", fontFamily: "JetBrains Mono, monospace", display: "flex", gap: "16px", borderTop: "1px solid rgba(255, 255, 255, 0.05)", paddingTop: "12px", width: "100%", justifyContent: "center" }}>
                       <span>Wins: <span style={{ color: "#5db885", fontWeight: 700 }}>{podUser.wins || 0}</span></span>
                       <span>Losses: <span style={{ color: "#c75c4a", fontWeight: 700 }}>{podUser.losses || 0}</span></span>
                     </div>
@@ -375,7 +374,7 @@ function Leaderboard() {
                   <div style={{ overflowX: "auto" }}>
                     <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px" }}>
                       <thead>
-                        <tr style={{ borderBottom: "1px solid rgba(126, 93, 189, 0.08)", backgroundColor: "rgba(255,255,255,0.01)" }}>
+                        <tr style={{ borderBottom: "1px solid rgba(255, 255, 255, 0.05)", backgroundColor: "rgba(255,255,255,0.01)" }}>
                           <th style={{ padding: "14px 20px", textTransform: "uppercase", letterSpacing: "0.05em", color: "#7a6b94", fontFamily: "JetBrains Mono, monospace", fontSize: "11px", textAlign: "center" }}>Rank</th>
                           <th style={{ padding: "14px 20px", textTransform: "uppercase", letterSpacing: "0.05em", color: "#7a6b94", fontFamily: "JetBrains Mono, monospace", fontSize: "11px", textAlign: "left" }}>College / Institution</th>
                           <th style={{ padding: "14px 20px", textTransform: "uppercase", letterSpacing: "0.05em", color: "#7a6b94", fontFamily: "JetBrains Mono, monospace", fontSize: "11px", textAlign: "center" }}>Members</th>
@@ -390,13 +389,13 @@ function Leaderboard() {
                             <tr
                               key={col.college}
                               style={{ 
-                                borderBottom: "1px solid rgba(126, 93, 189, 0.06)",
+                                borderBottom: "1px solid rgba(255, 255, 255, 0.04)",
                                 borderLeft: isViewerCollege ? "3px solid #7e5dbd" : "3px solid transparent",
                                 backgroundColor: isViewerCollege ? "rgba(126, 93, 189, 0.04)" : "transparent"
                               }}
                             >
                               <td style={{ padding: "14px 20px", textAlign: "center", fontFamily: "JetBrains Mono, monospace", fontWeight: 700, color: "#7a6b94" }}>#{idx + 1}</td>
-                              <td style={{ padding: "14px 20px", fontWeight: 700, color: "#eee8f5" }}>ðŸŽ“ {col.college}</td>
+                              <td style={{ padding: "14px 20px", fontWeight: 700, color: "#eee8f5" }}>🎓 {col.college}</td>
                               <td style={{ padding: "14px 20px", textAlign: "center", color: "#a99bc2", fontFamily: "JetBrains Mono, monospace" }}>{col.memberCount}</td>
                               <td style={{ padding: "14px 20px", textAlign: "center", color: "#d4a053", fontWeight: 700, fontFamily: "JetBrains Mono, monospace" }}>{col.topElo}</td>
                               <td style={{ padding: "14px 20px", textAlign: "right", color: "#d4a053", fontWeight: 800, fontFamily: "JetBrains Mono, monospace", fontSize: "14px" }}>{col.avgElo}</td>
@@ -412,7 +411,7 @@ function Leaderboard() {
                   <div style={{ overflowX: "auto" }}>
                     <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px" }}>
                       <thead>
-                        <tr style={{ borderBottom: "1px solid rgba(126, 93, 189, 0.08)", backgroundColor: "rgba(255,255,255,0.01)" }}>
+                        <tr style={{ borderBottom: "1px solid rgba(255, 255, 255, 0.05)", backgroundColor: "rgba(255,255,255,0.01)" }}>
                           <th style={{ padding: "14px 20px", textTransform: "uppercase", letterSpacing: "0.05em", color: "#7a6b94", fontFamily: "JetBrains Mono, monospace", fontSize: "11px", textAlign: "center" }}>Rank</th>
                           <th style={{ padding: "14px 20px", textTransform: "uppercase", letterSpacing: "0.05em", color: "#7a6b94", fontFamily: "JetBrains Mono, monospace", fontSize: "11px", textAlign: "left" }}>Competitor</th>
                           <th style={{ padding: "14px 20px", textTransform: "uppercase", letterSpacing: "0.05em", color: "#7a6b94", fontFamily: "JetBrains Mono, monospace", fontSize: "11px", textAlign: "left" }}>College</th>
@@ -426,7 +425,7 @@ function Leaderboard() {
                         {(currentPage === 1 && !searchQuery ? listUsers : users).length === 0 ? (
                           <tr>
                             <td colSpan="7" style={{ padding: "48px 20px", textAlign: "center", color: "#7a6b94", fontFamily: "JetBrains Mono, monospace", fontSize: "13px" }}>
-                              <span style={{ fontSize: "24px", display: "block", marginBottom: "8px" }}>ðŸ“­</span>
+                              <span style={{ fontSize: "24px", display: "block", marginBottom: "8px" }}>📭</span>
                               More fighters entering the arena soon...
                             </td>
                           </tr>
@@ -441,7 +440,7 @@ function Leaderboard() {
                             <tr
                               key={listUser._id}
                               style={{ 
-                                borderBottom: "1px solid rgba(126, 93, 189, 0.06)",
+                                borderBottom: "1px solid rgba(255, 255, 255, 0.04)",
                                 borderLeft: isViewer ? "3px solid #7e5dbd" : "3px solid transparent",
                                 backgroundColor: isViewer ? "rgba(126, 93, 189, 0.04)" : "transparent",
                                 transition: "background-color 0.15s"
@@ -450,8 +449,8 @@ function Leaderboard() {
                               <td style={{ padding: "14px 20px", textAlign: "center", fontFamily: "JetBrains Mono, monospace", fontWeight: 700, color: "#7a6b94" }}>#{rankNumber}</td>
                               <td style={{ padding: "14px 20px" }}>
                                 <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                                  <div style={{ width: "26px", height: "26px", borderRadius: "50%", backgroundColor: "rgba(126,93,189,0.04)", border: "1px solid rgba(126,93,189,0.12)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "14px" }}>
-                                    {listUser.avatar || "ðŸ‘¤"}
+                                  <div style={{ width: "26px", height: "26px", borderRadius: "50%", backgroundColor: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "14px" }}>
+                                    {listUser.avatar || "👤"}
                                   </div>
                                   <span style={{ fontWeight: 700, color: isViewer ? "#b49fdb" : "#eee8f5" }}>
                                     {listUser.username}{isViewer ? " (You)" : ""}
@@ -471,7 +470,7 @@ function Leaderboard() {
                   </div>
 
                   {pagination.totalPages > 1 && (
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 24px", borderTop: "1px solid rgba(126, 93, 189, 0.08)", fontSize: "12px", fontFamily: "JetBrains Mono, monospace" }}>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 24px", borderTop: "1px solid rgba(255, 255, 255, 0.05)", fontSize: "12px", fontFamily: "JetBrains Mono, monospace" }}>
                       <Button
                         size="sm"
                         variant="ghost"

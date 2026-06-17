@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from "recharts";
@@ -288,7 +288,7 @@ function Dashboard() {
 
   return (
     <div style={PAGE_STYLE}>
-      <nav style={NAV_STYLE}>
+      <nav className="responsive-nav-bar">
         <Link to="/" style={{ textDecoration: "none" }}>
           <span style={LOGO_STYLE}>CodeDraft</span>
         </Link>
@@ -296,7 +296,7 @@ function Dashboard() {
           <Link to="/leaderboard" style={{ textDecoration: "none", color: "#a99bc2", fontSize: "14px" }}>Leaderboard</Link>
           <NotificationBell />
           <span style={{ color: "#2a1845" }}>|</span>
-          <span style={{ color: "#a99bc2", fontSize: "14px" }}>{displayUser?.username}</span>
+          <span style={{ color: "#a99bc2", fontSize: "14px" }} className="hide-mobile">{displayUser?.username}</span>
           <Button variant="ghost" size="sm" onClick={handleLogout}>Log Out</Button>
         </div>
       </nav>
@@ -308,7 +308,7 @@ function Dashboard() {
         <div style={{ display: "flex", gap: "32px", overflowX: "auto", fontSize: "12px", color: "#a99bc2", fontFamily: "JetBrains Mono, monospace" }}>
           {activities.map((act) => (
             <span key={act.id} style={{ display: "inline-flex", alignItems: "center", gap: "6px", whiteSpace: "nowrap" }}>
-              <span style={{ color: "#7e5dbd" }}>âœ¦</span>
+              <span style={{ color: "#7e5dbd" }}>✦</span>
               {act.message}
             </span>
           ))}
@@ -318,20 +318,20 @@ function Dashboard() {
       <motion.div style={CONTENT_STYLE} variants={containerVariants} initial="hidden" animate="visible">
         <motion.div variants={itemVariants} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px", width: "100%", flexWrap: "wrap", gap: "16px" }}>
           <div>
-            <div style={GREETING_STYLE}>Welcome back, {displayUser?.username || "Challenger"} ðŸ‘‹</div>
+            <div style={GREETING_STYLE}>Welcome back, {displayUser?.username || "Challenger"} 👋</div>
             <div style={SUBTEXT_STYLE}>Track your performance, review matches, and challenge opponents.</div>
           </div>
           <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
-            <Button onClick={() => setShowJoinModal(true)} variant="ghost" style={{ padding: "12px 24px" }}>ðŸŽ® Join Room</Button>
-            <Button onClick={() => setShowCreateModal(true)} variant="primary" style={{ padding: "12px 24px" }}>âš”ï¸ Create Battle</Button>
+            <Button onClick={() => setShowJoinModal(true)} variant="ghost" style={{ padding: "12px 24px" }}>🎮 Join Room</Button>
+            <Button onClick={() => setShowCreateModal(true)} variant="primary" style={{ padding: "12px 24px" }}>⚔️ Create Battle</Button>
           </div>
         </motion.div>
 
         <motion.div variants={itemVariants} style={{ display: "flex", gap: "12px", borderBottom: "1px solid #2a1845", paddingBottom: "12px", marginBottom: "24px", flexWrap: "wrap" }}>
           {[
-            { id: "dashboard", label: "ðŸ‘¤ My Dashboard", color: "#7e5dbd" },
-            { id: "friends", label: `ðŸ‘¥ Friends${friendRequests.length > 0 ? ` (${friendRequests.length})` : ""}`, color: "#d4a053" },
-            { id: "telemetry", label: "ðŸ“Š System Telemetry", color: "#d4a053" },
+            { id: "dashboard", label: "👤 My Dashboard", color: "#7e5dbd" },
+            { id: "friends", label: `👥 Friends${friendRequests.length > 0 ? ` (${friendRequests.length})` : ""}`, color: "#d4a053" },
+            { id: "telemetry", label: "📊 System Telemetry", color: "#d4a053" },
           ].map(tab => (
             <button
               key={tab.id}
@@ -351,7 +351,7 @@ function Dashboard() {
 
         {activeTab === "dashboard" ? (
           <>
-            <motion.div style={{ display: "grid", gridTemplateColumns: "280px 1fr", gap: "24px" }} variants={itemVariants}>
+            <motion.div className="dashboard-layout-grid" variants={itemVariants}>
               <Card style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "16px", marginBottom: "12px", borderBottom: "1px solid #2a1845", paddingBottom: "12px" }}>
                   <div 
@@ -371,7 +371,7 @@ function Dashboard() {
                     }}
                     title="Change Avatar"
                   >
-                    {displayUser?.avatar || "ðŸ’»"}
+                    {displayUser?.avatar || "💻"}
                   </div>
                   <div>
                     <div style={{ fontSize: "16px", fontWeight: 700, color: "#eee8f5" }}>{displayUser?.username}</div>
@@ -383,14 +383,14 @@ function Dashboard() {
                     </div>
                     {displayUser?.collegeVerified ? (
                       <div style={{ fontSize: "11px", color: "#5db885", fontWeight: 600, marginTop: "4px" }}>
-                        ðŸŽ“ {displayUser.college} (Verified)
+                        🎓 {displayUser.college} (Verified)
                       </div>
                     ) : (
                       <div 
                         onClick={() => setShowVerifyModal(true)} 
                         style={{ fontSize: "10px", color: "#d4a053", cursor: "pointer", textDecoration: "underline", marginTop: "4px", fontWeight: 600 }}
                       >
-                        ðŸŽ“ Verify College
+                        🎓 Verify College
                       </div>
                     )}
                   </div>
@@ -418,8 +418,8 @@ function Dashboard() {
                 </div>
 
                 <div style={{ marginTop: "12px", padding: "12px", backgroundColor: "#120b22", borderRadius: "8px", display: "flex", flexDirection: "column", gap: "6px" }}>
-                  {profile?.degree && <div style={{ fontSize: "12px", color: "#a99bc2" }}>ðŸŽ“ {profile.degree}{profile?.year ? ` Â· ${profile.year} Year` : ""}</div>}
-                  {profile?.college && !displayUser?.collegeVerified && <div style={{ fontSize: "12px", color: "#a99bc2" }}>ðŸ› {profile.college}</div>}
+                  {profile?.degree && <div style={{ fontSize: "12px", color: "#a99bc2" }}>🎓 {profile.degree}{profile?.year ? ` · ${profile.year} Year` : ""}</div>}
+                  {profile?.college && !displayUser?.collegeVerified && <div style={{ fontSize: "12px", color: "#a99bc2" }}>🏛 {profile.college}</div>}
                   {profile?.bio && <div style={{ fontSize: "12px", color: "#a99bc2", fontStyle: "italic", lineHeight: 1.4 }}>"{profile.bio}"</div>}
                   <button
                     onClick={() => {
@@ -428,7 +428,7 @@ function Dashboard() {
                     }}
                     style={{ marginTop: "4px", fontSize: "11px", color: "#7e5dbd", background: "none", border: "none", cursor: "pointer", textAlign: "left", padding: 0, textDecoration: "underline", fontWeight: 600 }}
                   >
-                    âœï¸ Edit Profile
+                    ✏️ Edit Profile
                   </button>
                 </div>
               </Card>
@@ -440,7 +440,7 @@ function Dashboard() {
                 </div>
                 {chartData.length === 0 ? (
                   <div style={EMPTY_STATE}>
-                    <div style={EMPTY_ICON}>ðŸ“Š</div>
+                    <div style={EMPTY_ICON}>📊</div>
                     <div style={EMPTY_HEADING}>No matches yet</div>
                     <div style={EMPTY_DESC}>Complete your first battle to see your ELO chart appear here.</div>
                   </div>
@@ -466,12 +466,12 @@ function Dashboard() {
     
             <motion.div variants={itemVariants}>
               <div style={SECTION_HEADING}>
-                <span>âœï¸</span> Problems Created
+                <span>✍️</span> Problems Created
               </div>
               {problems.length === 0 ? (
                 <Card>
                   <div style={EMPTY_STATE}>
-                    <div style={EMPTY_ICON}>âœï¸</div>
+                    <div style={EMPTY_ICON}>✍️</div>
                     <div style={EMPTY_HEADING}>No problems created</div>
                     <div style={EMPTY_DESC}>Create a room to write your first battle problem and challenge opponents.</div>
                     <Button size="md" onClick={() => setShowCreateModal(true)}>Create a Room</Button>
@@ -500,12 +500,12 @@ function Dashboard() {
     
             <motion.div variants={itemVariants}>
               <div style={SECTION_HEADING}>
-                <span>âš”ï¸</span> Match History
+                <span>⚔️</span> Match History
               </div>
               {matchHistory.length === 0 ? (
                 <Card>
                   <div style={EMPTY_STATE}>
-                    <div style={EMPTY_ICON}>âš”ï¸</div>
+                    <div style={EMPTY_ICON}>⚔️</div>
                     <div style={EMPTY_HEADING}>No matches yet</div>
                     <div style={EMPTY_DESC}>You haven&apos;t battled yet. Create a room to start your journey.</div>
                   </div>
@@ -516,7 +516,7 @@ function Dashboard() {
                     <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px" }}>
                       <thead>
                         <tr style={{ borderBottom: "1px solid #2a1845", backgroundColor: "rgba(42,24,69,0.4)" }}>
-                          {["Opponent", "Result", "Problem", "Time", "ELO Î”"].map((h) => (
+                          {["Opponent", "Result", "Problem", "Time", "ELO Δ"].map((h) => (
                             <th key={h} style={{ padding: "12px 20px", textAlign: "left", fontSize: "11px", fontWeight: 700, color: "#7a6b94", textTransform: "uppercase", letterSpacing: "0.06em", fontFamily: "JetBrains Mono, monospace" }}>{h}</th>
                           ))}
                         </tr>
@@ -537,7 +537,7 @@ function Dashboard() {
                                   </div>
                                   <div>
                                     <div style={{ fontWeight: 600, color: "#eee8f5" }}>{match.opponent?.username || "Unknown"}</div>
-                                    <div style={{ fontSize: "11px", color: "#7a6b94", fontFamily: "JetBrains Mono, monospace" }}>ELO {match.opponent?.eloRating || "â€”"}</div>
+                                    <div style={{ fontSize: "11px", color: "#7a6b94", fontFamily: "JetBrains Mono, monospace" }}>ELO {match.opponent?.eloRating || "—"}</div>
                                   </div>
                                 </div>
                               </td>
@@ -547,13 +547,13 @@ function Dashboard() {
                                 </span>
                               </td>
                               <td style={{ padding: "14px 20px", color: "#a99bc2", maxWidth: "160px" }}>
-                                {match.problemTitle || "â€”"}
+                                {match.problemTitle || "—"}
                               </td>
                               <td style={{ padding: "14px 20px", fontFamily: "JetBrains Mono, monospace", fontSize: "12px", color: "#a99bc2" }}>
-                                {match.durationSec ? `${String(min).padStart(2, "0")}:${String(sec).padStart(2, "0")}` : "â€”"}
+                                {match.durationSec ? `${String(min).padStart(2, "0")}:${String(sec).padStart(2, "0")}` : "—"}
                               </td>
                               <td style={{ padding: "14px 20px", fontFamily: "JetBrains Mono, monospace", fontWeight: 700, color: eloDelta == null ? "#7a6b94" : eloDelta >= 0 ? "#5db885" : "#c75c4a" }}>
-                                {eloDelta == null ? "â€”" : eloDelta >= 0 ? `+${eloDelta}` : eloDelta}
+                                {eloDelta == null ? "—" : eloDelta >= 0 ? `+${eloDelta}` : eloDelta}
                               </td>
                             </tr>
                           );
@@ -572,7 +572,7 @@ function Dashboard() {
             {/* Add Friends Search */}
             <Card style={{ padding: "24px" }}>
               <div style={{ fontSize: "14px", fontWeight: 700, color: "#eee8f5", marginBottom: "16px", display: "flex", alignItems: "center", gap: "8px" }}>
-                ðŸ” Find & Add Friends
+                🔍 Find & Add Friends
               </div>
               <div style={{ position: "relative" }}>
                 <input
@@ -592,7 +592,7 @@ function Dashboard() {
                         <div style={{ width: "32px", height: "32px", borderRadius: "50%", backgroundColor: "rgba(126,93,189,0.15)", border: "1px solid rgba(126,93,189,0.3)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "13px", fontWeight: 700, color: "#b49fdb" }}>{u.avatar || u.username.slice(0, 2).toUpperCase()}</div>
                         <div>
                           <div style={{ fontWeight: 600, color: "#eee8f5", fontSize: "14px" }}>{u.username}</div>
-                          <div style={{ fontSize: "11px", color: "#7a6b94" }}>{u.college || "Independent"} Â· ELO {u.eloRating}</div>
+                          <div style={{ fontSize: "11px", color: "#7a6b94" }}>{u.college || "Independent"} · ELO {u.eloRating}</div>
                         </div>
                       </div>
                       <Button size="sm" onClick={() => handleSendRequest(u.username)}>+ Add Friend</Button>
@@ -606,7 +606,7 @@ function Dashboard() {
             {friendRequests.length > 0 && (
               <Card style={{ padding: "24px" }}>
                 <div style={{ fontSize: "14px", fontWeight: 700, color: "#d4a053", marginBottom: "16px", display: "flex", alignItems: "center", gap: "8px" }}>
-                  ðŸ“© Pending Requests <span style={{ fontSize: "11px", background: "rgba(212,160,83,0.15)", border: "1px solid rgba(212,160,83,0.3)", color: "#d4a053", padding: "1px 8px", borderRadius: "999px" }}>{friendRequests.length}</span>
+                  📩 Pending Requests <span style={{ fontSize: "11px", background: "rgba(212,160,83,0.15)", border: "1px solid rgba(212,160,83,0.3)", color: "#d4a053", padding: "1px 8px", borderRadius: "999px" }}>{friendRequests.length}</span>
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
                   {friendRequests.map((req, i) => (
@@ -615,12 +615,12 @@ function Dashboard() {
                         <div style={{ width: "36px", height: "36px", borderRadius: "50%", backgroundColor: "rgba(212,160,83,0.15)", border: "1px solid rgba(212,160,83,0.3)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "14px", fontWeight: 700, color: "#d4a053" }}>{req.from?.avatar || req.from?.username?.slice(0, 2).toUpperCase()}</div>
                         <div>
                           <div style={{ fontWeight: 600, color: "#eee8f5" }}>{req.from?.username}</div>
-                          <div style={{ fontSize: "11px", color: "#7a6b94" }}>{req.from?.college || "Independent"} Â· ELO {req.from?.eloRating}</div>
+                          <div style={{ fontSize: "11px", color: "#7a6b94" }}>{req.from?.college || "Independent"} · ELO {req.from?.eloRating}</div>
                         </div>
                       </div>
                       <div style={{ display: "flex", gap: "8px" }}>
-                        <Button size="sm" onClick={() => handleAcceptRequest(req.from?.username)} style={{ background: "linear-gradient(135deg,#5db885,#4a9e72)", color: "#fff", border: "none" }}>âœ“ Accept</Button>
-                        <Button size="sm" variant="ghost" onClick={() => handleRejectRequest(req.from?.username)}>âœ— Reject</Button>
+                        <Button size="sm" onClick={() => handleAcceptRequest(req.from?.username)} style={{ background: "linear-gradient(135deg,#5db885,#4a9e72)", color: "#fff", border: "none" }}>✓ Accept</Button>
+                        <Button size="sm" variant="ghost" onClick={() => handleRejectRequest(req.from?.username)}>✗ Reject</Button>
                       </div>
                     </div>
                   ))}
@@ -631,13 +631,13 @@ function Dashboard() {
             {/* Friends List */}
             <Card style={{ padding: "24px" }}>
               <div style={{ fontSize: "14px", fontWeight: 700, color: "#eee8f5", marginBottom: "16px", display: "flex", alignItems: "center", gap: "8px" }}>
-                ðŸ‘¥ My Friends <span style={{ fontSize: "11px", color: "#7a6b94" }}>({friends.length})</span>
+                👥 My Friends <span style={{ fontSize: "11px", color: "#7a6b94" }}>({friends.length})</span>
               </div>
               {friendsLoading ? (
                 <div style={{ color: "#7a6b94", fontSize: "13px" }}>Loading friends...</div>
               ) : friends.length === 0 ? (
                 <div style={EMPTY_STATE}>
-                  <div style={EMPTY_ICON}>ðŸ¤</div>
+                  <div style={EMPTY_ICON}>🤝</div>
                   <div style={EMPTY_HEADING}>No friends yet</div>
                   <div style={EMPTY_DESC}>Search for users above and send a friend request to get started!</div>
                 </div>
@@ -649,8 +649,8 @@ function Dashboard() {
                         <div style={{ width: "40px", height: "40px", borderRadius: "50%", backgroundColor: "rgba(126,93,189,0.12)", border: "2px solid rgba(126,93,189,0.3)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "18px", fontWeight: 700, color: "#b49fdb" }}>{f.avatar || f.username?.slice(0, 2).toUpperCase()}</div>
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <div style={{ fontWeight: 700, color: "#eee8f5", fontSize: "14px" }}>{f.username}</div>
-                          <div style={{ fontSize: "11px", color: "#7a6b94", fontFamily: "JetBrains Mono, monospace" }}>ELO {f.eloRating} {f.degree && `Â· ${f.degree}`}</div>
-                          {f.college && <div style={{ fontSize: "11px", color: "#a99bc2", marginTop: "2px" }}>ðŸ› {f.college}</div>}
+                          <div style={{ fontSize: "11px", color: "#7a6b94", fontFamily: "JetBrains Mono, monospace" }}>ELO {f.eloRating} {f.degree && `· ${f.degree}`}</div>
+                          {f.college && <div style={{ fontSize: "11px", color: "#a99bc2", marginTop: "2px" }}>🏛 {f.college}</div>}
                         </div>
                       </div>
                       <div style={{ display: "flex", gap: "8px" }}>
@@ -660,9 +660,9 @@ function Dashboard() {
                           onClick={() => handleInviteToBattle(f.username)}
                           disabled={invitingFriend === f.username}
                         >
-                          {invitingFriend === f.username ? "Sending..." : "âš”ï¸ Invite to Battle"}
+                          {invitingFriend === f.username ? "Sending..." : "⚔️ Invite to Battle"}
                         </Button>
-                        <Button size="sm" variant="ghost" onClick={() => handleRemoveFriend(f.username)} style={{ color: "#c75c4a" }}>âœ•</Button>
+                        <Button size="sm" variant="ghost" onClick={() => handleRemoveFriend(f.username)} style={{ color: "#c75c4a" }}>✕</Button>
                       </div>
                     </div>
                   ))}
@@ -673,34 +673,34 @@ function Dashboard() {
         ) : (
           <motion.div variants={itemVariants} style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
 
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "20px" }}>
+            <div className="telemetry-layout-grid">
               <Card style={{ padding: "20px", display: "flex", flexDirection: "column", gap: "8px", border: "1px solid #2a1845", borderRadius: "12px", background: "linear-gradient(135deg, #1a1030, rgba(126,93,189,0.05))" }}>
                 <span style={{ fontSize: "11px", color: "#9478cc", textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 700 }}>Total Registered Combatants</span>
                 <span style={{ fontSize: "40px", fontWeight: 800, fontFamily: "JetBrains Mono, monospace", background: "linear-gradient(135deg, #b49fdb, #7e5dbd)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-                  {telemetry?.totalUsers ?? "â€”"}
+                  {telemetry?.totalUsers ?? "—"}
                 </span>
                 <span style={{ fontSize: "12px", color: "#7a6b94" }}>Registered users in database</span>
               </Card>
               <Card style={{ padding: "20px", display: "flex", flexDirection: "column", gap: "8px", border: "1px solid #2a1845", borderRadius: "12px", background: "linear-gradient(135deg, #1a1030, rgba(212,160,83,0.05))" }}>
                 <span style={{ fontSize: "11px", color: "#d4a053", textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 700 }}>Total Battles Completed</span>
                 <span style={{ fontSize: "40px", fontWeight: 800, fontFamily: "JetBrains Mono, monospace", background: "linear-gradient(135deg, #b49fdb, #7e5dbd)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-                  {telemetry?.totalRooms ?? "â€”"}
+                  {telemetry?.totalRooms ?? "—"}
                 </span>
                 <span style={{ fontSize: "12px", color: "#7a6b94" }}>Historical battle instances</span>
               </Card>
               <Card style={{ padding: "20px", display: "flex", flexDirection: "column", gap: "8px", border: "1px solid #2a1845", borderRadius: "12px", background: "linear-gradient(135deg, #1a1030, rgba(93,184,133,0.05))" }}>
                 <span style={{ fontSize: "11px", color: "#5db885", textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 700 }}>Active WebSocket Duels</span>
                 <span style={{ fontSize: "40px", fontWeight: 800, fontFamily: "JetBrains Mono, monospace", background: "linear-gradient(135deg, #d4c6ea, #5db885)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-                  {telemetry?.activeRoomsCount ?? "â€”"}
+                  {telemetry?.activeRoomsCount ?? "—"}
                 </span>
                 <span style={{ fontSize: "12px", color: "#7a6b94" }}>Rooms with status &quot;active&quot;</span>
               </Card>
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px" }}>
+            <div className="telemetry-two-col-grid">
               <Card style={{ padding: "24px", display: "flex", flexDirection: "column", gap: "16px" }}>
                 <div style={{ fontSize: "15px", fontWeight: 700, color: "#eee8f5", display: "flex", alignItems: "center", gap: "8px" }}>
-                  <span>ðŸ’¾</span> Sandbox & Node Memory Usage
+                  <span>💾</span> Sandbox & Node Memory Usage
                 </div>
                 
                 {telemetry?.memory ? (
@@ -759,17 +759,17 @@ function Dashboard() {
 
               <Card style={{ padding: "24px", display: "flex", flexDirection: "column", gap: "16px" }}>
                 <div style={{ fontSize: "15px", fontWeight: 700, color: "#eee8f5", display: "flex", alignItems: "center", gap: "8px" }}>
-                  <span>âš™ï¸</span> Sandbox CPU & Load Averages
+                  <span>⚙️</span> Sandbox CPU & Load Averages
                 </div>
                 
                 <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px" }}>
                     <span style={{ color: "#7a6b94" }}>CPU Model</span>
-                    <span style={{ color: "#eee8f5", fontWeight: 600, textAlign: "right", maxWidth: "220px", fontSize: "11px" }}>{telemetry?.cpu?.model ?? "â€”"}</span>
+                    <span style={{ color: "#eee8f5", fontWeight: 600, textAlign: "right", maxWidth: "220px", fontSize: "11px" }}>{telemetry?.cpu?.model ?? "—"}</span>
                   </div>
                   <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px" }}>
                     <span style={{ color: "#7a6b94" }}>Processing Cores</span>
-                    <span style={{ fontFamily: "JetBrains Mono, monospace", fontWeight: 700, color: "#eee8f5" }}>{telemetry?.cpu?.cores ?? "â€”"} Cores</span>
+                    <span style={{ fontFamily: "JetBrains Mono, monospace", fontWeight: 700, color: "#eee8f5" }}>{telemetry?.cpu?.cores ?? "—"} Cores</span>
                   </div>
                 </div>
 
@@ -794,14 +794,14 @@ function Dashboard() {
             <Card style={{ padding: 0, overflow: "hidden" }}>
               <div style={{ padding: "20px 24px", borderBottom: "1px solid #2a1845", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <span style={{ fontSize: "15px", fontWeight: 700, color: "#eee8f5", display: "flex", alignItems: "center", gap: "8px" }}>
-                  <span>âœï¸</span> Rapid Problem Creators Audit
+                  <span>✍️</span> Rapid Problem Creators Audit
                 </span>
                 <span style={{ fontSize: "11px", color: "#7a6b94", fontFamily: "JetBrains Mono, monospace" }}>Database aggregates</span>
               </div>
               
               {!telemetry?.creatorsAudit || telemetry.creatorsAudit.length === 0 ? (
                 <div style={{ ...EMPTY_STATE, padding: "40px" }}>
-                  <div style={EMPTY_ICON}>ðŸ“­</div>
+                  <div style={EMPTY_ICON}>📭</div>
                   <div style={EMPTY_HEADING}>No problem creators found</div>
                   <div style={EMPTY_DESC}>User-generated battles will aggregate here.</div>
                 </div>
@@ -821,19 +821,19 @@ function Dashboard() {
                           key={creator._id || i} 
                           style={{ borderBottom: "1px solid #2a1845" }}
                         >
-                          <td style={{ padding: "14px 24px", fontFamily: "JetBrains Mono, monospace", fontWeight: 700, color: i === 0 ? "#d4a053" : i === 1 ? "#b49fdb" : i === 2 ? "#8b4513" : "#7a6b94" }}>
+                          <td style={{ padding: "14px 24px", fontFamily: "JetBrains Mono, monospace", fontWeight: 700, color: i === 0 ? "#d4a053" : i === 1 ? "#b49fdb" : i === 2 ? "#b45309" : "#7a6b94" }}>
                             #{i + 1}
                           </td>
                           <td style={{ padding: "14px 24px" }}>
                             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                               <div style={{ width: "28px", height: "28px", borderRadius: "50%", backgroundColor: "rgba(212,160,83,0.1)", border: "1px solid rgba(212,160,83,0.2)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "12px" }}>
-                                ðŸ‘¤
+                                👤
                               </div>
                               <span style={{ fontWeight: 600, color: "#eee8f5" }}>{creator.username || "Anonymous"}</span>
                             </div>
                           </td>
                           <td style={{ padding: "14px 24px", color: creator.college ? "#5db885" : "#7a6b94", fontWeight: creator.college ? 600 : 400 }}>
-                            {creator.college ? `ðŸŽ“ ${creator.college}` : "Independent"}
+                            {creator.college ? `🎓 ${creator.college}` : "Independent"}
                           </td>
                           <td style={{ padding: "14px 24px", fontFamily: "JetBrains Mono, monospace", fontWeight: 700, color: "#b49fdb" }}>
                             {creator.problemsCount} Problems
@@ -858,7 +858,7 @@ function Dashboard() {
           <div style={{ backgroundColor: "#1a1030", border: "1px solid #2a1845", borderRadius: "16px", padding: "24px", maxWidth: "360px", width: "100%", textAlign: "center" }}>
             <h3 style={{ fontSize: "18px", fontWeight: 700, marginBottom: "16px", color: "#eee8f5" }}>Select Gaming Avatar</h3>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "14px", marginBottom: "20px" }}>
-              {["ðŸ’»", "ðŸ”¥", "âš¡", "ðŸ†", "ðŸ’€", "ðŸ‘¾", "ðŸ¤–", "ðŸ¼"].map((avatar) => (
+              {["💻", "🔥", "⚡", "🏆", "💀", "👾", "🤖", "🐼"].map((avatar) => (
                 <button
                   key={avatar}
                   onClick={() => handleUpdateAvatar(avatar)}
@@ -886,7 +886,7 @@ function Dashboard() {
         <div style={{ position: "fixed", inset: 0, backgroundColor: "rgba(5,3,12,0.85)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", zIndex: 100, justifyContent: "center" }}>
           <div style={{ backgroundColor: "#1a1030", border: "1px solid #2a1845", borderRadius: "16px", padding: "32px", maxWidth: "420px", width: "100%" }}>
             <div style={{ textAlign: "center", marginBottom: "24px" }}>
-              <div style={{ fontSize: "40px", marginBottom: "12px" }}>ðŸŽ®</div>
+              <div style={{ fontSize: "40px", marginBottom: "12px" }}>🎮</div>
               <h3 style={{ fontSize: "20px", fontWeight: 700, color: "#eee8f5", marginBottom: "6px" }}>Join Battle Room</h3>
               <p style={{ fontSize: "13px", color: "#7a6b94" }}>Enter the Room ID shared by your opponent to enter their battle lobby.</p>
             </div>
@@ -984,7 +984,7 @@ function Dashboard() {
       {showVerifyModal && (
         <div style={{ position: "fixed", inset: 0, backgroundColor: "rgba(5,3,12,0.85)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", zIndex: 100, justifyContent: "center" }}>
           <div style={{ backgroundColor: "#1a1030", border: "1px solid #2a1845", borderRadius: "16px", padding: "24px", maxWidth: "380px", width: "100%", textAlign: "center" }}>
-            <h3 style={{ fontSize: "18px", fontWeight: 700, marginBottom: "12px", color: "#eee8f5" }}>ðŸŽ“ Verify College Standing</h3>
+            <h3 style={{ fontSize: "18px", fontWeight: 700, marginBottom: "12px", color: "#eee8f5" }}>🎓 Verify College Standing</h3>
             <p style={{ fontSize: "12px", color: "#7a6b94", marginBottom: "20px" }}>
               Enter your university domain email (ending in <b>.edu</b> or <b>.ac.in</b>) to verify your academic league standing.
             </p>
@@ -1013,7 +1013,7 @@ function Dashboard() {
         </div>
       )}
 
-      {/* â”€â”€ Edit Profile Modal â”€â”€ */}
+      {/* ── Edit Profile Modal ── */}
       {showProfileModal && (
         <div style={{ position: "fixed", inset: 0, backgroundColor: "rgba(5,3,12,0.92)", backdropFilter: "blur(16px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100, padding: "16px" }}>
           <div style={{ backgroundColor: "#1a1030", border: "1px solid #2a1845", borderRadius: "20px", padding: "32px", width: "100%", maxWidth: "480px", display: "flex", flexDirection: "column", gap: "20px", boxShadow: "0 24px 80px rgba(0,0,0,0.6)" }}>
@@ -1022,12 +1022,12 @@ function Dashboard() {
                 <div style={{ fontSize: "20px", fontWeight: 800, color: "#eee8f5" }}>Edit Profile</div>
                 <div style={{ fontSize: "12px", color: "#7a6b94", marginTop: "4px" }}>Update your academic info and bio</div>
               </div>
-              <button onClick={() => setShowProfileModal(false)} style={{ background: "none", border: "none", color: "#7a6b94", fontSize: "22px", cursor: "pointer", lineHeight: 1 }}>Ã—</button>
+              <button onClick={() => setShowProfileModal(false)} style={{ background: "none", border: "none", color: "#7a6b94", fontSize: "22px", cursor: "pointer", lineHeight: 1 }}>×</button>
             </div>
 
             <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
               <div>
-                <label style={{ fontSize: "11px", fontWeight: 700, color: "#a99bc2", textTransform: "uppercase", letterSpacing: "0.08em", display: "block", marginBottom: "6px" }}>ðŸ› College / University</label>
+                <label style={{ fontSize: "11px", fontWeight: 700, color: "#a99bc2", textTransform: "uppercase", letterSpacing: "0.08em", display: "block", marginBottom: "6px" }}>🏛 College / University</label>
                 <input
                   type="text"
                   placeholder="e.g. IIT Bombay, MIT, Stanford..."
@@ -1039,7 +1039,7 @@ function Dashboard() {
 
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
                 <div>
-                  <label style={{ fontSize: "11px", fontWeight: 700, color: "#a99bc2", textTransform: "uppercase", letterSpacing: "0.08em", display: "block", marginBottom: "6px" }}>ðŸ“š Degree</label>
+                  <label style={{ fontSize: "11px", fontWeight: 700, color: "#a99bc2", textTransform: "uppercase", letterSpacing: "0.08em", display: "block", marginBottom: "6px" }}>📚 Degree</label>
                   <select
                     value={profileForm.degree}
                     onChange={e => setProfileForm(p => ({ ...p, degree: e.target.value }))}
@@ -1059,7 +1059,7 @@ function Dashboard() {
                   </select>
                 </div>
                 <div>
-                  <label style={{ fontSize: "11px", fontWeight: 700, color: "#a99bc2", textTransform: "uppercase", letterSpacing: "0.08em", display: "block", marginBottom: "6px" }}>ðŸ“… Year</label>
+                  <label style={{ fontSize: "11px", fontWeight: 700, color: "#a99bc2", textTransform: "uppercase", letterSpacing: "0.08em", display: "block", marginBottom: "6px" }}>📅 Year</label>
                   <select
                     value={profileForm.year}
                     onChange={e => setProfileForm(p => ({ ...p, year: e.target.value }))}
@@ -1078,7 +1078,7 @@ function Dashboard() {
               </div>
 
               <div>
-                <label style={{ fontSize: "11px", fontWeight: 700, color: "#a99bc2", textTransform: "uppercase", letterSpacing: "0.08em", display: "block", marginBottom: "6px" }}>ðŸ“ Bio <span style={{ fontWeight: 400, textTransform: "none", letterSpacing: "normal" }}>({profileForm.bio.length}/200)</span></label>
+                <label style={{ fontSize: "11px", fontWeight: 700, color: "#a99bc2", textTransform: "uppercase", letterSpacing: "0.08em", display: "block", marginBottom: "6px" }}>📝 Bio <span style={{ fontWeight: 400, textTransform: "none", letterSpacing: "normal" }}>({profileForm.bio.length}/200)</span></label>
                 <textarea
                   placeholder="A short intro about yourself..."
                   value={profileForm.bio}
@@ -1092,7 +1092,7 @@ function Dashboard() {
             <div style={{ display: "flex", gap: "12px" }}>
               <Button variant="ghost" style={{ flex: 1 }} onClick={() => setShowProfileModal(false)}>Cancel</Button>
               <Button variant="primary" style={{ flex: 2 }} onClick={handleSaveProfile} disabled={savingProfile}>
-                {savingProfile ? "Saving..." : "ðŸ’¾ Save Profile"}
+                {savingProfile ? "Saving..." : "💾 Save Profile"}
               </Button>
             </div>
           </div>
@@ -1103,4 +1103,3 @@ function Dashboard() {
 }
 
 export default Dashboard;
-

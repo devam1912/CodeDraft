@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
@@ -159,7 +159,7 @@ function PublicProfile() {
   if (isLoading) {
     return (
       <div style={{ ...PAGE, alignItems: "center", justifyContent: "center", gap: "12px" }}>
-        <div style={{ fontSize: "24px" }}>â³</div>
+        <div style={{ fontSize: "24px" }}>⏳</div>
         <div style={{ color: "#a99bc2", fontFamily: "JetBrains Mono, monospace", fontSize: "13px" }}>Loading profile...</div>
       </div>
     );
@@ -172,13 +172,13 @@ function PublicProfile() {
 
   return (
     <div style={PAGE}>
-      <nav style={NAV}>
-        <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+      <nav className="responsive-nav-bar">
+        <div style={{ display: "flex", alignItems: "center", gap: "16px", flexWrap: "wrap" }}>
           <button
             onClick={() => navigate(-1)}
             style={{ background: "none", border: "none", color: "#a99bc2", cursor: "pointer", fontSize: "13px", display: "flex", alignItems: "center", gap: "6px" }}
           >
-            â† Back
+            ← Back
           </button>
           <span style={{ color: "#2a1845" }}>|</span>
           <Link to="/" style={{ textDecoration: "none" }}>
@@ -215,7 +215,7 @@ function PublicProfile() {
               <div>
                 <h1 style={{ fontSize: "24px", fontWeight: 800, color: "#eee8f5", marginBottom: "2px" }}>{profile.username}</h1>
                 {profile.college && (
-                  <div style={{ fontSize: "13px", color: "#7a6b94", marginBottom: "4px" }}>ðŸ› {profile.college}{profile.degree ? ` Â· ${profile.degree}` : ""}{profile.year ? ` Â· ${profile.year}` : ""}</div>
+                  <div style={{ fontSize: "13px", color: "#7a6b94", marginBottom: "4px" }}>🏛 {profile.college}{profile.degree ? ` · ${profile.degree}` : ""}{profile.year ? ` · ${profile.year}` : ""}</div>
                 )}
                 {profile.bio && (
                   <div style={{ fontSize: "13px", color: "#a99bc2", fontStyle: "italic", marginBottom: "4px", maxWidth: "320px" }}>"{profile.bio}"</div>
@@ -258,7 +258,7 @@ function PublicProfile() {
                   disabled={isChallenging}
                   style={{ background: "linear-gradient(135deg,#7e5dbd,#d4a053)", color: "#fff", border: "none" }}
                 >
-                  {isChallenging ? "Sending..." : "âš” Challenge"}
+                  {isChallenging ? "Sending..." : "⚔ Challenge"}
                 </Button>
               )}
               {isOwnProfile && (
@@ -270,7 +270,7 @@ function PublicProfile() {
           </div>
         </motion.div>
 
-        <motion.div variants={itemVariants} style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: "16px" }}>
+        <motion.div variants={itemVariants} style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "16px" }}>
           {[
             { label: "ELO Rating", value: profile.eloRating, color: "linear-gradient(135deg,#7e5dbd,#d4a053)", textFill: "transparent" },
             { label: "Wins", value: profile.wins, color: "#5db885" },
@@ -296,7 +296,7 @@ function PublicProfile() {
           ))}
         </motion.div>
 
-        <motion.div variants={itemVariants} style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px" }}>
+        <motion.div variants={itemVariants} className="telemetry-two-col-grid">
           <Card>
             <div style={SECTION_HEAD}>ELO History</div>
             {chartData.length === 0 ? (

@@ -35,7 +35,7 @@ const NAV_CONTAINER = {
   display: "flex",
   alignItems: "center",
   justifyContent: "space-between",
-  padding: "20px 40px",
+  padding: "20px clamp(16px, 4vw, 40px)",
   borderBottom: "1px solid rgba(126, 93, 189, 0.08)",
   backdropFilter: "blur(20px)",
   backgroundColor: "rgba(13, 8, 24, 0.75)",
@@ -53,18 +53,9 @@ const LOGO_TEXT = {
   letterSpacing: "-0.03em"
 };
 
-const HERO_SECTION = {
+// HERO_SECTION uses CSS class "hero-grid" for responsiveness
+const HERO_SECTION_EXTRA = {
   flex: 1,
-  display: "grid",
-  gridTemplateColumns: "1fr 1fr",
-  alignItems: "center",
-  gap: "36px",
-  maxWidth: "1400px",
-  margin: "0 auto",
-  width: "100%",
-  padding: "60px 40px",
-  zIndex: 2,
-  position: "relative"
 };
 
 const HERO_LEFT = {
@@ -98,7 +89,7 @@ const BRAND_BADGE = {
 };
 
 const HERO_TITLE = {
-  fontSize: "clamp(40px, 4.5vw, 68px)",
+  fontSize: "clamp(32px, 4.5vw, 68px)",
   fontWeight: 900,
   lineHeight: 1.05,
   letterSpacing: "-0.03em",
@@ -112,7 +103,7 @@ const DUAL_TEXT_GRADIENT = {
 };
 
 const HERO_DESC = {
-  fontSize: "clamp(15px, 1.2vw, 18px)",
+  fontSize: "clamp(14px, 1.2vw, 18px)",
   color: "#a99bc2",
   lineHeight: 1.6,
   marginBottom: "36px"
@@ -120,19 +111,12 @@ const HERO_DESC = {
 
 const CTA_GRID = {
   display: "flex",
-  gap: "16px",
+  gap: "12px",
   flexWrap: "wrap",
   width: "100%"
 };
 
-const STATS_BAND = {
-  display: "flex",
-  gap: "48px",
-  marginTop: "48px",
-  borderTop: "1px solid rgba(126, 93, 189, 0.1)",
-  paddingTop: "24px",
-  width: "100%"
-};
+// STATS_BAND uses CSS class "stats-band" for responsiveness
 
 const STAT_NUMBER = {
   fontSize: "32px",
@@ -354,12 +338,12 @@ function Home() {
           <Link to="/" style={{ textDecoration: "none" }}>
             <span style={LOGO_TEXT}>CodeDraft</span>
           </Link>
-          <div style={{ display: "flex", gap: "24px", alignItems: "center" }}>
-            <Link to="/leaderboard" style={{ textDecoration: "none", color: "#a99bc2", fontSize: "14px", fontWeight: 500 }} className="hover:text-white transition-colors">Leaderboard</Link>
-            <Link to="/dashboard" style={{ textDecoration: "none", color: "#a99bc2", fontSize: "14px", fontWeight: 500 }} className="hover:text-white transition-colors">Tournaments</Link>
+          <div className="nav-links">
+            <Link to="/leaderboard" style={{ textDecoration: "none", color: "#a99bc2", fontSize: "14px", fontWeight: 500 }}>Leaderboard</Link>
+            <Link to="/dashboard" style={{ textDecoration: "none", color: "#a99bc2", fontSize: "14px", fontWeight: 500 }}>Tournaments</Link>
           </div>
         </div>
-        <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+        <div className="nav-actions">
           {isAuthenticated ? (
             <>
               <span style={{ color: "#a99bc2", fontSize: "14px", fontFamily: "JetBrains Mono, monospace" }}>
@@ -383,7 +367,8 @@ function Home() {
       </nav>
 
       <motion.div 
-        style={HERO_SECTION}
+        className="hero-grid"
+        style={HERO_SECTION_EXTRA}
         variants={containerVariants}
         initial="hidden"
         animate="visible"
@@ -397,7 +382,7 @@ function Home() {
       </motion.div>
 
       {/* Live Coding Duel Demo Section */}
-      <div style={{ padding: "80px 40px", display: "flex", flexDirection: "column", alignItems: "center", borderTop: "1px solid rgba(126, 93, 189, 0.08)", backgroundColor: "#0a0614", position: "relative", zIndex: 5 }}>
+      <div className="section-container" style={{ display: "flex", flexDirection: "column", alignItems: "center", borderTop: "1px solid rgba(126, 93, 189, 0.08)", backgroundColor: "#0a0614" }}>
         <div style={BRAND_BADGE}>Live Duel Telemetry</div>
         <h2 style={{ fontSize: "32px", fontWeight: 800, marginBottom: "12px", letterSpacing: "-0.02em", textAlign: "center" }}>
           Watch a Live CodeDraft Battle
@@ -415,7 +400,7 @@ function Home() {
       </div>
 
       {/* College Standings Highlight Section */}
-      <div style={{ padding: "80px 40px", borderTop: "1px solid rgba(126, 93, 189, 0.08)", backgroundColor: "#0b0716", position: "relative", zIndex: 5 }}>
+      <div className="section-container" style={{ borderTop: "1px solid rgba(126, 93, 189, 0.08)", backgroundColor: "#0b0716" }}>
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", maxWidth: "1200px", margin: "0 auto" }}>
           <div style={BRAND_BADGE}>Academic Standings</div>
           <h2 style={{ fontSize: "32px", fontWeight: 800, marginBottom: "12px", letterSpacing: "-0.02em", textAlign: "center" }}>
@@ -425,7 +410,7 @@ function Home() {
             Top engineering institutions competing this month. Suffix your email with your college domain to challenge for your varsity standings.
           </p>
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "24px", width: "100%" }}>
+          <div className="feature-grid">
             {[
               { rank: 1, name: "Massachusetts Institute of Technology", short: "MIT", avgElo: 1845, members: 142, icon: "🎓", border: "#d4a053" },
               { rank: 2, name: "Stanford University", short: "Stanford", avgElo: 1792, members: 118, icon: "🌲", border: "#5db885" },
@@ -470,11 +455,11 @@ function Home() {
       </div>
 
 
-      <div style={{ padding: "80px 40px", borderTop: "1px solid rgba(126, 93, 189, 0.08)", position: "relative", zIndex: 5, backgroundColor: "#0b0716" }}>
+      <div className="section-container" style={{ borderTop: "1px solid rgba(126, 93, 189, 0.08)", backgroundColor: "#0b0716" }}>
         <h2 style={{ fontSize: "32px", fontWeight: 800, marginBottom: "48px", textAlign: "center", letterSpacing: "-0.02em" }}>
           Organic Coding Battles In 3 Steps
         </h2>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "32px", maxWidth: "1200px", margin: "0 auto" }}>
+        <div className="feature-grid" style={{ maxWidth: "1200px", margin: "0 auto", gap: "32px" }}>
           <div style={{ padding: "36px 28px", backgroundColor: "#120b22", border: "1px solid rgba(126, 93, 189, 0.1)", borderRadius: "16px", transition: "all 0.3s" }}>
             <div style={{ marginBottom: "20px" }}>
               <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="url(#primaryGradient)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -552,7 +537,7 @@ function HERO_LEFT_PANEL({ isAuthenticated, stats }) {
         </Link>
       </div>
 
-      <div style={STATS_BAND}>
+      <div className="stats-band">
         <div>
           <div style={STAT_NUMBER}>{stats.matches.toLocaleString()}</div>
           <div style={STAT_LABEL}>Duels Completed</div>

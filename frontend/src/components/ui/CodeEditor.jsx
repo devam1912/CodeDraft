@@ -1,4 +1,4 @@
-﻿import React from "react";
+import React from "react";
 import Editor from "@monaco-editor/react";
 
 function CodeEditor({ value, onChange, language = "javascript", height = "400px" }) {

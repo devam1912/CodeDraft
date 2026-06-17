@@ -1,4 +1,4 @@
-﻿import React from "react";
+import React from "react";
 
 function TestCaseRow({ index, testCase, onChange, onRemove, canRemove }) {
   const handleFieldChange = (field, value) => {
@@ -6,7 +6,7 @@ function TestCaseRow({ index, testCase, onChange, onRemove, canRemove }) {
   };
 
   return (
-    <div className="group relative bg-bg-surface border border-border-default rounded-2xl overflow-hidden transition-all duration-300 hover:border-[#2a2a4e] hover:shadow-[0_0_24px_rgba(99,102,241,0.06)] animate-fade-in">
+    <div className="group relative bg-bg-surface border border-border-default rounded-2xl overflow-hidden transition-all duration-300 hover:border-[#2a2a4e] hover:shadow-[0_0_24px_rgba(126,93,189,0.06)] animate-fade-in">
       {/* Accent top-bar */}
       <div className="h-[2px] bg-gradient-to-r from-primary via-secondary to-primary opacity-50" />
 

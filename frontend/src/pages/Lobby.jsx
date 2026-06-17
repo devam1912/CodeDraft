@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useSocket } from "../context/SocketContext";
@@ -6,7 +6,7 @@ import { roomAPI, userAPI } from "../services/api";
 import toast from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
 
-/* â”€â”€ Inline PlayerCard (self-contained, no import needed) â”€â”€ */
+/* ── Inline PlayerCard (self-contained, no import needed) ── */
 function PlayerCard({ player, team, selectedLanguage, isMe, onChangeLanguage, glow, glowRgb }) {
 
   if (!player) {
@@ -54,7 +54,7 @@ function PlayerCard({ player, team, selectedLanguage, isMe, onChangeLanguage, gl
         <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
           <span style={{ fontSize: 15, fontWeight: 700, color: "#eee8f5", letterSpacing: "-0.01em" }}>{player.username}</span>
           {player.college ? (
-            <span style={{ fontSize: 10, color: "#a99bc2", fontWeight: 600 }}>ðŸŽ“ {player.college}</span>
+            <span style={{ fontSize: 10, color: "#a99bc2", fontWeight: 600 }}>🎓 {player.college}</span>
           ) : (
             <span style={{ fontSize: 10, color: "#7a6b94", fontStyle: "italic" }}>No college standing</span>
           )}
@@ -67,7 +67,7 @@ function PlayerCard({ player, team, selectedLanguage, isMe, onChangeLanguage, gl
                 onChange={(e) => onChangeLanguage(e.target.value)}
                 style={{
                   backgroundColor: "#120b22",
-                  border: "1px solid rgba(126,93,189,0.15)",
+                  border: "1px solid rgba(255,255,255,0.1)",
                   borderRadius: 6,
                   color: "#d4a053",
                   fontSize: 9,
@@ -137,7 +137,7 @@ function ChallengeFramingCard({ teamLabel, isMyTeam, problem, roomId, color, rgb
             borderRadius: 12, padding: "10px 14px",
           }}>
             <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-              <span style={{ fontSize: 9, fontWeight: 800, color: "#5db885", letterSpacing: "0.08em" }}>âœ… READY</span>
+              <span style={{ fontSize: 9, fontWeight: 800, color: "#5db885", letterSpacing: "0.08em" }}>✅ READY</span>
               <span style={{ fontSize: 12, fontWeight: 600, color: "#eee8f5" }}>{problem.title}</span>
             </div>
             <button
@@ -158,7 +158,7 @@ function ChallengeFramingCard({ teamLabel, isMyTeam, problem, roomId, color, rgb
             background: `rgba(${rgb}, 0.04)`, border: `1px solid rgba(${rgb}, 0.15)`,
             borderRadius: 12, padding: "12px 14px",
           }}>
-            <span style={{ fontSize: 9, fontWeight: 800, color: "#d4a053" }}>âš ï¸ PENDING</span>
+            <span style={{ fontSize: 9, fontWeight: 800, color: "#d4a053" }}>⚠️ PENDING</span>
             <button
               onClick={() => navigate(`/room/${roomId}/edit`)}
               style={{
@@ -171,7 +171,7 @@ function ChallengeFramingCard({ teamLabel, isMyTeam, problem, roomId, color, rgb
               onMouseEnter={(e) => e.target.style.filter = "brightness(1.15)"}
               onMouseLeave={(e) => e.target.style.filter = "brightness(1)"}
             >
-              ðŸ“ FRAME CHALLENGE
+              📝 FRAME CHALLENGE
             </button>
           </div>
         )
@@ -183,12 +183,12 @@ function ChallengeFramingCard({ teamLabel, isMyTeam, problem, roomId, color, rgb
             borderRadius: 12, padding: "10px 14px",
           }}>
             <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#5db885" }} />
-            <span style={{ fontSize: 10, fontWeight: 700, color: "#5db885", textTransform: "uppercase" }}>âœ… CUSTOM CHALLENGE READY</span>
+            <span style={{ fontSize: 10, fontWeight: 700, color: "#5db885", textTransform: "uppercase" }}>✅ CUSTOM CHALLENGE READY</span>
           </div>
         ) : (
           <div style={{
             display: "flex", alignItems: "center", gap: 8,
-            background: "rgba(17,17,24,0.6)", border: "1px solid rgba(30,30,46,0.4)",
+            background: "rgba(17,17,24,0.6)", border: "1px solid rgba(42,24,69,0.4)",
             borderRadius: 12, padding: "10px 14px",
           }}>
             <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#7a6b94", animation: "pulse 2s ease-in-out infinite" }} />
@@ -245,7 +245,7 @@ function Lobby() {
 
   const roomLoaded = !!room;
 
-  /* â”€â”€â”€ Timer effect â”€â”€â”€ */
+  /* ─── Timer effect ─── */
   useEffect(() => {
     if (!room || !room.setupExpiresAt) return;
     const interval = setInterval(() => {
@@ -266,7 +266,7 @@ function Lobby() {
     return () => clearInterval(interval);
   }, [room, isCreator, canStart]);
 
-  /* â”€â”€â”€ Fetch room â”€â”€â”€ */
+  /* ─── Fetch room ─── */
   useEffect(() => {
     if (!user) return;
     const fetchRoom = async () => {
@@ -291,7 +291,7 @@ function Lobby() {
     fetchRoom();
   }, [roomId, navigate, user?._id]);
 
-  /* â”€â”€â”€ Socket listeners â”€â”€â”€ */
+  /* ─── Socket listeners ─── */
   useEffect(() => {
     if (!socket || !room) return;
 
@@ -352,7 +352,7 @@ function Lobby() {
         return { ...prev, playerLanguages };
       });
       if (uId !== user?._id) {
-        toast(`Opponent changed their language to ${language.toUpperCase()}!`, { icon: "âš™ï¸" });
+        toast(`Opponent changed their language to ${language.toUpperCase()}!`, { icon: "⚙️" });
       }
     });
 
@@ -419,7 +419,7 @@ function Lobby() {
     }
   };
 
-  /* â”€â”€â”€ Loading â”€â”€â”€ */
+  /* ─── Loading ─── */
   if (isLoading) {
     return (
       <div style={{
@@ -438,7 +438,7 @@ function Lobby() {
   const timerDisplay = timerActive ? (timeLeft || "30:00") : null;
   const bothChallengesReady = !!room.problemA && !!room.problemB;
 
-  /* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ RENDER â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+  /* ─────────────────────────────────── RENDER ─────────────────────────────────── */
   return (
     <div style={{
       minHeight: "100vh", display: "flex", flexDirection: "column",
@@ -493,14 +493,15 @@ function Lobby() {
         )}
       </AnimatePresence>
 
-      {/* â”€â”€â”€ HEADER â”€â”€â”€ */}
+      {/* ─── HEADER ─── */}
       <header style={{
         display: "flex", alignItems: "center", justifyContent: "space-between",
-        padding: "16px 32px", borderBottom: "1px solid rgba(30,30,46,0.6)",
+        padding: "16px clamp(16px, 4vw, 32px)", borderBottom: "1px solid rgba(42,24,69,0.6)",
         background: "rgba(17,17,24,0.5)", backdropFilter: "blur(16px)",
         position: "sticky", top: 0, zIndex: 40,
+        flexWrap: "wrap", gap: "12px"
       }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
           <button
             onClick={() => navigate("/dashboard")}
             style={{ display: "flex", alignItems: "center", gap: 8, color: "#a99bc2", fontSize: 12, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", fontFamily: "monospace", background: "none", border: "none", cursor: "pointer", transition: "color 0.2s" }}
@@ -537,10 +538,10 @@ function Lobby() {
         </div>
       </header>
 
-      {/* â”€â”€â”€ MAIN CONTENT â”€â”€â”€ */}
-      <main style={{ flex: 1, display: "flex", flexDirection: "column", padding: "0 32px 32px", position: "relative", zIndex: 1 }}>
+      {/* ─── MAIN CONTENT ─── */}
+      <main style={{ flex: 1, display: "flex", flexDirection: "column", padding: "0 clamp(16px, 4vw, 32px) 32px", position: "relative", zIndex: 1 }}>
 
-        {/* â•â•â•â•â•â• GIANT TIMER SECTION â•â•â•â•â•â• */}
+        {/* ══════ GIANT TIMER SECTION ══════ */}
         <section style={{
           display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
           padding: "36px 0 28px",
@@ -557,7 +558,7 @@ function Lobby() {
                 : "rgba(17,17,24,0.6)",
               border: timerActive
                 ? "2px solid rgba(212,160,83,0.3)"
-                : "2px solid rgba(30,30,46,0.5)",
+                : "2px solid rgba(42,24,69,0.5)",
               position: "relative", overflow: "hidden",
               display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
             }}
@@ -581,11 +582,8 @@ function Lobby() {
           </div>
         </section>
 
-        {/* â•â•â•â•â•â• VS MATCHUP SECTION â•â•â•â•â•â• */}
-        <section style={{
-          display: "grid", gridTemplateColumns: "1fr auto 1fr", gap: 24,
-          alignItems: "stretch", padding: "0 0 28px",
-        }}>
+        {/* ══════ VS MATCHUP SECTION ══════ */}
+        <section className="lobby-versus-layout-grid" style={{ padding: "0 0 28px" }}>
           {/* Team Alpha */}
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 4px" }}>
@@ -597,9 +595,9 @@ function Lobby() {
               </div>
               {/* Challenge status */}
               {room.problemA ? (
-                <span style={{ fontSize: 9, fontWeight: 700, color: "#5db885", textTransform: "uppercase", letterSpacing: "0.1em" }}>âœ… READY</span>
+                <span style={{ fontSize: 9, fontWeight: 700, color: "#5db885", textTransform: "uppercase", letterSpacing: "0.1em" }}>✅ READY</span>
               ) : (
-                <span style={{ fontSize: 9, fontWeight: 700, color: "#d4a053", textTransform: "uppercase", letterSpacing: "0.1em", animation: "pulse 2s ease-in-out infinite" }}>â³ FRAMING</span>
+                <span style={{ fontSize: 9, fontWeight: 700, color: "#d4a053", textTransform: "uppercase", letterSpacing: "0.1em", animation: "pulse 2s ease-in-out infinite" }}>⏳ FRAMING</span>
               )}
             </div>
             <PlayerCard
@@ -646,7 +644,7 @@ function Lobby() {
                 position: "relative",
               }}
             >
-              <div style={{ position: "absolute", inset: 3, border: "1px solid rgba(126,93,189,0.15)", borderRadius: "50%", animation: "orbFloat 6s ease-in-out infinite reverse" }} />
+              <div style={{ position: "absolute", inset: 3, border: "1px solid rgba(255,255,255,0.1)", borderRadius: "50%", animation: "orbFloat 6s ease-in-out infinite reverse" }} />
               <span style={{ fontSize: 16, fontWeight: 900, color: "#eee8f5", fontStyle: "italic", letterSpacing: "0.1em", textShadow: "0 0 10px rgba(255,255,255,0.5)" }}>VS</span>
             </div>
           </div>
@@ -661,9 +659,9 @@ function Lobby() {
                 </span>
               </div>
               {room.problemB ? (
-                <span style={{ fontSize: 9, fontWeight: 700, color: "#5db885", textTransform: "uppercase", letterSpacing: "0.1em" }}>âœ… READY</span>
+                <span style={{ fontSize: 9, fontWeight: 700, color: "#5db885", textTransform: "uppercase", letterSpacing: "0.1em" }}>✅ READY</span>
               ) : (
-                <span style={{ fontSize: 9, fontWeight: 700, color: "#d4a053", textTransform: "uppercase", letterSpacing: "0.1em", animation: "pulse 2s ease-in-out infinite" }}>â³ FRAMING</span>
+                <span style={{ fontSize: 9, fontWeight: 700, color: "#d4a053", textTransform: "uppercase", letterSpacing: "0.1em", animation: "pulse 2s ease-in-out infinite" }}>⏳ FRAMING</span>
               )}
             </div>
             <PlayerCard
@@ -699,18 +697,15 @@ function Lobby() {
           </div>
         </section>
 
-        {/* â•â•â•â•â•â• BOTTOM GRID: Room Config & Room ID / Launch â•â•â•â•â•â• */}
-        <section style={{
-          display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20,
-          marginTop: 12
-        }}>
+        {/* ══════ BOTTOM GRID: Room Config & Room ID / Launch ══════ */}
+        <section className="lobby-bottom-layout-grid">
           {/* Left: Room Config */}
           <div style={{
             background: "rgba(17,17,24,0.5)", backdropFilter: "blur(12px)",
-            border: "1px solid rgba(30,30,46,0.5)", borderRadius: 20,
+            border: "1px solid rgba(42,24,69,0.5)", borderRadius: 20,
             padding: 24, display: "flex", flexDirection: "column", gap: 16,
           }}>
-            <span style={{ fontSize: 11, fontWeight: 800, color: "#a99bc2", textTransform: "uppercase", letterSpacing: "0.12em", fontFamily: "monospace", borderBottom: "1px solid rgba(30,30,46,0.5)", paddingBottom: 10 }}>ROOM CONFIG</span>
+            <span style={{ fontSize: 11, fontWeight: 800, color: "#a99bc2", textTransform: "uppercase", letterSpacing: "0.12em", fontFamily: "monospace", borderBottom: "1px solid rgba(42,24,69,0.5)", paddingBottom: 10 }}>ROOM CONFIG</span>
 
             {[
               ["Architect", room.creatorId?.username || "Host"],
@@ -730,7 +725,7 @@ function Lobby() {
             {/* Room ID Copy */}
             <div style={{
               background: "rgba(17,17,24,0.5)", backdropFilter: "blur(12px)",
-              border: "1px solid rgba(30,30,46,0.5)", borderRadius: 20,
+              border: "1px solid rgba(42,24,69,0.5)", borderRadius: 20,
               padding: 20, display: "flex", flexDirection: "column", gap: 12,
             }}>
               <span style={{ fontSize: 11, fontWeight: 800, color: "#a99bc2", textTransform: "uppercase", letterSpacing: "0.12em", fontFamily: "monospace" }}>SHARE ROOM ID</span>
@@ -740,7 +735,7 @@ function Lobby() {
               <div style={{
                 display: "flex", alignItems: "center", gap: 10,
                 background: "rgba(5,5,8,0.9)", borderRadius: 14, padding: "6px 6px 6px 20px",
-                border: "1px solid rgba(30,30,46,0.5)",
+                border: "1px solid rgba(42,24,69,0.5)",
               }}>
                 <span style={{
                   flex: 1, fontFamily: "JetBrains Mono, monospace", fontSize: 18, fontWeight: 800,
@@ -750,7 +745,7 @@ function Lobby() {
                 <button
                   onClick={handleCopyRoomId}
                   style={{
-                    padding: "10px 20px", borderRadius: 10, border: "1px solid rgba(30,30,46,0.5)",
+                    padding: "10px 20px", borderRadius: 10, border: "1px solid rgba(42,24,69,0.5)",
                     background: "rgba(26,26,36,0.8)", color: "#eee8f5", fontSize: 11, fontWeight: 700,
                     textTransform: "uppercase", letterSpacing: "0.08em", cursor: "pointer",
                     transition: "all 0.2s",
@@ -774,7 +769,7 @@ function Lobby() {
                   onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(126,93,189,0.16)"; e.currentTarget.style.borderColor = "#7e5dbd"; }}
                   onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(126,93,189,0.08)"; e.currentTarget.style.borderColor = "rgba(126,93,189,0.3)"; }}
                 >
-                  ðŸ¤ Invite from Friends
+                  🤝 Invite from Friends
                 </button>
               )}
             </div>
@@ -797,7 +792,7 @@ function Lobby() {
                       borderTop: "1px solid rgba(255,255,255,0.15)",
                     } : {
                       background: "rgba(17,17,24,0.7)",
-                      border: "1px solid rgba(30,30,46,0.5)",
+                      border: "1px solid rgba(42,24,69,0.5)",
                       color: "#7a6b94",
                     }),
                   }}
@@ -805,13 +800,13 @@ function Lobby() {
                   onMouseLeave={(e) => e.target.style.filter = "brightness(1)"}
                 >
                   {canStart
-                    ? (bothChallengesReady ? "ðŸš€ LAUNCH BATTLE" : "â³ WAITING FOR CHALLENGES")
-                    : "â³ AWAITING OPPONENTS"}
+                    ? (bothChallengesReady ? "🚀 LAUNCH BATTLE" : "⏳ WAITING FOR CHALLENGES")
+                    : "⏳ AWAITING OPPONENTS"}
                 </button>
               ) : (
                 <div style={{
                   width: "100%", padding: "18px", borderRadius: 16,
-                  background: "rgba(17,17,24,0.5)", border: "1px solid rgba(30,30,46,0.4)",
+                  background: "rgba(17,17,24,0.5)", border: "1px solid rgba(42,24,69,0.4)",
                   textAlign: "center", fontSize: 11, fontWeight: 700, fontFamily: "monospace",
                   color: "#a99bc2", textTransform: "uppercase", letterSpacing: "0.12em",
                   display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
@@ -842,11 +837,11 @@ function Lobby() {
               }}
             >
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span style={{ fontSize: "16px", fontWeight: 800, color: "#eee8f5" }}>ðŸ¤ Invite Friends to Battle</span>
+                <span style={{ fontSize: "16px", fontWeight: 800, color: "#eee8f5" }}>🤝 Invite Friends to Battle</span>
                 <button
                   onClick={() => setShowInviteModal(false)}
                   style={{ background: "none", border: "none", color: "#7a6b94", fontSize: "18px", cursor: "pointer" }}
-                >âœ•</button>
+                >✕</button>
               </div>
 
               <div style={{ maxHeight: "300px", overflowY: "auto", display: "flex", flexDirection: "column", gap: "10px", paddingRight: "4px" }}>
@@ -878,7 +873,7 @@ function Lobby() {
                           transition: "all 0.2s"
                         }}
                       >
-                        {invitingFriend === f.username ? "Inviting..." : "âš”ï¸ Invite"}
+                        {invitingFriend === f.username ? "Inviting..." : "⚔️ Invite"}
                       </button>
                     </div>
                   ))
@@ -905,7 +900,7 @@ function Lobby() {
               }}
             >
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                <span style={{ fontSize: 24 }}>âš”ï¸</span>
+                <span style={{ fontSize: 24 }}>⚔️</span>
                 <h3 style={{ fontSize: "18px", fontWeight: 800, color: "#eee8f5", margin: 0 }}>Select Coding Language</h3>
                 <p style={{ fontSize: "12px", color: "#7a6b94", margin: 0, lineHeight: 1.5 }}>
                   Choose your target language for this battle. Your opponent will see this to frame your challenge appropriately.

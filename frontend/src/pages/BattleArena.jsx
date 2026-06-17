@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useSocket } from "../context/SocketContext";
@@ -48,6 +48,7 @@ function BattleArena() {
   const [userRating, setUserRating] = useState(0);
   const [hasRated, setHasRated] = useState(false);
   const [showAiHelper, setShowAiHelper] = useState(false);
+  const [mobileTab, setMobileTab] = useState("description");
 
   useEffect(() => {
     const fetchRoom = async () => {
@@ -285,7 +286,7 @@ function BattleArena() {
 
   const isCompetitor = room.players.some((p) => p && (p._id || p) === user._id);
 
-  // Non-players cannot watch â€” redirect immediately
+  // Non-players cannot watch — redirect immediately
   if (!isCompetitor) {
     navigate("/dashboard");
     return null;
@@ -305,7 +306,7 @@ function BattleArena() {
                 Match Concluded
               </span>
               <div className="text-7xl mt-1">
-                {isWinner ? "ðŸ†" : "ðŸ’€"}
+                {isWinner ? "🏆" : "💀"}
               </div>
               <h2 className={`text-3xl font-extrabold tracking-tight ${isWinner ? "text-success" : "text-error"}`}>
                 {isWinner ? "Victory!" : "Defeated"}
@@ -338,7 +339,7 @@ function BattleArena() {
                 </span>
                 {hasRated ? (
                   <div className="text-xs text-success font-medium">
-                    Thank you! Your rating of {userRating} â­ has been registered.
+                    Thank you! Your rating of {userRating} ⭐ has been registered.
                   </div>
                 ) : (
                   <div className="flex gap-2.5">
@@ -349,7 +350,7 @@ function BattleArena() {
                         className="text-2xl hover:scale-125 transition-transform duration-150 cursor-pointer"
                         type="button"
                       >
-                        â˜†
+                        ☆
                       </button>
                     ))}
                   </div>
@@ -390,8 +391,24 @@ function BattleArena() {
         </div>
       </header>
 
-      <main className="flex-1 flex grid grid-cols-1 md:grid-cols-2 overflow-hidden h-[calc(100vh-68px)]">
-        <section className="flex flex-col border-r border-border-default overflow-y-auto p-6 gap-6">
+      {/* Mobile Tab Switcher */}
+      <div className="mobile-tab-switch-container">
+        <button
+          className={`mobile-tab-button ${mobileTab === "description" ? "active" : ""}`}
+          onClick={() => setMobileTab("description")}
+        >
+          Description
+        </button>
+        <button
+          className={`mobile-tab-button ${mobileTab === "workspace" ? "active" : ""}`}
+          onClick={() => setMobileTab("workspace")}
+        >
+          Workspace
+        </button>
+      </div>
+
+      <main className="flex-1 grid grid-cols-1 lg:grid-cols-2 overflow-hidden h-[calc(100vh-68px)] mobile-responsive-height">
+        <section className={`flex flex-col border-r border-border-default overflow-y-auto p-6 gap-6 ${mobileTab === "description" ? "mobile-show-pane" : "mobile-hide-pane"}`}>
           <div className="flex flex-col gap-2">
             <div className="flex items-center gap-3">
               <h1 className="text-2xl font-bold tracking-tight">
@@ -511,7 +528,7 @@ function BattleArena() {
           </div>
         </section>
 
-        <section className="flex flex-col h-full overflow-hidden">
+        <section className={`flex flex-col h-full overflow-hidden ${mobileTab === "workspace" ? "mobile-show-pane" : "mobile-hide-pane"}`}>
           {isCompetitor ? (
             <>
               <div className="flex items-center justify-between px-4 py-2 border-b border-border-default bg-bg-surface/50">
@@ -530,7 +547,7 @@ function BattleArena() {
                   </select>
                   {teammateTyping && (
                     <span className="text-xs text-success animate-pulse font-medium">
-                      âš¡ Teammate is typing...
+                      ⚡ Teammate is typing...
                     </span>
                   )}
                 </div>
@@ -605,7 +622,7 @@ function BattleArena() {
                             <span style={{ width: 10, height: 10, border: "2px solid rgba(255,255,255,0.3)", borderTopColor: "#fff", borderRadius: "50%", display: "inline-block", animation: "spin 0.8s linear infinite" }} />
                             Submitting...
                           </span>
-                        ) : "ðŸš€ Submit Answer"}
+                        ) : "🚀 Submit Answer"}
                       </Button>
                     </div>
                   )}
