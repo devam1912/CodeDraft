@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+﻿import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { matchAPI } from "../services/api";
 import toast from "react-hot-toast";
@@ -7,8 +7,8 @@ const PAGE = {
   minHeight: "100vh",
   display: "flex",
   flexDirection: "column",
-  backgroundColor: "#0a0a0f",
-  color: "#f8fafc",
+  backgroundColor: "#120b22",
+  color: "#eee8f5",
   fontFamily: "Inter, sans-serif",
 };
 
@@ -17,9 +17,9 @@ const NAV = {
   alignItems: "center",
   justifyContent: "space-between",
   padding: "16px 32px",
-  borderBottom: "1px solid #1e1e2e",
+  borderBottom: "1px solid #2a1845",
   backdropFilter: "blur(12px)",
-  backgroundColor: "rgba(10,10,15,0.85)",
+  backgroundColor: "rgba(13,8,24,0.85)",
   position: "sticky",
   top: 0,
   zIndex: 50,
@@ -28,7 +28,7 @@ const NAV = {
 const LOGO = {
   fontSize: "20px",
   fontWeight: 800,
-  background: "linear-gradient(135deg,#6366f1,#22d3ee)",
+  background: "linear-gradient(135deg,#7e5dbd,#d4a053)",
   WebkitBackgroundClip: "text",
   WebkitTextFillColor: "transparent",
 };
@@ -45,8 +45,8 @@ const MAIN = {
 };
 
 const CARD = {
-  backgroundColor: "#111118",
-  border: "1px solid #1e1e2e",
+  backgroundColor: "#1a1030",
+  border: "1px solid #2a1845",
   borderRadius: "12px",
   padding: "24px",
 };
@@ -62,13 +62,13 @@ const PLAYER_CARD = {
 const PLAYER_NAME = {
   fontSize: "16px",
   fontWeight: 700,
-  color: "#f8fafc",
+  color: "#eee8f5",
 };
 
 const TRACK = {
   height: "8px",
   borderRadius: "4px",
-  backgroundColor: "#1e1e2e",
+  backgroundColor: "#2a1845",
   overflow: "hidden",
   marginTop: "4px",
 };
@@ -78,8 +78,8 @@ const FILL = (pct, isWinner) => ({
   borderRadius: "4px",
   width: `${pct}%`,
   background: isWinner
-    ? "linear-gradient(90deg,#10b981,#22d3ee)"
-    : "linear-gradient(90deg,#6366f1,#22d3ee)",
+    ? "linear-gradient(90deg,#5db885,#d4a053)"
+    : "linear-gradient(90deg,#7e5dbd,#d4a053)",
   transition: "width 0.4s ease",
 });
 
@@ -101,23 +101,23 @@ const EVENT_ITEM = (type) => ({
   fontFamily: "JetBrains Mono, monospace",
   backgroundColor:
     type === "match_finished"
-      ? "rgba(16,185,129,0.12)"
+      ? "rgba(93,184,133,0.12)"
       : type === "submission_attempt"
-      ? "rgba(99,102,241,0.12)"
+      ? "rgba(126,93,189,0.12)"
       : "rgba(30,30,46,0.6)",
   color:
     type === "match_finished"
-      ? "#10b981"
+      ? "#5db885"
       : type === "submission_attempt"
-      ? "#a5b4fc"
-      : "#94a3b8",
+      ? "#b49fdb"
+      : "#a99bc2",
   border: "1px solid transparent",
   borderColor:
     type === "match_finished"
-      ? "rgba(16,185,129,0.3)"
+      ? "rgba(93,184,133,0.3)"
       : type === "submission_attempt"
-      ? "rgba(99,102,241,0.3)"
-      : "#1e1e2e",
+      ? "rgba(126,93,189,0.3)"
+      : "#2a1845",
 });
 
 const SCRUBBER_WRAP = {
@@ -135,9 +135,9 @@ const SPEED_BTN = (active) => ({
   fontFamily: "JetBrains Mono, monospace",
   cursor: "pointer",
   border: "1px solid",
-  borderColor: active ? "#6366f1" : "#1e1e2e",
-  backgroundColor: active ? "rgba(99,102,241,0.15)" : "transparent",
-  color: active ? "#a5b4fc" : "#64748b",
+  borderColor: active ? "#7e5dbd" : "#2a1845",
+  backgroundColor: active ? "rgba(126,93,189,0.15)" : "transparent",
+  color: active ? "#b49fdb" : "#7a6b94",
   transition: "all 0.15s",
 });
 
@@ -148,10 +148,10 @@ const CTRL_BTN = {
   width: "36px",
   height: "36px",
   borderRadius: "8px",
-  border: "1px solid #1e1e2e",
-  backgroundColor: "#111118",
+  border: "1px solid #2a1845",
+  backgroundColor: "#1a1030",
   cursor: "pointer",
-  color: "#f8fafc",
+  color: "#eee8f5",
   transition: "background 0.15s",
 };
 
@@ -167,17 +167,17 @@ function describeEvent(event, players) {
 
   switch (event.eventType) {
     case "match_started":
-      return "⚔️ Battle started";
+      return "âš”ï¸ Battle started";
     case "progress_updated":
-      return `📊 ${name} passed ${event.payload?.passedCount}/${event.payload?.totalCount}`;
+      return `ðŸ“Š ${name} passed ${event.payload?.passedCount}/${event.payload?.totalCount}`;
     case "submission_attempt":
       return event.payload?.passed
-        ? `✅ ${name} solved it!`
-        : `❌ ${name} failed submission`;
+        ? `âœ… ${name} solved it!`
+        : `âŒ ${name} failed submission`;
     case "line_count_updated":
-      return `⌨️ ${name} at ${event.payload?.lineCount} lines`;
+      return `âŒ¨ï¸ ${name} at ${event.payload?.lineCount} lines`;
     case "match_finished":
-      return "🏆 Match finished";
+      return "ðŸ† Match finished";
     default:
       return `${event.eventType}`;
   }
@@ -323,8 +323,8 @@ function MatchReplay() {
   if (isLoading) {
     return (
       <div style={{ ...PAGE, alignItems: "center", justifyContent: "center", gap: "12px" }}>
-        <div style={{ fontSize: "24px" }}>⏳</div>
-        <div style={{ color: "#94a3b8", fontFamily: "JetBrains Mono, monospace", fontSize: "13px" }}>
+        <div style={{ fontSize: "24px" }}>â³</div>
+        <div style={{ color: "#a99bc2", fontFamily: "JetBrains Mono, monospace", fontSize: "13px" }}>
           Loading match replay...
         </div>
       </div>
@@ -351,7 +351,7 @@ function MatchReplay() {
             style={{
               background: "none",
               border: "none",
-              color: "#94a3b8",
+              color: "#a99bc2",
               cursor: "pointer",
               fontSize: "13px",
               display: "flex",
@@ -359,25 +359,25 @@ function MatchReplay() {
               gap: "6px",
             }}
           >
-            ← Dashboard
+            â† Dashboard
           </button>
-          <span style={{ color: "#1e1e2e" }}>|</span>
+          <span style={{ color: "#2a1845" }}>|</span>
           <span style={LOGO}>Match Replay</span>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: "16px", fontSize: "13px", color: "#64748b" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "16px", fontSize: "13px", color: "#7a6b94" }}>
           {problem?.title && (
-            <span style={{ color: "#94a3b8" }}>{problem.title}</span>
+            <span style={{ color: "#a99bc2" }}>{problem.title}</span>
           )}
           {durationSec !== null && (
             <span
               style={{
                 fontFamily: "JetBrains Mono, monospace",
-                backgroundColor: "#1e1e2e",
+                backgroundColor: "#2a1845",
                 padding: "2px 8px",
                 borderRadius: "6px",
               }}
             >
-              ⏱ {formatSec(durationSec)}
+              â± {formatSec(durationSec)}
             </span>
           )}
         </div>
@@ -402,21 +402,21 @@ function MatchReplay() {
                           width: "32px",
                           height: "32px",
                           borderRadius: "50%",
-                          backgroundColor: "rgba(99,102,241,0.15)",
-                          border: "1px solid rgba(99,102,241,0.4)",
+                          backgroundColor: "rgba(126,93,189,0.15)",
+                          border: "1px solid rgba(126,93,189,0.4)",
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
                           fontSize: "11px",
                           fontWeight: 700,
-                          color: "#a5b4fc",
+                          color: "#b49fdb",
                         }}
                       >
                         {player.avatar || player.username?.slice(0, 2).toUpperCase()}
                       </div>
                       <div>
                         <div style={PLAYER_NAME}>{player.username}</div>
-                        <div style={{ fontSize: "11px", color: "#64748b" }}>ELO {player.eloRating}</div>
+                        <div style={{ fontSize: "11px", color: "#7a6b94" }}>ELO {player.eloRating}</div>
                       </div>
                     </div>
                     <div style={{ textAlign: "right" }}>
@@ -425,10 +425,10 @@ function MatchReplay() {
                           style={{
                             fontSize: "10px",
                             fontWeight: 700,
-                            color: "#10b981",
+                            color: "#5db885",
                             textTransform: "uppercase",
                             letterSpacing: "0.08em",
-                            backgroundColor: "rgba(16,185,129,0.1)",
+                            backgroundColor: "rgba(93,184,133,0.1)",
                             padding: "2px 8px",
                             borderRadius: "4px",
                           }}
@@ -442,7 +442,7 @@ function MatchReplay() {
                             fontSize: "13px",
                             fontWeight: 700,
                             fontFamily: "JetBrains Mono, monospace",
-                            color: eloDelta >= 0 ? "#10b981" : "#ef4444",
+                            color: eloDelta >= 0 ? "#5db885" : "#c75c4a",
                             marginTop: "4px",
                           }}
                         >
@@ -458,7 +458,7 @@ function MatchReplay() {
                         display: "flex",
                         justifyContent: "space-between",
                         fontSize: "12px",
-                        color: "#64748b",
+                        color: "#7a6b94",
                         marginBottom: "4px",
                         fontFamily: "JetBrains Mono, monospace",
                       }}
@@ -476,7 +476,7 @@ function MatchReplay() {
                   <div
                     style={{
                       fontSize: "11px",
-                      color: "#64748b",
+                      color: "#7a6b94",
                       fontFamily: "JetBrains Mono, monospace",
                     }}
                   >
@@ -492,17 +492,17 @@ function MatchReplay() {
               style={{
                 fontSize: "11px",
                 fontWeight: 700,
-                color: "#64748b",
+                color: "#7a6b94",
                 textTransform: "uppercase",
                 letterSpacing: "0.08em",
                 paddingBottom: "8px",
-                borderBottom: "1px solid #1e1e2e",
+                borderBottom: "1px solid #2a1845",
               }}
             >
               Event Log
             </div>
             {visibleEvents.length === 0 && (
-              <div style={{ fontSize: "12px", color: "#64748b", textAlign: "center", padding: "16px 0" }}>
+              <div style={{ fontSize: "12px", color: "#7a6b94", textAlign: "center", padding: "16px 0" }}>
                 Press play to start replay
               </div>
             )}
@@ -522,13 +522,13 @@ function MatchReplay() {
                 style={CTRL_BTN}
                 title="Restart"
               >
-                ⏮
+                â®
               </button>
               <button
                 onClick={handlePlayPause}
-                style={{ ...CTRL_BTN, backgroundColor: isPlaying ? "rgba(99,102,241,0.2)" : "#111118", width: "44px", height: "44px", fontSize: "16px" }}
+                style={{ ...CTRL_BTN, backgroundColor: isPlaying ? "rgba(126,93,189,0.2)" : "#1a1030", width: "44px", height: "44px", fontSize: "16px" }}
               >
-                {isPlaying ? "⏸" : "▶"}
+                {isPlaying ? "â¸" : "â–¶"}
               </button>
             </div>
 
@@ -536,14 +536,14 @@ function MatchReplay() {
               style={{
                 fontSize: "12px",
                 fontFamily: "JetBrains Mono, monospace",
-                color: "#64748b",
+                color: "#7a6b94",
               }}
             >
               Event {Math.min(currentIndex + 1, totalEvents)} / {totalEvents}
             </div>
 
             <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-              <span style={{ fontSize: "11px", color: "#64748b", marginRight: "4px" }}>Speed</span>
+              <span style={{ fontSize: "11px", color: "#7a6b94", marginRight: "4px" }}>Speed</span>
               {[1, 2, 4].map((s) => (
                 <button
                   key={s}
@@ -564,7 +564,7 @@ function MatchReplay() {
             onChange={handleScrub}
             style={{
               width: "100%",
-              accentColor: "#6366f1",
+              accentColor: "#7e5dbd",
               cursor: "pointer",
               height: "6px",
             }}

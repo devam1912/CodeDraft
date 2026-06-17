@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+﻿import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import ExampleRow from "../components/problem-editor/ExampleRow";
 import TestCaseRow from "../components/problem-editor/TestCaseRow";
@@ -90,7 +90,7 @@ int main() {
 }`,
 };
 
-/* ───── tiny icon components ───── */
+/* â”€â”€â”€â”€â”€ tiny icon components â”€â”€â”€â”€â”€ */
 const IconChevronLeft = () => (
   <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
@@ -103,14 +103,14 @@ const IconPlus = () => (
   </svg>
 );
 
-/* ───── step progress indicator ───── */
+/* â”€â”€â”€â”€â”€ step progress indicator â”€â”€â”€â”€â”€ */
 function StepIndicator({ step, label, active }) {
   return (
     <div className="flex items-center gap-2">
       <span
         className={`w-6 h-6 flex items-center justify-center rounded-full text-[10px] font-bold font-mono transition-all duration-300 ${
           active
-            ? "bg-primary text-white shadow-[0_0_12px_rgba(99,102,241,0.4)]"
+            ? "bg-primary text-white shadow-[0_0_12px_rgba(126,93,189,0.4)]"
             : "bg-bg-elevated text-text-muted border border-border-default"
         }`}
       >
@@ -127,7 +127,7 @@ function StepIndicator({ step, label, active }) {
   );
 }
 
-/* ───── section divider with title ───── */
+/* â”€â”€â”€â”€â”€ section divider with title â”€â”€â”€â”€â”€ */
 function SectionHeader({ icon, title, subtitle, children }) {
   return (
     <div className="flex flex-col gap-1">
@@ -263,7 +263,7 @@ int main() {
     toast.success("Pre-filled Even or Odd (C++) sample question!");
   };
 
-  /* ─── Fetch Room Details on Mount ─── */
+  /* â”€â”€â”€ Fetch Room Details on Mount â”€â”€â”€ */
   useEffect(() => {
     const fetchRoom = async () => {
       try {
@@ -276,7 +276,7 @@ int main() {
     fetchRoom();
   }, [roomId]);
 
-  /* ─── Populate Form from Existing Problem ─── */
+  /* â”€â”€â”€ Populate Form from Existing Problem â”€â”€â”€ */
   useEffect(() => {
     if (!room || !room.problem || hasLoadedProblem.current) return;
     const prob = room.problem;
@@ -299,7 +299,7 @@ int main() {
     hasLoadedProblem.current = true;
   }, [room]);
 
-  /* ─── Socket Room Listeners & Countdown/Ready redirection ─── */
+  /* â”€â”€â”€ Socket Room Listeners & Countdown/Ready redirection â”€â”€â”€ */
   useEffect(() => {
     if (!socket) return;
 
@@ -354,7 +354,7 @@ int main() {
     };
   }, [socket, roomId, navigate]);
 
-  /* ─── Opponent Language Matching Popup ─── */
+  /* â”€â”€â”€ Opponent Language Matching Popup â”€â”€â”€ */
   useEffect(() => {
     if (!room || !user) return;
     const opponent = room.players?.find((p) => {
@@ -368,8 +368,8 @@ int main() {
     if (opponentLang && opponentLang !== activeLanguage && opponentLang !== lastWarnedLang) {
       toast((t) => (
         <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-          <div style={{ fontWeight: 700, color: "#f8fafc" }}>✨ Language Match Recommendation</div>
-          <div style={{ fontSize: "12px", color: "#94a3b8", lineHeight: 1.4 }}>
+          <div style={{ fontWeight: 700, color: "#eee8f5" }}>âœ¨ Language Match Recommendation</div>
+          <div style={{ fontSize: "12px", color: "#a99bc2", lineHeight: 1.4 }}>
             Please use our AI helper to convert your code to <strong>{opponent.username || "B"}'s</strong> selected language (<strong>{opponentLang.toUpperCase()}</strong>).
           </div>
           <div style={{ display: "flex", gap: "8px", marginTop: "4px" }}>
@@ -379,7 +379,7 @@ int main() {
                 setShowAiHelper(true);
               }}
               style={{
-                background: "linear-gradient(135deg,#6366f1,#818cf8)",
+                background: "linear-gradient(135deg,#7e5dbd,#9478cc)",
                 color: "#fff",
                 border: "none",
                 borderRadius: "6px",
@@ -395,8 +395,8 @@ int main() {
               onClick={() => toast.dismiss(t.id)}
               style={{
                 background: "transparent",
-                border: "1px solid #1e1e2e",
-                color: "#94a3b8",
+                border: "1px solid #2a1845",
+                color: "#a99bc2",
                 borderRadius: "6px",
                 padding: "6px 12px",
                 fontSize: "11px",
@@ -413,7 +413,7 @@ int main() {
     }
   }, [room, user, activeLanguage, lastWarnedLang]);
 
-  /* ─── Timer countdown calculation ─── */
+  /* â”€â”€â”€ Timer countdown calculation â”€â”€â”€ */
   useEffect(() => {
     if (!room || !room.setupExpiresAt) return;
 
@@ -602,9 +602,9 @@ int main() {
 
   const allPassed = validationResults.length > 0 && validationResults.every((r) => r.passed);
 
-  /* ────────────────────────────────────────────────────────────── */
+  /* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
   /*  RENDER                                                      */
-  /* ────────────────────────────────────────────────────────────── */
+  /* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
   return (
     <div className="min-height-100vh flex flex-col bg-bg-primary font-sans text-text-primary">
       <AnimatePresence>
@@ -630,7 +630,7 @@ int main() {
                   fontSize: 12,
                   fontWeight: 800,
                   letterSpacing: "0.3em",
-                  color: "#6366f1",
+                  color: "#7e5dbd",
                   textTransform: "uppercase",
                   animation: "pulse 1.5s ease-in-out infinite",
                 }}
@@ -647,12 +647,12 @@ int main() {
                   width: 160,
                   height: 160,
                   borderRadius: "50%",
-                  border: "3px solid #6366f1",
+                  border: "3px solid #7e5dbd",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
                   background: "rgba(17,17,24,0.9)",
-                  boxShadow: "0 0 60px rgba(99,102,241,0.4)",
+                  boxShadow: "0 0 60px rgba(126,93,189,0.4)",
                 }}
               >
                 <span
@@ -660,8 +660,8 @@ int main() {
                     fontSize: 72,
                     fontWeight: 900,
                     fontFamily: "JetBrains Mono, monospace",
-                    color: "#f8fafc",
-                    textShadow: "0 0 20px rgba(34,211,238,0.5)",
+                    color: "#eee8f5",
+                    textShadow: "0 0 20px rgba(212,160,83,0.5)",
                   }}
                 >
                   {countdown}
@@ -670,7 +670,7 @@ int main() {
               <span
                 style={{
                   fontSize: 10,
-                  color: "#64748b",
+                  color: "#7a6b94",
                   textTransform: "uppercase",
                   letterSpacing: "0.2em",
                   fontFamily: "monospace",
@@ -683,7 +683,7 @@ int main() {
         )}
       </AnimatePresence>
 
-      {/* ─── HEADER ─── */}
+      {/* â”€â”€â”€ HEADER â”€â”€â”€ */}
       <header className="border-b border-border-default bg-bg-surface/80 backdrop-blur-xl px-8 py-3.5 flex items-center justify-between sticky top-0 z-50">
         <div className="flex items-center gap-5">
           <button
@@ -714,17 +714,17 @@ int main() {
         <div className="flex items-center gap-3 pr-2">
           {room && room.setupExpiresAt ? (
             isLowTime ? (
-              <div className="px-4 py-2 rounded-full bg-gradient-to-r from-red-500/20 to-red-600/20 border border-red-500/40 text-[11px] font-bold text-red-500 font-mono tracking-wide uppercase flex items-center gap-2 shadow-[0_0_15px_rgba(239,68,68,0.25)] animate-[pulse_1s_infinite]">
+              <div className="px-4 py-2 rounded-full bg-gradient-to-r from-red-500/20 to-red-600/20 border border-red-500/40 text-[11px] font-bold text-red-500 font-mono tracking-wide uppercase flex items-center gap-2 shadow-[0_0_15px_rgba(199,92,74,0.25)] animate-[pulse_1s_infinite]">
                 <span className="relative flex h-2 w-2">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
                 </span>
-                ⏳ {timeLeft || "30:00"} Left
+                â³ {timeLeft || "30:00"} Left
               </div>
             ) : (
-              <div className="px-4 py-2 rounded-full bg-gradient-to-r from-amber-500/15 to-amber-600/15 border border-amber-500/30 text-[11px] font-bold text-amber-500 font-mono tracking-wide uppercase flex items-center gap-2 shadow-[0_0_15px_rgba(245,158,11,0.15)] animate-pulse">
+              <div className="px-4 py-2 rounded-full bg-gradient-to-r from-amber-500/15 to-amber-600/15 border border-amber-500/30 text-[11px] font-bold text-amber-500 font-mono tracking-wide uppercase flex items-center gap-2 shadow-[0_0_15px_rgba(212,160,83,0.15)] animate-pulse">
                 <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-                ⏳ {timeLeft || "30:00"} Left
+                â³ {timeLeft || "30:00"} Left
               </div>
             )
           ) : (
@@ -736,10 +736,10 @@ int main() {
         </div>
       </header>
 
-      {/* ─── MAIN 2-COLUMN LAYOUT ─── */}
+      {/* â”€â”€â”€ MAIN 2-COLUMN LAYOUT â”€â”€â”€ */}
       <main className="flex-1 grid grid-cols-1 lg:grid-cols-[1fr_1fr] overflow-hidden h-[calc(100vh-57px)]">
 
-        {/* ═══════ LEFT PANEL — FORM ═══════ */}
+        {/* â•â•â•â•â•â•â• LEFT PANEL â€” FORM â•â•â•â•â•â•â• */}
         <section className="overflow-y-auto border-r border-border-default pe-scrollbar">
           <div className="p-8 flex flex-col gap-8 max-w-[680px]">
 
@@ -756,15 +756,15 @@ int main() {
               <button
                 type="button"
                 onClick={handlePrefillSample}
-                className="px-4 py-2.5 rounded-xl text-[12px] font-bold uppercase tracking-wider bg-gradient-to-r from-primary/25 to-secondary/25 hover:from-primary/35 hover:to-secondary/35 text-text-primary border border-primary/30 hover:border-primary/50 transition-all duration-200 flex items-center gap-1.5 shadow-[0_0_15px_rgba(99,102,241,0.1)] active:scale-[0.98] cursor-pointer"
+                className="px-4 py-2.5 rounded-xl text-[12px] font-bold uppercase tracking-wider bg-gradient-to-r from-primary/25 to-secondary/25 hover:from-primary/35 hover:to-secondary/35 text-text-primary border border-primary/30 hover:border-primary/50 transition-all duration-200 flex items-center gap-1.5 shadow-[0_0_15px_rgba(126,93,189,0.1)] active:scale-[0.98] cursor-pointer"
               >
-                ✨ Pre-fill C++ Sample
+                âœ¨ Pre-fill C++ Sample
               </button>
             </div>
 
-            {/* ── Challenge Meta ── */}
+            {/* â”€â”€ Challenge Meta â”€â”€ */}
             <div className="flex flex-col gap-5">
-              <SectionHeader icon="📝" title="Challenge Details" />
+              <SectionHeader icon="ðŸ“" title="Challenge Details" />
 
               <div className="flex flex-col gap-1.5">
                 <label className="text-[11px] font-semibold uppercase tracking-[0.1em] text-text-muted">
@@ -813,7 +813,7 @@ int main() {
                   </label>
                   <div className="flex flex-col gap-2">
                     <div className="w-full bg-bg-surface border border-border-default rounded-xl px-3 py-3 text-sm text-text-primary font-semibold flex items-center gap-2">
-                      <span className="text-primary text-base">⏱</span>
+                      <span className="text-primary text-base">â±</span>
                       <span>
                         {timeLimit + (extraFiveMin ? 5 : 0)} mins
                       </span>
@@ -833,7 +833,7 @@ int main() {
                       <span className={`w-4 h-4 rounded flex items-center justify-center text-[10px] border ${
                         extraFiveMin ? "bg-secondary border-secondary text-white" : "border-border-default"
                       }`}>
-                        {extraFiveMin ? "✓" : ""}
+                        {extraFiveMin ? "âœ“" : ""}
                       </span>
                       +5 minutes extra
                     </button>
@@ -863,7 +863,7 @@ int main() {
                         onClick={() => handleLanguageToggle(key)}
                         className={`group/lang relative flex items-center gap-2 px-4 py-2.5 rounded-xl text-[12px] font-bold tracking-wide border transition-all duration-200 ${
                           isActive
-                            ? "bg-primary/15 border-primary/50 text-primary shadow-[0_0_16px_rgba(99,102,241,0.12)]"
+                            ? "bg-primary/15 border-primary/50 text-primary shadow-[0_0_16px_rgba(126,93,189,0.12)]"
                             : "bg-bg-surface border-border-default text-text-muted hover:border-border-hover hover:text-text-secondary"
                         }`}
                       >
@@ -888,10 +888,10 @@ int main() {
             {/* Divider */}
             <div className="h-px bg-gradient-to-r from-transparent via-border-default to-transparent" />
 
-            {/* ── Problem Statement ── */}
+            {/* â”€â”€ Problem Statement â”€â”€ */}
             <div className="flex flex-col gap-3">
               <SectionHeader
-                icon="📄"
+                icon="ðŸ“„"
                 title="Problem Statement"
                 subtitle="Describe the problem, constraints, and input/output formats. Markdown is supported."
               />
@@ -907,10 +907,10 @@ int main() {
             {/* Divider */}
             <div className="h-px bg-gradient-to-r from-transparent via-border-default to-transparent" />
 
-            {/* ── Visible Examples ── */}
+            {/* â”€â”€ Visible Examples â”€â”€ */}
             <div className="flex flex-col gap-4">
               <SectionHeader
-                icon="💡"
+                icon="ðŸ’¡"
                 title="Visible Example Cases"
                 subtitle="These examples are shown to opponents during the battle."
               />
@@ -928,7 +928,7 @@ int main() {
                 ))}
               </div>
 
-              {/* Add button — dashed, full-width, at bottom */}
+              {/* Add button â€” dashed, full-width, at bottom */}
               <button
                 type="button"
                 onClick={handleAddExample}
@@ -944,10 +944,10 @@ int main() {
             {/* Divider */}
             <div className="h-px bg-gradient-to-r from-transparent via-border-default to-transparent" />
 
-            {/* ── Hidden Test Cases ── */}
+            {/* â”€â”€ Hidden Test Cases â”€â”€ */}
             <div className="flex flex-col gap-4">
               <SectionHeader
-                icon="🔒"
+                icon="ðŸ”’"
                 title="Hidden Test Cases"
                 subtitle="Opponents run code against these. Minimum 4 required."
               >
@@ -969,7 +969,7 @@ int main() {
                 ))}
               </div>
 
-              {/* Add button — dashed, full-width, at bottom */}
+              {/* Add button â€” dashed, full-width, at bottom */}
               <button
                 type="button"
                 onClick={handleAddTestCase}
@@ -985,11 +985,11 @@ int main() {
             {/* Divider */}
             <div className="h-px bg-gradient-to-r from-transparent via-border-default to-transparent" />
 
-            {/* ── Reference Solution ── */}
+            {/* â”€â”€ Reference Solution â”€â”€ */}
             <div className="flex flex-col gap-4">
               <div className="flex justify-between items-start">
                 <SectionHeader
-                  icon="🧪"
+                  icon="ðŸ§ª"
                   title="Reference Solution Validator"
                   subtitle="Write code that passes 100% of your hidden test cases."
                 />
@@ -1001,7 +1001,7 @@ int main() {
                       onClick={() => setActiveLanguage(lang)}
                       className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all duration-200 ${
                         activeLanguage === lang
-                          ? "bg-secondary text-bg-primary shadow-[0_0_12px_rgba(34,211,238,0.2)]"
+                          ? "bg-secondary text-bg-primary shadow-[0_0_12px_rgba(212,160,83,0.2)]"
                           : "bg-bg-surface border border-border-default text-text-muted hover:border-border-hover hover:text-text-secondary"
                       }`}
                     >
@@ -1027,7 +1027,7 @@ int main() {
                   disabled={isGeneratingSolution || isValidating}
                   className={`py-3.5 rounded-xl text-[12px] font-bold uppercase tracking-wider transition-all duration-200 flex items-center justify-center gap-2 ${
                     !isGeneratingSolution && !isValidating
-                      ? "bg-gradient-to-r from-primary to-[#818cf8] text-white hover:brightness-110 active:scale-[0.99] cursor-pointer shadow-[0_0_20px_rgba(99,102,241,0.15)]"
+                      ? "bg-gradient-to-r from-primary to-[#9478cc] text-white hover:brightness-110 active:scale-[0.99] cursor-pointer shadow-[0_0_20px_rgba(126,93,189,0.15)]"
                       : "bg-bg-surface border border-border-default text-text-muted cursor-not-allowed"
                   }`}
                 >
@@ -1038,7 +1038,7 @@ int main() {
                     </>
                   ) : (
                     <>
-                      ✨ AI Generate Solution
+                      âœ¨ AI Generate Solution
                     </>
                   )}
                 </button>
@@ -1049,7 +1049,7 @@ int main() {
                   disabled={isValidating || isGeneratingSolution}
                   className={`py-3.5 rounded-xl text-[12px] font-bold uppercase tracking-wider transition-all duration-200 flex items-center justify-center gap-2 ${
                     !isValidating && !isGeneratingSolution
-                      ? "bg-bg-surface border border-primary text-primary hover:bg-primary hover:text-white active:scale-[0.99] cursor-pointer shadow-[0_0_20px_rgba(99,102,241,0.08)]"
+                      ? "bg-bg-surface border border-primary text-primary hover:bg-primary hover:text-white active:scale-[0.99] cursor-pointer shadow-[0_0_20px_rgba(126,93,189,0.08)]"
                       : "bg-bg-surface border border-border-default text-text-muted cursor-not-allowed"
                   }`}
                 >
@@ -1084,8 +1084,8 @@ int main() {
                       }`}
                     >
                       {allPassed
-                        ? `✓ ${validationResults.length}/${validationResults.length} Passed`
-                        : `✗ ${validationResults.filter(r => !r.passed).length} Failed`}
+                        ? `âœ“ ${validationResults.length}/${validationResults.length} Passed`
+                        : `âœ— ${validationResults.filter(r => !r.passed).length} Failed`}
                     </span>
                   </div>
 
@@ -1104,7 +1104,7 @@ int main() {
                             Case #{idx + 1}
                           </span>
                           <span className={`text-[11px] font-bold ${res.passed ? "text-success" : "text-error"}`}>
-                            {res.passed ? "✓ PASS" : "✗ FAIL"}
+                            {res.passed ? "âœ“ PASS" : "âœ— FAIL"}
                           </span>
                         </div>
                         {res.error ? (
@@ -1128,7 +1128,7 @@ int main() {
                               </div>
                             </div>
                             <div className="text-[10px] text-text-muted text-right font-sans">
-                              ⏱ {res.executionTime}ms
+                              â± {res.executionTime}ms
                             </div>
                           </>
                         )}
@@ -1142,7 +1142,7 @@ int main() {
             {/* Divider */}
             <div className="h-px bg-gradient-to-r from-transparent via-border-default to-transparent" />
 
-            {/* ── Submit ── */}
+            {/* â”€â”€ Submit â”€â”€ */}
             <div className="flex flex-col gap-4 pb-8">
               {!isFormValid && (
                 <div className="p-4 bg-error/8 border border-error/30 rounded-xl flex flex-col gap-2.5 animate-fade-in">
@@ -1155,7 +1155,7 @@ int main() {
                   <ul className="list-none flex flex-col gap-1.5 text-[12px] text-error/80">
                     {validationErrors.map((err, idx) => (
                       <li key={idx} className="flex items-start gap-2">
-                        <span className="text-error/50 mt-0.5">•</span>
+                        <span className="text-error/50 mt-0.5">â€¢</span>
                         {err}
                       </li>
                     ))}
@@ -1178,7 +1178,7 @@ int main() {
                 disabled={!isFormValid || !isValidated || !allPassed || isSubmitting}
                 className={`w-full py-4 rounded-xl text-[13px] font-bold tracking-wide uppercase transition-all duration-200 flex items-center justify-center gap-2 ${
                   isFormValid && isValidated && allPassed && !isSubmitting
-                    ? "bg-gradient-to-r from-primary to-[#818cf8] text-white hover:shadow-[0_0_30px_rgba(99,102,241,0.3)] active:scale-[0.99] cursor-pointer"
+                    ? "bg-gradient-to-r from-primary to-[#9478cc] text-white hover:shadow-[0_0_30px_rgba(126,93,189,0.3)] active:scale-[0.99] cursor-pointer"
                     : "bg-bg-surface border border-border-default text-text-muted cursor-not-allowed"
                 }`}
               >
@@ -1201,7 +1201,7 @@ int main() {
           </div>
         </section>
 
-        {/* ═══════ RIGHT PANEL — LIVE PREVIEW ═══════ */}
+        {/* â•â•â•â•â•â•â• RIGHT PANEL â€” LIVE PREVIEW â•â•â•â•â•â•â• */}
         <section className="bg-[#08080d] overflow-y-auto pe-scrollbar">
           <div className="p-8 flex flex-col gap-6">
 
@@ -1244,7 +1244,7 @@ int main() {
                     {difficulty}
                   </span>
                   <span className="px-2.5 py-1 rounded-lg bg-bg-elevated text-[10px] font-bold uppercase tracking-wider text-text-secondary border border-border-default">
-                    ⏱ {timeLimit} mins
+                    â± {timeLimit} mins
                   </span>
                   {allowedLanguages.map((l) => (
                     <span

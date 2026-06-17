@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+﻿import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useSocket } from "../context/SocketContext";
@@ -285,7 +285,7 @@ function BattleArena() {
 
   const isCompetitor = room.players.some((p) => p && (p._id || p) === user._id);
 
-  // Non-players cannot watch — redirect immediately
+  // Non-players cannot watch â€” redirect immediately
   if (!isCompetitor) {
     navigate("/dashboard");
     return null;
@@ -305,7 +305,7 @@ function BattleArena() {
                 Match Concluded
               </span>
               <div className="text-7xl mt-1">
-                {isWinner ? "🏆" : "💀"}
+                {isWinner ? "ðŸ†" : "ðŸ’€"}
               </div>
               <h2 className={`text-3xl font-extrabold tracking-tight ${isWinner ? "text-success" : "text-error"}`}>
                 {isWinner ? "Victory!" : "Defeated"}
@@ -338,7 +338,7 @@ function BattleArena() {
                 </span>
                 {hasRated ? (
                   <div className="text-xs text-success font-medium">
-                    Thank you! Your rating of {userRating} ⭐ has been registered.
+                    Thank you! Your rating of {userRating} â­ has been registered.
                   </div>
                 ) : (
                   <div className="flex gap-2.5">
@@ -349,7 +349,7 @@ function BattleArena() {
                         className="text-2xl hover:scale-125 transition-transform duration-150 cursor-pointer"
                         type="button"
                       >
-                        ☆
+                        â˜†
                       </button>
                     ))}
                   </div>
@@ -530,7 +530,7 @@ function BattleArena() {
                   </select>
                   {teammateTyping && (
                     <span className="text-xs text-success animate-pulse font-medium">
-                      ⚡ Teammate is typing...
+                      âš¡ Teammate is typing...
                     </span>
                   )}
                 </div>
@@ -595,7 +595,7 @@ function BattleArena() {
                         onClick={handleSubmitCode}
                         disabled={isRunning || isSubmitting}
                         style={{
-                          background: isSubmitting ? undefined : "linear-gradient(135deg, #6366f1, #818cf8)",
+                          background: isSubmitting ? undefined : "linear-gradient(135deg, #7e5dbd, #9478cc)",
                           color: "#fff",
                           fontWeight: 700,
                         }}
@@ -605,7 +605,7 @@ function BattleArena() {
                             <span style={{ width: 10, height: 10, border: "2px solid rgba(255,255,255,0.3)", borderTopColor: "#fff", borderRadius: "50%", display: "inline-block", animation: "spin 0.8s linear infinite" }} />
                             Submitting...
                           </span>
-                        ) : "🚀 Submit Answer"}
+                        ) : "ðŸš€ Submit Answer"}
                       </Button>
                     </div>
                   )}

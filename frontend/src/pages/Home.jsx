@@ -7,8 +7,8 @@ import heroDuel from "../assets/hero_duel.jpg";
 
 const PAGE_BG = {
   minHeight: "100vh",
-  backgroundColor: "#030305",
-  color: "#f8fafc",
+  backgroundColor: "#0d0818",
+  color: "#eee8f5",
   fontFamily: "Inter, sans-serif",
   position: "relative",
   overflow: "hidden",
@@ -36,9 +36,9 @@ const NAV_CONTAINER = {
   alignItems: "center",
   justifyContent: "space-between",
   padding: "20px 40px",
-  borderBottom: "1px solid rgba(255, 255, 255, 0.05)",
+  borderBottom: "1px solid rgba(126, 93, 189, 0.08)",
   backdropFilter: "blur(20px)",
-  backgroundColor: "rgba(3, 3, 5, 0.75)",
+  backgroundColor: "rgba(13, 8, 24, 0.75)",
   position: "sticky",
   top: 0,
   zIndex: 50
@@ -47,7 +47,7 @@ const NAV_CONTAINER = {
 const LOGO_TEXT = {
   fontSize: "24px",
   fontWeight: 900,
-  background: "linear-gradient(135deg, #6366f1 0%, #22d3ee 100%)",
+  background: "linear-gradient(135deg, #9478cc 0%, #d4a053 100%)",
   WebkitBackgroundClip: "text",
   WebkitTextFillColor: "transparent",
   letterSpacing: "-0.03em"
@@ -87,11 +87,11 @@ const BRAND_BADGE = {
   gap: "8px",
   padding: "6px 12px",
   borderRadius: "999px",
-  backgroundColor: "rgba(99, 102, 241, 0.1)",
-  border: "1px solid rgba(99, 102, 241, 0.25)",
+  backgroundColor: "rgba(126, 93, 189, 0.1)",
+  border: "1px solid rgba(126, 93, 189, 0.25)",
   fontSize: "12px",
   fontWeight: 700,
-  color: "#a5b4fc",
+  color: "#b49fdb",
   textTransform: "uppercase",
   letterSpacing: "0.05em",
   marginBottom: "20px"
@@ -106,14 +106,14 @@ const HERO_TITLE = {
 };
 
 const DUAL_TEXT_GRADIENT = {
-  background: "linear-gradient(135deg, #6366f1 0%, #22d3ee 100%)",
+  background: "linear-gradient(135deg, #9478cc 0%, #d4a053 100%)",
   WebkitBackgroundClip: "text",
   WebkitTextFillColor: "transparent"
 };
 
 const HERO_DESC = {
   fontSize: "clamp(15px, 1.2vw, 18px)",
-  color: "#94a3b8",
+  color: "#a99bc2",
   lineHeight: 1.6,
   marginBottom: "36px"
 };
@@ -129,7 +129,7 @@ const STATS_BAND = {
   display: "flex",
   gap: "48px",
   marginTop: "48px",
-  borderTop: "1px solid rgba(255, 255, 255, 0.05)",
+  borderTop: "1px solid rgba(126, 93, 189, 0.1)",
   paddingTop: "24px",
   width: "100%"
 };
@@ -138,12 +138,12 @@ const STAT_NUMBER = {
   fontSize: "32px",
   fontWeight: 800,
   fontFamily: "JetBrains Mono, monospace",
-  color: "#f8fafc",
+  color: "#eee8f5",
 };
 
 const STAT_LABEL = {
   fontSize: "12px",
-  color: "#94a3b8",
+  color: "#a99bc2",
   textTransform: "uppercase",
   letterSpacing: "0.08em",
   marginTop: "4px",
@@ -152,12 +152,12 @@ const STAT_LABEL = {
 const SIMULATOR_BOX = {
   width: "100%",
   maxWidth: "800px",
-  backgroundColor: "rgba(10, 10, 15, 0.75)",
-  border: "1px solid rgba(255, 255, 255, 0.06)",
+  backgroundColor: "rgba(13, 8, 24, 0.75)",
+  border: "1px solid rgba(126, 93, 189, 0.1)",
   borderRadius: "16px",
   overflow: "hidden",
   backdropFilter: "blur(20px)",
-  boxShadow: "0 20px 50px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05)"
+  boxShadow: "0 20px 50px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(126, 93, 189, 0.08)"
 };
 
 const CODE_A = [
@@ -336,18 +336,18 @@ function Home() {
       <svg style={{ height: 0, width: 0, position: 'absolute' }}>
         <defs>
           <linearGradient id="primaryGradient" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="#6366f1" />
-            <stop offset="100%" stopColor="#22d3ee" />
+            <stop offset="0%" stopColor="#9478cc" />
+            <stop offset="100%" stopColor="#d4a053" />
           </linearGradient>
           <linearGradient id="secondaryGradient" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="#3b82f6" />
-            <stop offset="100%" stopColor="#10b981" />
+            <stop offset="0%" stopColor="#7e5dbd" />
+            <stop offset="100%" stopColor="#5db885" />
           </linearGradient>
         </defs>
       </svg>
 
-      <div style={GLOW_ORB("-200px", null, "-100px", null, "rgba(99, 102, 241, 0.15)", "700px")} />
-      <div style={GLOW_ORB(null, "-100px", null, "-200px", "rgba(34, 211, 238, 0.12)", "600px")} />
+      <div style={GLOW_ORB("-200px", null, "-100px", null, "rgba(126, 93, 189, 0.15)", "700px")} />
+      <div style={GLOW_ORB(null, "-100px", null, "-200px", "rgba(212, 160, 83, 0.08)", "600px")} />
 
       <nav style={NAV_CONTAINER}>
         <div style={{ display: "flex", gap: "36px", alignItems: "center" }}>
@@ -355,18 +355,18 @@ function Home() {
             <span style={LOGO_TEXT}>CodeDraft</span>
           </Link>
           <div style={{ display: "flex", gap: "24px", alignItems: "center" }}>
-            <Link to="/leaderboard" style={{ textDecoration: "none", color: "#94a3b8", fontSize: "14px", fontWeight: 500 }} className="hover:text-white transition-colors">Leaderboard</Link>
-            <Link to="/dashboard" style={{ textDecoration: "none", color: "#94a3b8", fontSize: "14px", fontWeight: 500 }} className="hover:text-white transition-colors">Tournaments</Link>
+            <Link to="/leaderboard" style={{ textDecoration: "none", color: "#a99bc2", fontSize: "14px", fontWeight: 500 }} className="hover:text-white transition-colors">Leaderboard</Link>
+            <Link to="/dashboard" style={{ textDecoration: "none", color: "#a99bc2", fontSize: "14px", fontWeight: 500 }} className="hover:text-white transition-colors">Tournaments</Link>
           </div>
         </div>
         <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
           {isAuthenticated ? (
             <>
-              <span style={{ color: "#94a3b8", fontSize: "14px", fontFamily: "JetBrains Mono, monospace" }}>
+              <span style={{ color: "#a99bc2", fontSize: "14px", fontFamily: "JetBrains Mono, monospace" }}>
                 👾 {user?.username}
               </span>
               <Link to="/dashboard">
-                <Button variant="secondary" size="sm" style={{ borderColor: "#6366f1", color: "#a5b4fc" }}>Dashboard</Button>
+                <Button variant="secondary" size="sm" style={{ borderColor: "#7e5dbd", color: "#b49fdb" }}>Dashboard</Button>
               </Link>
             </>
           ) : (
@@ -375,7 +375,7 @@ function Home() {
                 <Button variant="ghost" size="sm">Log In</Button>
               </Link>
               <Link to="/register">
-                <Button size="sm" style={{ backgroundColor: "#6366f1", color: "#ffffff", padding: "8px 16px" }}>Sign Up</Button>
+                <Button size="sm" style={{ background: "linear-gradient(135deg, #6a45ab, #7e5dbd)", color: "#eee8f5", padding: "8px 16px", border: "none" }}>Sign Up</Button>
               </Link>
             </>
           )}
@@ -397,12 +397,12 @@ function Home() {
       </motion.div>
 
       {/* Live Coding Duel Demo Section */}
-      <div style={{ padding: "80px 40px", display: "flex", flexDirection: "column", alignItems: "center", borderTop: "1px solid rgba(255,255,255,0.05)", backgroundColor: "#040407", position: "relative", zIndex: 5 }}>
+      <div style={{ padding: "80px 40px", display: "flex", flexDirection: "column", alignItems: "center", borderTop: "1px solid rgba(126, 93, 189, 0.08)", backgroundColor: "#0a0614", position: "relative", zIndex: 5 }}>
         <div style={BRAND_BADGE}>Live Duel Telemetry</div>
         <h2 style={{ fontSize: "32px", fontWeight: 800, marginBottom: "12px", letterSpacing: "-0.02em", textAlign: "center" }}>
           Watch a Live CodeDraft Battle
         </h2>
-        <p style={{ fontSize: "15px", color: "#94a3b8", marginBottom: "40px", maxWidth: "600px", textAlign: "center", lineHeight: 1.6 }}>
+        <p style={{ fontSize: "15px", color: "#a99bc2", marginBottom: "40px", maxWidth: "600px", textAlign: "center", lineHeight: 1.6 }}>
           See how opponents write algorithms, compile their buffers, and pass hidden test cases in real-time.
         </p>
         
@@ -415,27 +415,27 @@ function Home() {
       </div>
 
       {/* College Standings Highlight Section */}
-      <div style={{ padding: "80px 40px", borderTop: "1px solid rgba(255,255,255,0.05)", backgroundColor: "#06060a", position: "relative", zIndex: 5 }}>
+      <div style={{ padding: "80px 40px", borderTop: "1px solid rgba(126, 93, 189, 0.08)", backgroundColor: "#0b0716", position: "relative", zIndex: 5 }}>
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", maxWidth: "1200px", margin: "0 auto" }}>
           <div style={BRAND_BADGE}>Academic Standings</div>
           <h2 style={{ fontSize: "32px", fontWeight: 800, marginBottom: "12px", letterSpacing: "-0.02em", textAlign: "center" }}>
             Academic League Highlights
           </h2>
-          <p style={{ fontSize: "15px", color: "#94a3b8", marginBottom: "40px", maxWidth: "600px", textAlign: "center", lineHeight: 1.6 }}>
+          <p style={{ fontSize: "15px", color: "#a99bc2", marginBottom: "40px", maxWidth: "600px", textAlign: "center", lineHeight: 1.6 }}>
             Top engineering institutions competing this month. Suffix your email with your college domain to challenge for your varsity standings.
           </p>
 
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "24px", width: "100%" }}>
             {[
-              { rank: 1, name: "Massachusetts Institute of Technology", short: "MIT", avgElo: 1845, members: 142, icon: "🎓", border: "#f59e0b" },
-              { rank: 2, name: "Stanford University", short: "Stanford", avgElo: 1792, members: 118, icon: "🌲", border: "#10b981" },
-              { rank: 3, name: "Indian Institute of Technology, Bombay", short: "IIT Bombay", avgElo: 1780, members: 164, icon: "🏛️", border: "#6366f1" }
+              { rank: 1, name: "Massachusetts Institute of Technology", short: "MIT", avgElo: 1845, members: 142, icon: "🎓", border: "#d4a053" },
+              { rank: 2, name: "Stanford University", short: "Stanford", avgElo: 1792, members: 118, icon: "🌲", border: "#5db885" },
+              { rank: 3, name: "Indian Institute of Technology, Bombay", short: "IIT Bombay", avgElo: 1780, members: 164, icon: "🏛️", border: "#7e5dbd" }
             ].map(col => (
               <div 
                 key={col.rank} 
                 style={{ 
-                  backgroundColor: "#0a0a0f", 
-                  border: `1px solid rgba(255,255,255,0.05)`,
+                  backgroundColor: "#120b22", 
+                  border: `1px solid rgba(126, 93, 189, 0.1)`,
                   borderLeft: `4px solid ${col.border}`,
                   borderRadius: "12px", 
                   padding: "24px",
@@ -450,17 +450,17 @@ function Home() {
                   <span style={{ fontSize: "20px" }}>{col.icon}</span>
                 </div>
                 <div>
-                  <h4 style={{ fontSize: "16px", fontWeight: 700, color: "#f8fafc" }}>{col.short}</h4>
-                  <p style={{ fontSize: "11px", color: "#64748b", marginTop: "2px" }}>{col.name}</p>
+                  <h4 style={{ fontSize: "16px", fontWeight: 700, color: "#eee8f5" }}>{col.short}</h4>
+                  <p style={{ fontSize: "11px", color: "#7a6b94", marginTop: "2px" }}>{col.name}</p>
                 </div>
-                <div style={{ display: "flex", justifyContent: "space-between", borderTop: "1px solid rgba(255,255,255,0.03)", paddingTop: "12px", marginTop: "4px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", borderTop: "1px solid rgba(126, 93, 189, 0.06)", paddingTop: "12px", marginTop: "4px" }}>
                   <div>
-                    <div style={{ fontSize: "18px", fontWeight: 800, color: "#f8fafc", fontFamily: "JetBrains Mono, monospace" }}>{col.avgElo}</div>
-                    <div style={{ fontSize: "10px", color: "#64748b", textTransform: "uppercase" }}>Average ELO</div>
+                    <div style={{ fontSize: "18px", fontWeight: 800, color: "#eee8f5", fontFamily: "JetBrains Mono, monospace" }}>{col.avgElo}</div>
+                    <div style={{ fontSize: "10px", color: "#7a6b94", textTransform: "uppercase" }}>Average ELO</div>
                   </div>
                   <div>
-                    <div style={{ fontSize: "18px", fontWeight: 800, color: "#f8fafc", fontFamily: "JetBrains Mono, monospace" }}>{col.members}</div>
-                    <div style={{ fontSize: "10px", color: "#64748b", textTransform: "uppercase" }}>Active Varsity</div>
+                    <div style={{ fontSize: "18px", fontWeight: 800, color: "#eee8f5", fontFamily: "JetBrains Mono, monospace" }}>{col.members}</div>
+                    <div style={{ fontSize: "10px", color: "#7a6b94", textTransform: "uppercase" }}>Active Varsity</div>
                   </div>
                 </div>
               </div>
@@ -470,36 +470,36 @@ function Home() {
       </div>
 
 
-      <div style={{ padding: "80px 40px", borderTop: "1px solid rgba(255,255,255,0.05)", position: "relative", zIndex: 5, backgroundColor: "#06060a" }}>
+      <div style={{ padding: "80px 40px", borderTop: "1px solid rgba(126, 93, 189, 0.08)", position: "relative", zIndex: 5, backgroundColor: "#0b0716" }}>
         <h2 style={{ fontSize: "32px", fontWeight: 800, marginBottom: "48px", textAlign: "center", letterSpacing: "-0.02em" }}>
           Organic Coding Battles In 3 Steps
         </h2>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "32px", maxWidth: "1200px", margin: "0 auto" }}>
-          <div style={{ padding: "36px 28px", backgroundColor: "#0a0a0f", border: "1px solid rgba(255,255,255,0.05)", borderRadius: "16px", transition: "all 0.3s" }}>
+          <div style={{ padding: "36px 28px", backgroundColor: "#120b22", border: "1px solid rgba(126, 93, 189, 0.1)", borderRadius: "16px", transition: "all 0.3s" }}>
             <div style={{ marginBottom: "20px" }}>
               <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="url(#primaryGradient)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M12 20h9" />
                 <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
               </svg>
             </div>
-            <h3 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "12px", color: "#f8fafc" }}>1. Build Your Battle Problem</h3>
-            <p style={{ fontSize: "14px", color: "#94a3b8", lineHeight: 1.6 }}>
+            <h3 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "12px", color: "#eee8f5" }}>1. Build Your Battle Problem</h3>
+            <p style={{ fontSize: "14px", color: "#a99bc2", lineHeight: 1.6 }}>
               Draft an algorithms challenge, configure hidden verification test cases, and pass your own reference solution before staging it in the lobby arena.
             </p>
           </div>
-          <div style={{ padding: "36px 28px", backgroundColor: "#0a0a0f", border: "1px solid rgba(255,255,255,0.05)", borderRadius: "16px", transition: "all 0.3s" }}>
+          <div style={{ padding: "36px 28px", backgroundColor: "#120b22", border: "1px solid rgba(126, 93, 189, 0.1)", borderRadius: "16px", transition: "all 0.3s" }}>
             <div style={{ marginBottom: "20px" }}>
               <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="url(#primaryGradient)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="4 17 10 11 4 5" />
                 <line x1="12" y1="19" x2="20" y2="19" />
               </svg>
             </div>
-            <h3 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "12px", color: "#f8fafc" }}>2. Duel Live Side-by-Side</h3>
-            <p style={{ fontSize: "14px", color: "#94a3b8", lineHeight: 1.6 }}>
+            <h3 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "12px", color: "#eee8f5" }}>2. Duel Live Side-by-Side</h3>
+            <p style={{ fontSize: "14px", color: "#a99bc2", lineHeight: 1.6 }}>
               Both players receive the prompt at the exact same millisecond. Sync typing buffers, compile code, and watch the visual telemetry pass hidden cases.
             </p>
           </div>
-          <div style={{ padding: "36px 28px", backgroundColor: "#0a0a0f", border: "1px solid rgba(255,255,255,0.05)", borderRadius: "16px", transition: "all 0.3s" }}>
+          <div style={{ padding: "36px 28px", backgroundColor: "#120b22", border: "1px solid rgba(126, 93, 189, 0.1)", borderRadius: "16px", transition: "all 0.3s" }}>
             <div style={{ marginBottom: "20px" }}>
               <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="url(#secondaryGradient)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <line x1="18" y1="20" x2="18" y2="10" />
@@ -507,15 +507,15 @@ function Home() {
                 <line x1="6" y1="20" x2="6" y2="14" />
               </svg>
             </div>
-            <h3 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "12px", color: "#f8fafc" }}>3. Increase Multi-League ELO</h3>
-            <p style={{ fontSize: "14px", color: "#94a3b8", lineHeight: 1.6 }}>
+            <h3 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "12px", color: "#eee8f5" }}>3. Increase Multi-League ELO</h3>
+            <p style={{ fontSize: "14px", color: "#a99bc2", lineHeight: 1.6 }}>
               Win to increase your standing rank ELO weights. Compete in 1v1 duels, 2v2 collaborative teammates battles, and structured colleges leagues.
             </p>
           </div>
         </div>
       </div>
 
-      <footer style={{ padding: "30px 40px", borderTop: "1px solid rgba(255,255,255,0.05)", textAlign: "center", color: "#64748b", fontSize: "13px", zIndex: 5, backgroundColor: "#030305" }}>
+      <footer style={{ padding: "30px 40px", borderTop: "1px solid rgba(126, 93, 189, 0.08)", textAlign: "center", color: "#7a6b94", fontSize: "13px", zIndex: 5, backgroundColor: "#0d0818" }}>
         © {new Date().getFullYear()} CodeDraft. Built for developers who write the problems.
       </footer>
     </div>
@@ -526,7 +526,7 @@ function HERO_LEFT_PANEL({ isAuthenticated, stats }) {
   return (
     <motion.div style={HERO_LEFT} variants={itemVariants}>
       <div style={BRAND_BADGE}>
-        <span style={{ width: "8px", height: "8px", backgroundColor: "#10b981", borderRadius: "50%", display: "inline-block" }} />
+        <span style={{ width: "8px", height: "8px", backgroundColor: "#5db885", borderRadius: "50%", display: "inline-block" }} />
         P2P Coding Battles
       </div>
       <h1 style={HERO_TITLE}>
@@ -540,15 +540,15 @@ function HERO_LEFT_PANEL({ isAuthenticated, stats }) {
       <div style={CTA_GRID}>
         {isAuthenticated ? (
           <Link to="/dashboard" style={{ textDecoration: "none" }}>
-            <Button size="lg" style={{ padding: "14px 28px", fontSize: "15px", backgroundColor: "#6366f1", color: "#ffffff", border: "1px solid #6366f1" }}>⚔️ Initialize Battle Lobby</Button>
+            <Button size="lg" style={{ padding: "14px 28px", fontSize: "15px", background: "linear-gradient(135deg, #d4a053, #c78d3a)", color: "#0d0818", border: "none", fontWeight: 800 }}>⚔️ Initialize Battle Lobby</Button>
           </Link>
         ) : (
           <Link to="/register" style={{ textDecoration: "none" }}>
-            <Button size="lg" style={{ padding: "14px 28px", fontSize: "15px", backgroundColor: "#6366f1", color: "#ffffff", border: "1px solid #6366f1" }}>Start Battling</Button>
+            <Button size="lg" style={{ padding: "14px 28px", fontSize: "15px", background: "linear-gradient(135deg, #d4a053, #c78d3a)", color: "#0d0818", border: "none", fontWeight: 800 }}>Start Battling</Button>
           </Link>
         )}
         <Link to="/leaderboard" style={{ textDecoration: "none" }}>
-          <Button variant="secondary" size="lg" style={{ padding: "14px 28px", fontSize: "15px", borderColor: "#6366f1", color: "#a5b4fc" }}>View Leaderboard</Button>
+          <Button variant="secondary" size="lg" style={{ padding: "14px 28px", fontSize: "15px", borderColor: "#7e5dbd", color: "#b49fdb" }}>View Leaderboard</Button>
         </Link>
       </div>
 
@@ -577,7 +577,7 @@ function HERO_RIGHT_PANEL() {
         <div style={{
           position: "absolute",
           inset: "-3px",
-          background: "linear-gradient(135deg, #6366f1, #22d3ee)",
+          background: "linear-gradient(135deg, #7e5dbd, #d4a053)",
           borderRadius: "20px",
           filter: "blur(12px)",
           opacity: 0.5,
@@ -590,7 +590,7 @@ function HERO_RIGHT_PANEL() {
             width: "100%",
             height: "auto",
             borderRadius: "18px",
-            border: "1px solid rgba(255,255,255,0.08)",
+            border: "1px solid rgba(126, 93, 189, 0.15)",
             display: "block",
             position: "relative",
             zIndex: 1,
@@ -607,27 +607,27 @@ function HERO_RIGHT_PANEL() {
 function HERO_DUEL_SIMULATOR({ simCodeA, simCodeB, testA, testB }) {
   return (
     <div style={SIMULATOR_BOX}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 20px", borderBottom: "1px solid rgba(255, 255, 255, 0.05)", backgroundColor: "rgba(255,255,255,0.02)" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 20px", borderBottom: "1px solid rgba(126, 93, 189, 0.08)", backgroundColor: "rgba(126, 93, 189, 0.03)" }}>
         <div style={{ display: "flex", gap: "6px" }}>
-          <span style={{ width: "11px", height: "11px", backgroundColor: "#ef4444", borderRadius: "50%", display: "inline-block" }} />
-          <span style={{ width: "11px", height: "11px", backgroundColor: "#f59e0b", borderRadius: "50%", display: "inline-block" }} />
-          <span style={{ width: "11px", height: "11px", backgroundColor: "#10b981", borderRadius: "50%", display: "inline-block" }} />
+          <span style={{ width: "11px", height: "11px", backgroundColor: "#c75c4a", borderRadius: "50%", display: "inline-block" }} />
+          <span style={{ width: "11px", height: "11px", backgroundColor: "#d4a053", borderRadius: "50%", display: "inline-block" }} />
+          <span style={{ width: "11px", height: "11px", backgroundColor: "#5db885", borderRadius: "50%", display: "inline-block" }} />
         </div>
-        <span style={{ fontSize: "11px", fontWeight: 700, color: "#64748b", fontFamily: "JetBrains Mono, monospace" }}>
+        <span style={{ fontSize: "11px", fontWeight: 700, color: "#7a6b94", fontFamily: "JetBrains Mono, monospace" }}>
           ⚔️ live_duel_telemetry.sh
         </span>
         <span style={{ width: "32px" }} />
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", borderBottom: "1px solid rgba(255, 255, 255, 0.05)", height: "340px", overflow: "hidden" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", borderBottom: "1px solid rgba(126, 93, 189, 0.08)", height: "340px", overflow: "hidden" }}>
         {/* Player A Editor */}
-        <div style={{ borderRight: "1px solid rgba(255, 255, 255, 0.05)", padding: "16px", display: "flex", flexDirection: "column" }}>
+        <div style={{ borderRight: "1px solid rgba(126, 93, 189, 0.08)", padding: "16px", display: "flex", flexDirection: "column" }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
-            <span style={{ fontSize: "13px", fontWeight: 800, color: "#818cf8" }}>👾 alpha_coder</span>
-            <span style={{ fontSize: "10px", padding: "2px 6px", borderRadius: "4px", backgroundColor: "rgba(99,102,241,0.1)", color: "#a5b4fc", fontFamily: "JetBrains Mono, monospace" }}>JS</span>
+            <span style={{ fontSize: "13px", fontWeight: 800, color: "#9478cc" }}>👾 alpha_coder</span>
+            <span style={{ fontSize: "10px", padding: "2px 6px", borderRadius: "4px", backgroundColor: "rgba(126, 93, 189, 0.1)", color: "#b49fdb", fontFamily: "JetBrains Mono, monospace" }}>JS</span>
           </div>
-          <div style={{ display: "flex", gap: "12px", fontFamily: "JetBrains Mono, monospace", fontSize: "12.5px", color: "#e2e8f0", overflowY: "auto", flex: 1, lineHeight: 1.6 }}>
-            <div style={{ color: "#475569", textAlign: "right", select: "none", userSelect: "none" }}>
+          <div style={{ display: "flex", gap: "12px", fontFamily: "JetBrains Mono, monospace", fontSize: "12.5px", color: "#d4c6ea", overflowY: "auto", flex: 1, lineHeight: 1.6 }}>
+            <div style={{ color: "#553689", textAlign: "right", select: "none", userSelect: "none" }}>
               {Array.from({ length: 15 }, (_, i) => (
                 <div key={i}>{i + 1}</div>
               ))}
@@ -641,11 +641,11 @@ function HERO_DUEL_SIMULATOR({ simCodeA, simCodeB, testA, testB }) {
         {/* Player B Editor */}
         <div style={{ padding: "16px", display: "flex", flexDirection: "column" }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
-            <span style={{ fontSize: "13px", fontWeight: 800, color: "#22d3ee" }}>⚡ beta_byte</span>
-            <span style={{ fontSize: "10px", padding: "2px 6px", borderRadius: "4px", backgroundColor: "rgba(34,211,238,0.1)", color: "#81e6d9", fontFamily: "JetBrains Mono, monospace" }}>JS</span>
+            <span style={{ fontSize: "13px", fontWeight: 800, color: "#d4a053" }}>⚡ beta_byte</span>
+            <span style={{ fontSize: "10px", padding: "2px 6px", borderRadius: "4px", backgroundColor: "rgba(212, 160, 83, 0.1)", color: "#d4a053", fontFamily: "JetBrains Mono, monospace" }}>JS</span>
           </div>
-          <div style={{ display: "flex", gap: "12px", fontFamily: "JetBrains Mono, monospace", fontSize: "12.5px", color: "#e2e8f0", overflowY: "auto", flex: 1, lineHeight: 1.6 }}>
-            <div style={{ color: "#475569", textAlign: "right", select: "none", userSelect: "none" }}>
+          <div style={{ display: "flex", gap: "12px", fontFamily: "JetBrains Mono, monospace", fontSize: "12.5px", color: "#d4c6ea", overflowY: "auto", flex: 1, lineHeight: 1.6 }}>
+            <div style={{ color: "#553689", textAlign: "right", select: "none", userSelect: "none" }}>
               {Array.from({ length: 15 }, (_, i) => (
                 <div key={i}>{i + 1}</div>
               ))}
@@ -658,17 +658,17 @@ function HERO_DUEL_SIMULATOR({ simCodeA, simCodeB, testA, testB }) {
       </div>
 
       {/* Telemetry Testing Panels */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", padding: "18px", backgroundColor: "rgba(0,0,0,0.25)" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", padding: "18px", backgroundColor: "rgba(13, 8, 24, 0.5)" }}>
         {/* Test cases A */}
-        <div style={{ borderRight: "1px solid rgba(255, 255, 255, 0.05)", paddingRight: "16px" }}>
-          <div style={{ fontSize: "11px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "10px" }}>Test Status</div>
+        <div style={{ borderRight: "1px solid rgba(126, 93, 189, 0.08)", paddingRight: "16px" }}>
+          <div style={{ fontSize: "11px", fontWeight: 700, color: "#7a6b94", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "10px" }}>Test Status</div>
           <div style={{ display: "flex", gap: "8px", flexDirection: "column" }}>
             {testA.map(t => (
               <div key={t.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: "12px", fontFamily: "JetBrains Mono, monospace" }}>
-                <span style={{ color: "#94a3b8" }}>{t.label}</span>
+                <span style={{ color: "#a99bc2" }}>{t.label}</span>
                 <span style={{ 
                   fontWeight: 800, 
-                  color: t.status === "passed" ? "#10b981" : "#f59e0b",
+                  color: t.status === "passed" ? "#5db885" : "#d4a053",
                   display: "flex",
                   alignItems: "center",
                   gap: "4px"
@@ -686,14 +686,14 @@ function HERO_DUEL_SIMULATOR({ simCodeA, simCodeB, testA, testB }) {
 
         {/* Test cases B */}
         <div style={{ paddingLeft: "16px" }}>
-          <div style={{ fontSize: "11px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "10px" }}>Test Status</div>
+          <div style={{ fontSize: "11px", fontWeight: 700, color: "#7a6b94", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "10px" }}>Test Status</div>
           <div style={{ display: "flex", gap: "8px", flexDirection: "column" }}>
             {testB.map(t => (
               <div key={t.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: "12px", fontFamily: "JetBrains Mono, monospace" }}>
-                <span style={{ color: "#94a3b8" }}>{t.label}</span>
+                <span style={{ color: "#a99bc2" }}>{t.label}</span>
                 <span style={{ 
                   fontWeight: 800, 
-                  color: t.status === "passed" ? "#10b981" : "#f59e0b",
+                  color: t.status === "passed" ? "#5db885" : "#d4a053",
                   display: "flex",
                   alignItems: "center",
                   gap: "4px"

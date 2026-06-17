@@ -24,7 +24,7 @@ const FORM_CONTAINER = {
 const LOGO_STYLE = {
   fontSize: "28px",
   fontWeight: 800,
-  background: "linear-gradient(135deg, #6366f1, #22d3ee)",
+  background: "linear-gradient(135deg, #9478cc, #d4a053)",
   WebkitBackgroundClip: "text",
   WebkitTextFillColor: "transparent",
   textAlign: "center",
@@ -36,19 +36,19 @@ const TITLE_STYLE = {
   fontWeight: 700,
   textAlign: "center",
   marginBottom: "4px",
-  color: "#f8fafc",
+  color: "#eee8f5",
 };
 
 const SUBTITLE_STYLE = {
   fontSize: "14px",
-  color: "#94a3b8",
+  color: "#a99bc2",
   textAlign: "center",
   marginBottom: "32px",
 };
 
 const FORM_CARD = {
-  backgroundColor: "#111118",
-  border: "1px solid #1e1e2e",
+  backgroundColor: "#1a1030",
+  border: "1px solid #2a1845",
   borderRadius: "16px",
   padding: "32px",
 };
@@ -61,7 +61,7 @@ const LABEL_STYLE = {
   display: "block",
   fontSize: "13px",
   fontWeight: 500,
-  color: "#94a3b8",
+  color: "#a99bc2",
   marginBottom: "8px",
   textTransform: "uppercase",
   letterSpacing: "0.05em",
@@ -70,10 +70,10 @@ const LABEL_STYLE = {
 const INPUT_STYLE = {
   width: "100%",
   padding: "12px 16px",
-  backgroundColor: "#0a0a0f",
-  border: "1px solid #1e1e2e",
+  backgroundColor: "#120b22",
+  border: "1px solid #2a1845",
   borderRadius: "8px",
-  color: "#f8fafc",
+  color: "#eee8f5",
   fontSize: "14px",
   outline: "none",
   transition: "border-color 0.2s ease",
@@ -83,7 +83,7 @@ const FOOTER_TEXT = {
   textAlign: "center",
   marginTop: "24px",
   fontSize: "14px",
-  color: "#94a3b8",
+  color: "#a99bc2",
 };
 
 const GLOW = {
@@ -91,7 +91,7 @@ const GLOW = {
   width: "500px",
   height: "500px",
   borderRadius: "50%",
-  background: "radial-gradient(circle, rgba(34,211,238,0.08) 0%, transparent 70%)",
+  background: "radial-gradient(circle, rgba(212, 160, 83, 0.06) 0%, transparent 70%)",
   bottom: "-200px",
   right: "-100px",
   pointerEvents: "none",
@@ -99,7 +99,7 @@ const GLOW = {
 
 const PASSWORD_HINT = {
   fontSize: "12px",
-  color: "#64748b",
+  color: "#7a6b94",
   marginTop: "6px",
   lineHeight: 1.4,
 };
@@ -158,8 +158,8 @@ function Register() {
                 minLength={3}
                 maxLength={20}
                 autoComplete="username"
-                onFocus={(e) => (e.target.style.borderColor = "#6366f1")}
-                onBlur={(e) => (e.target.style.borderColor = "#1e1e2e")}
+                onFocus={(e) => (e.target.style.borderColor = "#7e5dbd")}
+                onBlur={(e) => (e.target.style.borderColor = "#2a1845")}
               />
             </div>
             <div style={FIELD_STYLE}>
@@ -175,8 +175,8 @@ function Register() {
                 placeholder="you@example.com"
                 required
                 autoComplete="email"
-                onFocus={(e) => (e.target.style.borderColor = "#6366f1")}
-                onBlur={(e) => (e.target.style.borderColor = "#1e1e2e")}
+                onFocus={(e) => (e.target.style.borderColor = "#7e5dbd")}
+                onBlur={(e) => (e.target.style.borderColor = "#2a1845")}
               />
             </div>
             <div style={FIELD_STYLE}>
@@ -193,8 +193,8 @@ function Register() {
                 required
                 minLength={8}
                 autoComplete="new-password"
-                onFocus={(e) => (e.target.style.borderColor = "#6366f1")}
-                onBlur={(e) => (e.target.style.borderColor = "#1e1e2e")}
+                onFocus={(e) => (e.target.style.borderColor = "#7e5dbd")}
+                onBlur={(e) => (e.target.style.borderColor = "#2a1845")}
               />
               <div style={PASSWORD_HINT}>
                 Minimum 8 characters with uppercase, lowercase, and a number
@@ -214,7 +214,7 @@ function Register() {
 
         <div style={FOOTER_TEXT}>
           Already have an account?{" "}
-          <Link to="/login" style={{ color: "#6366f1", fontWeight: 600 }}>
+          <Link to="/login" style={{ color: "#9478cc", fontWeight: 600 }}>
             Log in
           </Link>
         </div>

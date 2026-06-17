@@ -1,4 +1,4 @@
-import { Navigate, useLocation } from "react-router-dom";
+﻿import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 
 const SPINNER_STYLES = {
@@ -7,13 +7,13 @@ const SPINNER_STYLES = {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#0a0a0f",
+    backgroundColor: "#120b22",
   },
   spinner: {
     width: "40px",
     height: "40px",
-    border: "3px solid #1e1e2e",
-    borderTop: "3px solid #6366f1",
+    border: "3px solid #2a1845",
+    borderTop: "3px solid #7e5dbd",
     borderRadius: "50%",
     animation: "spin 0.8s linear infinite",
   },

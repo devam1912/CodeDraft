@@ -3,43 +3,43 @@ import { motion } from "framer-motion";
 const VARIANTS = {
   primary: {
     base: {
-      backgroundColor: "#6366f1",
-      color: "#ffffff",
+      backgroundColor: "#6a45ab",
+      color: "#eee8f5",
       border: "none",
     },
     hover: {
-      backgroundColor: "#818cf8",
+      backgroundColor: "#7e5dbd",
     },
   },
   secondary: {
     base: {
       backgroundColor: "transparent",
-      color: "#6366f1",
-      border: "1px solid #6366f1",
+      color: "#b49fdb",
+      border: "1px solid #7e5dbd",
     },
     hover: {
-      backgroundColor: "#6366f133",
+      backgroundColor: "rgba(126, 93, 189, 0.15)",
     },
   },
   danger: {
     base: {
-      backgroundColor: "#ef4444",
-      color: "#ffffff",
+      backgroundColor: "#c75c4a",
+      color: "#eee8f5",
       border: "none",
     },
     hover: {
-      backgroundColor: "#f87171",
+      backgroundColor: "#d4715f",
     },
   },
   ghost: {
     base: {
       backgroundColor: "transparent",
-      color: "#94a3b8",
+      color: "#a99bc2",
       border: "none",
     },
     hover: {
-      backgroundColor: "#1e1e2e",
-      color: "#f8fafc",
+      backgroundColor: "#2a1845",
+      color: "#eee8f5",
     },
   },
 };
@@ -98,8 +98,8 @@ function Button({
           style={{
             width: "18px",
             height: "18px",
-            border: "2px solid rgba(255,255,255,0.3)",
-            borderTop: "2px solid #ffffff",
+            border: "2px solid rgba(238,232,245,0.3)",
+            borderTop: "2px solid #eee8f5",
             borderRadius: "50%",
             animation: "spin 0.8s linear infinite",
           }}

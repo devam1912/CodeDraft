@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+﻿import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from "recharts";
@@ -10,24 +10,24 @@ import Card from "../components/ui/Card";
 import NotificationBell from "../components/ui/NotificationBell";
 import toast from "react-hot-toast";
 
-const PAGE_STYLE = { minHeight: "100vh", display: "flex", flexDirection: "column", backgroundColor: "#0a0a0f", color: "#f8fafc", fontFamily: "Inter, sans-serif" };
-const NAV_STYLE = { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "20px 40px", borderBottom: "1px solid #1e1e2e", backdropFilter: "blur(12px)", backgroundColor: "rgba(10, 10, 15, 0.8)", position: "relative", zIndex: 100 };
-const LOGO_STYLE = { fontSize: "24px", fontWeight: 800, background: "linear-gradient(135deg, #6366f1, #22d3ee)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", letterSpacing: "-0.02em" };
+const PAGE_STYLE = { minHeight: "100vh", display: "flex", flexDirection: "column", backgroundColor: "#120b22", color: "#eee8f5", fontFamily: "Inter, sans-serif" };
+const NAV_STYLE = { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "20px 40px", borderBottom: "1px solid #2a1845", backdropFilter: "blur(12px)", backgroundColor: "rgba(13, 8, 24, 0.8)", position: "relative", zIndex: 100 };
+const LOGO_STYLE = { fontSize: "24px", fontWeight: 800, background: "linear-gradient(135deg, #7e5dbd, #d4a053)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", letterSpacing: "-0.02em" };
 const CONTENT_STYLE = { flex: 1, padding: "40px", maxWidth: "1200px", margin: "0 auto", width: "100%" };
 const GREETING_STYLE = { fontSize: "28px", fontWeight: 700, marginBottom: "8px" };
-const SUBTEXT_STYLE = { fontSize: "14px", color: "#94a3b8", marginBottom: "32px" };
-const ELO_DISPLAY = { fontSize: "56px", fontWeight: 800, fontFamily: "JetBrains Mono, monospace", background: "linear-gradient(135deg, #6366f1, #22d3ee)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", lineHeight: 1 };
-const ELO_LABEL = { fontSize: "12px", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.08em", marginTop: "6px" };
-const RANK_BADGE = { display: "inline-block", fontSize: "11px", fontWeight: 700, color: "#6366f1", backgroundColor: "rgba(99,102,241,0.12)", border: "1px solid rgba(99,102,241,0.3)", borderRadius: "6px", padding: "2px 8px", marginTop: "8px" };
+const SUBTEXT_STYLE = { fontSize: "14px", color: "#a99bc2", marginBottom: "32px" };
+const ELO_DISPLAY = { fontSize: "56px", fontWeight: 800, fontFamily: "JetBrains Mono, monospace", background: "linear-gradient(135deg, #7e5dbd, #d4a053)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", lineHeight: 1 };
+const ELO_LABEL = { fontSize: "12px", color: "#7a6b94", textTransform: "uppercase", letterSpacing: "0.08em", marginTop: "6px" };
+const RANK_BADGE = { display: "inline-block", fontSize: "11px", fontWeight: 700, color: "#7e5dbd", backgroundColor: "rgba(126,93,189,0.12)", border: "1px solid rgba(126,93,189,0.3)", borderRadius: "6px", padding: "2px 8px", marginTop: "8px" };
 const STATS_GRID = { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px", marginTop: "20px" };
 const STAT_VALUE = { fontSize: "22px", fontWeight: 700, fontFamily: "JetBrains Mono, monospace" };
-const STAT_LABEL_STYLE = { fontSize: "11px", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em", marginTop: "2px" };
-const EMPTY_STATE = { textAlign: "center", padding: "48px 24px", color: "#94a3b8" };
+const STAT_LABEL_STYLE = { fontSize: "11px", color: "#7a6b94", textTransform: "uppercase", letterSpacing: "0.06em", marginTop: "2px" };
+const EMPTY_STATE = { textAlign: "center", padding: "48px 24px", color: "#a99bc2" };
 const EMPTY_ICON = { fontSize: "40px", marginBottom: "12px" };
-const EMPTY_HEADING = { fontSize: "16px", fontWeight: 600, color: "#f8fafc", marginBottom: "6px" };
-const EMPTY_DESC = { fontSize: "13px", color: "#94a3b8", marginBottom: "20px" };
-const SECTION_HEADING = { fontSize: "16px", fontWeight: 600, marginBottom: "16px", marginTop: "32px", color: "#f8fafc", display: "flex", alignItems: "center", gap: "8px" };
-const DIFF_BADGE = (d) => ({ fontSize: "10px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", padding: "2px 7px", borderRadius: "4px", backgroundColor: d === "easy" ? "rgba(16,185,129,0.12)" : d === "medium" ? "rgba(245,158,11,0.12)" : "rgba(239,68,68,0.12)", color: d === "easy" ? "#10b981" : d === "medium" ? "#f59e0b" : "#ef4444", border: "1px solid", borderColor: d === "easy" ? "rgba(16,185,129,0.3)" : d === "medium" ? "rgba(245,158,11,0.3)" : "rgba(239,68,68,0.3)" });
+const EMPTY_HEADING = { fontSize: "16px", fontWeight: 600, color: "#eee8f5", marginBottom: "6px" };
+const EMPTY_DESC = { fontSize: "13px", color: "#a99bc2", marginBottom: "20px" };
+const SECTION_HEADING = { fontSize: "16px", fontWeight: 600, marginBottom: "16px", marginTop: "32px", color: "#eee8f5", display: "flex", alignItems: "center", gap: "8px" };
+const DIFF_BADGE = (d) => ({ fontSize: "10px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", padding: "2px 7px", borderRadius: "4px", backgroundColor: d === "easy" ? "rgba(93,184,133,0.12)" : d === "medium" ? "rgba(212,160,83,0.12)" : "rgba(199,92,74,0.12)", color: d === "easy" ? "#5db885" : d === "medium" ? "#d4a053" : "#c75c4a", border: "1px solid", borderColor: d === "easy" ? "rgba(93,184,133,0.3)" : d === "medium" ? "rgba(212,160,83,0.3)" : "rgba(199,92,74,0.3)" });
 
 const containerVariants = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.07 } } };
 const itemVariants = { hidden: { opacity: 0, y: 14 }, visible: { opacity: 1, y: 0, transition: { duration: 0.3 } } };
@@ -35,8 +35,8 @@ const itemVariants = { hidden: { opacity: 0, y: 14 }, visible: { opacity: 1, y: 
 const CustomTooltip = ({ active, payload }) => {
   if (active && payload && payload.length) {
     return (
-      <div style={{ backgroundColor: "#111118", border: "1px solid #1e1e2e", borderRadius: "8px", padding: "8px 12px", fontFamily: "JetBrains Mono, monospace", fontSize: "12px" }}>
-        <div style={{ color: "#a5b4fc", fontWeight: 700 }}>ELO: {payload[0].value}</div>
+      <div style={{ backgroundColor: "#1a1030", border: "1px solid #2a1845", borderRadius: "8px", padding: "8px 12px", fontFamily: "JetBrains Mono, monospace", fontSize: "12px" }}>
+        <div style={{ color: "#b49fdb", fontWeight: 700 }}>ELO: {payload[0].value}</div>
       </div>
     );
   }
@@ -293,22 +293,22 @@ function Dashboard() {
           <span style={LOGO_STYLE}>CodeDraft</span>
         </Link>
         <div style={{ display: "flex", gap: "20px", alignItems: "center" }}>
-          <Link to="/leaderboard" style={{ textDecoration: "none", color: "#94a3b8", fontSize: "14px" }}>Leaderboard</Link>
+          <Link to="/leaderboard" style={{ textDecoration: "none", color: "#a99bc2", fontSize: "14px" }}>Leaderboard</Link>
           <NotificationBell />
-          <span style={{ color: "#1e1e2e" }}>|</span>
-          <span style={{ color: "#94a3b8", fontSize: "14px" }}>{displayUser?.username}</span>
+          <span style={{ color: "#2a1845" }}>|</span>
+          <span style={{ color: "#a99bc2", fontSize: "14px" }}>{displayUser?.username}</span>
           <Button variant="ghost" size="sm" onClick={handleLogout}>Log Out</Button>
         </div>
       </nav>
 
-      <div style={{ backgroundColor: "#111118", borderBottom: "1px solid #1e1e2e", padding: "10px 20px", display: "flex", alignItems: "center", gap: "12px", overflow: "hidden" }}>
-        <span style={{ fontSize: "11px", fontWeight: 700, textTransform: "uppercase", color: "#6366f1", letterSpacing: "0.08em", display: "flex", alignItems: "center", gap: "6px", borderRight: "1px solid #1e1e2e", paddingRight: "12px", whiteSpace: "nowrap" }}>
-          <span style={{ width: "8px", height: "8px", backgroundColor: "#10b981", borderRadius: "50%", display: "inline-block" }} /> Live Feed
+      <div style={{ backgroundColor: "#1a1030", borderBottom: "1px solid #2a1845", padding: "10px 20px", display: "flex", alignItems: "center", gap: "12px", overflow: "hidden" }}>
+        <span style={{ fontSize: "11px", fontWeight: 700, textTransform: "uppercase", color: "#7e5dbd", letterSpacing: "0.08em", display: "flex", alignItems: "center", gap: "6px", borderRight: "1px solid #2a1845", paddingRight: "12px", whiteSpace: "nowrap" }}>
+          <span style={{ width: "8px", height: "8px", backgroundColor: "#5db885", borderRadius: "50%", display: "inline-block" }} /> Live Feed
         </span>
-        <div style={{ display: "flex", gap: "32px", overflowX: "auto", fontSize: "12px", color: "#94a3b8", fontFamily: "JetBrains Mono, monospace" }}>
+        <div style={{ display: "flex", gap: "32px", overflowX: "auto", fontSize: "12px", color: "#a99bc2", fontFamily: "JetBrains Mono, monospace" }}>
           {activities.map((act) => (
             <span key={act.id} style={{ display: "inline-flex", alignItems: "center", gap: "6px", whiteSpace: "nowrap" }}>
-              <span style={{ color: "#6366f1" }}>✦</span>
+              <span style={{ color: "#7e5dbd" }}>âœ¦</span>
               {act.message}
             </span>
           ))}
@@ -318,20 +318,20 @@ function Dashboard() {
       <motion.div style={CONTENT_STYLE} variants={containerVariants} initial="hidden" animate="visible">
         <motion.div variants={itemVariants} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px", width: "100%", flexWrap: "wrap", gap: "16px" }}>
           <div>
-            <div style={GREETING_STYLE}>Welcome back, {displayUser?.username || "Challenger"} 👋</div>
+            <div style={GREETING_STYLE}>Welcome back, {displayUser?.username || "Challenger"} ðŸ‘‹</div>
             <div style={SUBTEXT_STYLE}>Track your performance, review matches, and challenge opponents.</div>
           </div>
           <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
-            <Button onClick={() => setShowJoinModal(true)} variant="ghost" style={{ padding: "12px 24px" }}>🎮 Join Room</Button>
-            <Button onClick={() => setShowCreateModal(true)} variant="primary" style={{ padding: "12px 24px" }}>⚔️ Create Battle</Button>
+            <Button onClick={() => setShowJoinModal(true)} variant="ghost" style={{ padding: "12px 24px" }}>ðŸŽ® Join Room</Button>
+            <Button onClick={() => setShowCreateModal(true)} variant="primary" style={{ padding: "12px 24px" }}>âš”ï¸ Create Battle</Button>
           </div>
         </motion.div>
 
-        <motion.div variants={itemVariants} style={{ display: "flex", gap: "12px", borderBottom: "1px solid #1e1e2e", paddingBottom: "12px", marginBottom: "24px", flexWrap: "wrap" }}>
+        <motion.div variants={itemVariants} style={{ display: "flex", gap: "12px", borderBottom: "1px solid #2a1845", paddingBottom: "12px", marginBottom: "24px", flexWrap: "wrap" }}>
           {[
-            { id: "dashboard", label: "👤 My Dashboard", color: "#6366f1" },
-            { id: "friends", label: `👥 Friends${friendRequests.length > 0 ? ` (${friendRequests.length})` : ""}`, color: "#22d3ee" },
-            { id: "telemetry", label: "📊 System Telemetry", color: "#22d3ee" },
+            { id: "dashboard", label: "ðŸ‘¤ My Dashboard", color: "#7e5dbd" },
+            { id: "friends", label: `ðŸ‘¥ Friends${friendRequests.length > 0 ? ` (${friendRequests.length})` : ""}`, color: "#d4a053" },
+            { id: "telemetry", label: "ðŸ“Š System Telemetry", color: "#d4a053" },
           ].map(tab => (
             <button
               key={tab.id}
@@ -340,7 +340,7 @@ function Dashboard() {
                 padding: "8px 16px", borderRadius: "8px",
                 backgroundColor: activeTab === tab.id ? `${tab.color}22` : "transparent",
                 border: activeTab === tab.id ? `1px solid ${tab.color}` : "1px solid transparent",
-                color: activeTab === tab.id ? tab.color : "#94a3b8",
+                color: activeTab === tab.id ? tab.color : "#a99bc2",
                 fontWeight: 600, cursor: "pointer", transition: "all 0.2s", fontSize: "14px",
               }}
             >
@@ -353,15 +353,15 @@ function Dashboard() {
           <>
             <motion.div style={{ display: "grid", gridTemplateColumns: "280px 1fr", gap: "24px" }} variants={itemVariants}>
               <Card style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "16px", marginBottom: "12px", borderBottom: "1px solid #1e1e2e", paddingBottom: "12px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "16px", marginBottom: "12px", borderBottom: "1px solid #2a1845", paddingBottom: "12px" }}>
                   <div 
                     onClick={() => setShowAvatarModal(true)}
                     style={{ 
                       width: "60px", 
                       height: "60px", 
                       borderRadius: "50%", 
-                      backgroundColor: "rgba(99,102,241,0.12)", 
-                      border: "2px solid rgba(99,102,241,0.4)", 
+                      backgroundColor: "rgba(126,93,189,0.12)", 
+                      border: "2px solid rgba(126,93,189,0.4)", 
                       display: "flex", 
                       alignItems: "center", 
                       justifyContent: "center", 
@@ -371,26 +371,26 @@ function Dashboard() {
                     }}
                     title="Change Avatar"
                   >
-                    {displayUser?.avatar || "💻"}
+                    {displayUser?.avatar || "ðŸ’»"}
                   </div>
                   <div>
-                    <div style={{ fontSize: "16px", fontWeight: 700, color: "#f8fafc" }}>{displayUser?.username}</div>
+                    <div style={{ fontSize: "16px", fontWeight: 700, color: "#eee8f5" }}>{displayUser?.username}</div>
                     <div 
                       onClick={() => setShowAvatarModal(true)} 
-                      style={{ fontSize: "11px", color: "#6366f1", cursor: "pointer", textDecoration: "underline" }}
+                      style={{ fontSize: "11px", color: "#7e5dbd", cursor: "pointer", textDecoration: "underline" }}
                     >
                       Edit Avatar
                     </div>
                     {displayUser?.collegeVerified ? (
-                      <div style={{ fontSize: "11px", color: "#10b981", fontWeight: 600, marginTop: "4px" }}>
-                        🎓 {displayUser.college} (Verified)
+                      <div style={{ fontSize: "11px", color: "#5db885", fontWeight: 600, marginTop: "4px" }}>
+                        ðŸŽ“ {displayUser.college} (Verified)
                       </div>
                     ) : (
                       <div 
                         onClick={() => setShowVerifyModal(true)} 
-                        style={{ fontSize: "10px", color: "#f59e0b", cursor: "pointer", textDecoration: "underline", marginTop: "4px", fontWeight: 600 }}
+                        style={{ fontSize: "10px", color: "#d4a053", cursor: "pointer", textDecoration: "underline", marginTop: "4px", fontWeight: 600 }}
                       >
-                        🎓 Verify College
+                        ðŸŽ“ Verify College
                       </div>
                     )}
                   </div>
@@ -399,48 +399,48 @@ function Dashboard() {
                 <div style={ELO_LABEL}>ELO Rating</div>
                 {globalRank && <div style={RANK_BADGE}>Global Rank #{globalRank}</div>}
                 <div style={STATS_GRID}>
-                  <div style={{ backgroundColor: "#0a0a0f", borderRadius: "8px", padding: "10px", textAlign: "center" }}>
-                    <div style={{ ...STAT_VALUE, color: "#10b981" }}>{displayUser?.wins || 0}</div>
+                  <div style={{ backgroundColor: "#120b22", borderRadius: "8px", padding: "10px", textAlign: "center" }}>
+                    <div style={{ ...STAT_VALUE, color: "#5db885" }}>{displayUser?.wins || 0}</div>
                     <div style={STAT_LABEL_STYLE}>Wins</div>
                   </div>
-                  <div style={{ backgroundColor: "#0a0a0f", borderRadius: "8px", padding: "10px", textAlign: "center" }}>
-                    <div style={{ ...STAT_VALUE, color: "#ef4444" }}>{displayUser?.losses || 0}</div>
+                  <div style={{ backgroundColor: "#120b22", borderRadius: "8px", padding: "10px", textAlign: "center" }}>
+                    <div style={{ ...STAT_VALUE, color: "#c75c4a" }}>{displayUser?.losses || 0}</div>
                     <div style={STAT_LABEL_STYLE}>Losses</div>
                   </div>
-                  <div style={{ backgroundColor: "#0a0a0f", borderRadius: "8px", padding: "10px", textAlign: "center" }}>
-                    <div style={{ ...STAT_VALUE, color: "#f59e0b" }}>{displayUser?.draws || 0}</div>
+                  <div style={{ backgroundColor: "#120b22", borderRadius: "8px", padding: "10px", textAlign: "center" }}>
+                    <div style={{ ...STAT_VALUE, color: "#d4a053" }}>{displayUser?.draws || 0}</div>
                     <div style={STAT_LABEL_STYLE}>Draws</div>
                   </div>
                 </div>
-                <div style={{ marginTop: "12px", padding: "10px", backgroundColor: "#0a0a0f", borderRadius: "8px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <span style={{ fontSize: "12px", color: "#64748b" }}>Win Rate</span>
-                  <span style={{ fontFamily: "JetBrains Mono, monospace", fontSize: "14px", fontWeight: 700, color: winPct >= 50 ? "#10b981" : "#ef4444" }}>{winPct}%</span>
+                <div style={{ marginTop: "12px", padding: "10px", backgroundColor: "#120b22", borderRadius: "8px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={{ fontSize: "12px", color: "#7a6b94" }}>Win Rate</span>
+                  <span style={{ fontFamily: "JetBrains Mono, monospace", fontSize: "14px", fontWeight: 700, color: winPct >= 50 ? "#5db885" : "#c75c4a" }}>{winPct}%</span>
                 </div>
 
-                <div style={{ marginTop: "12px", padding: "12px", backgroundColor: "#0a0a0f", borderRadius: "8px", display: "flex", flexDirection: "column", gap: "6px" }}>
-                  {profile?.degree && <div style={{ fontSize: "12px", color: "#94a3b8" }}>🎓 {profile.degree}{profile?.year ? ` · ${profile.year} Year` : ""}</div>}
-                  {profile?.college && !displayUser?.collegeVerified && <div style={{ fontSize: "12px", color: "#94a3b8" }}>🏛 {profile.college}</div>}
-                  {profile?.bio && <div style={{ fontSize: "12px", color: "#94a3b8", fontStyle: "italic", lineHeight: 1.4 }}>"{profile.bio}"</div>}
+                <div style={{ marginTop: "12px", padding: "12px", backgroundColor: "#120b22", borderRadius: "8px", display: "flex", flexDirection: "column", gap: "6px" }}>
+                  {profile?.degree && <div style={{ fontSize: "12px", color: "#a99bc2" }}>ðŸŽ“ {profile.degree}{profile?.year ? ` Â· ${profile.year} Year` : ""}</div>}
+                  {profile?.college && !displayUser?.collegeVerified && <div style={{ fontSize: "12px", color: "#a99bc2" }}>ðŸ› {profile.college}</div>}
+                  {profile?.bio && <div style={{ fontSize: "12px", color: "#a99bc2", fontStyle: "italic", lineHeight: 1.4 }}>"{profile.bio}"</div>}
                   <button
                     onClick={() => {
                       setProfileForm({ college: profile?.college || "", degree: profile?.degree || "", year: profile?.year || "", bio: profile?.bio || "" });
                       setShowProfileModal(true);
                     }}
-                    style={{ marginTop: "4px", fontSize: "11px", color: "#6366f1", background: "none", border: "none", cursor: "pointer", textAlign: "left", padding: 0, textDecoration: "underline", fontWeight: 600 }}
+                    style={{ marginTop: "4px", fontSize: "11px", color: "#7e5dbd", background: "none", border: "none", cursor: "pointer", textAlign: "left", padding: 0, textDecoration: "underline", fontWeight: 600 }}
                   >
-                    ✏️ Edit Profile
+                    âœï¸ Edit Profile
                   </button>
                 </div>
               </Card>
     
               <Card>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
-                  <span style={{ fontSize: "14px", fontWeight: 600, color: "#f8fafc" }}>ELO History</span>
-                  <span style={{ fontSize: "11px", color: "#64748b", fontFamily: "JetBrains Mono, monospace" }}>Last {chartData.length} matches</span>
+                  <span style={{ fontSize: "14px", fontWeight: 600, color: "#eee8f5" }}>ELO History</span>
+                  <span style={{ fontSize: "11px", color: "#7a6b94", fontFamily: "JetBrains Mono, monospace" }}>Last {chartData.length} matches</span>
                 </div>
                 {chartData.length === 0 ? (
                   <div style={EMPTY_STATE}>
-                    <div style={EMPTY_ICON}>📊</div>
+                    <div style={EMPTY_ICON}>ðŸ“Š</div>
                     <div style={EMPTY_HEADING}>No matches yet</div>
                     <div style={EMPTY_DESC}>Complete your first battle to see your ELO chart appear here.</div>
                   </div>
@@ -449,15 +449,15 @@ function Dashboard() {
                     <AreaChart data={chartData} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
                       <defs>
                         <linearGradient id="eloGradient" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3} />
-                          <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+                          <stop offset="5%" stopColor="#7e5dbd" stopOpacity={0.3} />
+                          <stop offset="95%" stopColor="#7e5dbd" stopOpacity={0} />
                         </linearGradient>
                       </defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#1e1e2e" />
-                      <XAxis dataKey="match" tick={{ fill: "#64748b", fontSize: 11 }} axisLine={false} tickLine={false} />
-                      <YAxis tick={{ fill: "#64748b", fontSize: 11 }} axisLine={false} tickLine={false} domain={["auto", "auto"]} />
+                      <CartesianGrid strokeDasharray="3 3" stroke="#2a1845" />
+                      <XAxis dataKey="match" tick={{ fill: "#7a6b94", fontSize: 11 }} axisLine={false} tickLine={false} />
+                      <YAxis tick={{ fill: "#7a6b94", fontSize: 11 }} axisLine={false} tickLine={false} domain={["auto", "auto"]} />
                       <Tooltip content={<CustomTooltip />} />
-                      <Area type="monotone" dataKey="elo" stroke="#6366f1" strokeWidth={2} fill="url(#eloGradient)" dot={{ fill: "#6366f1", r: 3, strokeWidth: 0 }} activeDot={{ r: 5, fill: "#a5b4fc" }} />
+                      <Area type="monotone" dataKey="elo" stroke="#7e5dbd" strokeWidth={2} fill="url(#eloGradient)" dot={{ fill: "#7e5dbd", r: 3, strokeWidth: 0 }} activeDot={{ r: 5, fill: "#b49fdb" }} />
                     </AreaChart>
                   </ResponsiveContainer>
                 )}
@@ -466,12 +466,12 @@ function Dashboard() {
     
             <motion.div variants={itemVariants}>
               <div style={SECTION_HEADING}>
-                <span>✍️</span> Problems Created
+                <span>âœï¸</span> Problems Created
               </div>
               {problems.length === 0 ? (
                 <Card>
                   <div style={EMPTY_STATE}>
-                    <div style={EMPTY_ICON}>✍️</div>
+                    <div style={EMPTY_ICON}>âœï¸</div>
                     <div style={EMPTY_HEADING}>No problems created</div>
                     <div style={EMPTY_DESC}>Create a room to write your first battle problem and challenge opponents.</div>
                     <Button size="md" onClick={() => setShowCreateModal(true)}>Create a Room</Button>
@@ -482,15 +482,15 @@ function Dashboard() {
                   {problems.map((prob) => (
                     <Card key={prob.roomId} style={{ display: "flex", flexDirection: "column", gap: "10px", padding: "18px" }}>
                       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "8px" }}>
-                        <span style={{ fontSize: "14px", fontWeight: 600, color: "#f8fafc", lineHeight: 1.3 }}>{prob.title}</span>
+                        <span style={{ fontSize: "14px", fontWeight: 600, color: "#eee8f5", lineHeight: 1.3 }}>{prob.title}</span>
                         <span style={DIFF_BADGE(prob.difficulty)}>{prob.difficulty}</span>
                       </div>
-                      <div style={{ fontSize: "11px", color: "#64748b", fontFamily: "JetBrains Mono, monospace" }}>
+                      <div style={{ fontSize: "11px", color: "#7a6b94", fontFamily: "JetBrains Mono, monospace" }}>
                         {prob.allowedLanguages?.join(", ")}
                       </div>
                       <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                        <span style={{ fontSize: "11px", color: "#64748b" }}>Battles:</span>
-                        <span style={{ fontSize: "12px", fontWeight: 700, fontFamily: "JetBrains Mono, monospace", color: "#f8fafc" }}>{prob.battlesPlayed}</span>
+                        <span style={{ fontSize: "11px", color: "#7a6b94" }}>Battles:</span>
+                        <span style={{ fontSize: "12px", fontWeight: 700, fontFamily: "JetBrains Mono, monospace", color: "#eee8f5" }}>{prob.battlesPlayed}</span>
                       </div>
                     </Card>
                   ))}
@@ -500,12 +500,12 @@ function Dashboard() {
     
             <motion.div variants={itemVariants}>
               <div style={SECTION_HEADING}>
-                <span>⚔️</span> Match History
+                <span>âš”ï¸</span> Match History
               </div>
               {matchHistory.length === 0 ? (
                 <Card>
                   <div style={EMPTY_STATE}>
-                    <div style={EMPTY_ICON}>⚔️</div>
+                    <div style={EMPTY_ICON}>âš”ï¸</div>
                     <div style={EMPTY_HEADING}>No matches yet</div>
                     <div style={EMPTY_DESC}>You haven&apos;t battled yet. Create a room to start your journey.</div>
                   </div>
@@ -515,29 +515,29 @@ function Dashboard() {
                   <div style={{ overflowX: "auto" }}>
                     <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px" }}>
                       <thead>
-                        <tr style={{ borderBottom: "1px solid #1e1e2e", backgroundColor: "rgba(30,30,46,0.4)" }}>
-                          {["Opponent", "Result", "Problem", "Time", "ELO Δ"].map((h) => (
-                            <th key={h} style={{ padding: "12px 20px", textAlign: "left", fontSize: "11px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em", fontFamily: "JetBrains Mono, monospace" }}>{h}</th>
+                        <tr style={{ borderBottom: "1px solid #2a1845", backgroundColor: "rgba(42,24,69,0.4)" }}>
+                          {["Opponent", "Result", "Problem", "Time", "ELO Î”"].map((h) => (
+                            <th key={h} style={{ padding: "12px 20px", textAlign: "left", fontSize: "11px", fontWeight: 700, color: "#7a6b94", textTransform: "uppercase", letterSpacing: "0.06em", fontFamily: "JetBrains Mono, monospace" }}>{h}</th>
                           ))}
                         </tr>
                       </thead>
                       <tbody>
                         {matchHistory.map((match, i) => {
-                          const resultColor = match.result === "win" ? "#10b981" : match.result === "loss" ? "#ef4444" : "#f59e0b";
-                          const resultBg = match.result === "win" ? "rgba(16,185,129,0.1)" : match.result === "loss" ? "rgba(239,68,68,0.1)" : "rgba(245,158,11,0.1)";
+                          const resultColor = match.result === "win" ? "#5db885" : match.result === "loss" ? "#c75c4a" : "#d4a053";
+                          const resultBg = match.result === "win" ? "rgba(93,184,133,0.1)" : match.result === "loss" ? "rgba(199,92,74,0.1)" : "rgba(212,160,83,0.1)";
                           const eloDelta = match.eloChange;
                           const min = match.durationSec ? Math.floor(match.durationSec / 60) : 0;
                           const sec = match.durationSec ? match.durationSec % 60 : 0;
                           return (
-                            <tr key={match.roomId || i} style={{ borderBottom: "1px solid #1e1e2e" }}>
+                            <tr key={match.roomId || i} style={{ borderBottom: "1px solid #2a1845" }}>
                               <td style={{ padding: "14px 20px" }}>
                                 <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                                  <div style={{ width: "28px", height: "28px", borderRadius: "50%", backgroundColor: "rgba(99,102,241,0.12)", border: "1px solid rgba(99,102,241,0.3)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "10px", fontWeight: 700, color: "#a5b4fc" }}>
+                                  <div style={{ width: "28px", height: "28px", borderRadius: "50%", backgroundColor: "rgba(126,93,189,0.12)", border: "1px solid rgba(126,93,189,0.3)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "10px", fontWeight: 700, color: "#b49fdb" }}>
                                     {match.opponent?.avatar || match.opponent?.username?.slice(0, 2).toUpperCase() || "??"}
                                   </div>
                                   <div>
-                                    <div style={{ fontWeight: 600, color: "#f8fafc" }}>{match.opponent?.username || "Unknown"}</div>
-                                    <div style={{ fontSize: "11px", color: "#64748b", fontFamily: "JetBrains Mono, monospace" }}>ELO {match.opponent?.eloRating || "—"}</div>
+                                    <div style={{ fontWeight: 600, color: "#eee8f5" }}>{match.opponent?.username || "Unknown"}</div>
+                                    <div style={{ fontSize: "11px", color: "#7a6b94", fontFamily: "JetBrains Mono, monospace" }}>ELO {match.opponent?.eloRating || "â€”"}</div>
                                   </div>
                                 </div>
                               </td>
@@ -546,14 +546,14 @@ function Dashboard() {
                                   {match.result}
                                 </span>
                               </td>
-                              <td style={{ padding: "14px 20px", color: "#94a3b8", maxWidth: "160px" }}>
-                                {match.problemTitle || "—"}
+                              <td style={{ padding: "14px 20px", color: "#a99bc2", maxWidth: "160px" }}>
+                                {match.problemTitle || "â€”"}
                               </td>
-                              <td style={{ padding: "14px 20px", fontFamily: "JetBrains Mono, monospace", fontSize: "12px", color: "#94a3b8" }}>
-                                {match.durationSec ? `${String(min).padStart(2, "0")}:${String(sec).padStart(2, "0")}` : "—"}
+                              <td style={{ padding: "14px 20px", fontFamily: "JetBrains Mono, monospace", fontSize: "12px", color: "#a99bc2" }}>
+                                {match.durationSec ? `${String(min).padStart(2, "0")}:${String(sec).padStart(2, "0")}` : "â€”"}
                               </td>
-                              <td style={{ padding: "14px 20px", fontFamily: "JetBrains Mono, monospace", fontWeight: 700, color: eloDelta == null ? "#64748b" : eloDelta >= 0 ? "#10b981" : "#ef4444" }}>
-                                {eloDelta == null ? "—" : eloDelta >= 0 ? `+${eloDelta}` : eloDelta}
+                              <td style={{ padding: "14px 20px", fontFamily: "JetBrains Mono, monospace", fontWeight: 700, color: eloDelta == null ? "#7a6b94" : eloDelta >= 0 ? "#5db885" : "#c75c4a" }}>
+                                {eloDelta == null ? "â€”" : eloDelta >= 0 ? `+${eloDelta}` : eloDelta}
                               </td>
                             </tr>
                           );
@@ -571,8 +571,8 @@ function Dashboard() {
           <motion.div variants={itemVariants} style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
             {/* Add Friends Search */}
             <Card style={{ padding: "24px" }}>
-              <div style={{ fontSize: "14px", fontWeight: 700, color: "#f8fafc", marginBottom: "16px", display: "flex", alignItems: "center", gap: "8px" }}>
-                🔍 Find & Add Friends
+              <div style={{ fontSize: "14px", fontWeight: 700, color: "#eee8f5", marginBottom: "16px", display: "flex", alignItems: "center", gap: "8px" }}>
+                ðŸ” Find & Add Friends
               </div>
               <div style={{ position: "relative" }}>
                 <input
@@ -580,19 +580,19 @@ function Dashboard() {
                   placeholder="Search by username..."
                   value={userSearch}
                   onChange={e => handleSearchUsers(e.target.value)}
-                  style={{ width: "100%", padding: "10px 16px", backgroundColor: "#0a0a0f", border: "1px solid #1e1e2e", borderRadius: "10px", color: "#f8fafc", fontSize: "14px", outline: "none", boxSizing: "border-box" }}
+                  style={{ width: "100%", padding: "10px 16px", backgroundColor: "#120b22", border: "1px solid #2a1845", borderRadius: "10px", color: "#eee8f5", fontSize: "14px", outline: "none", boxSizing: "border-box" }}
                 />
               </div>
-              {searchLoading && <div style={{ fontSize: "12px", color: "#64748b", marginTop: "8px" }}>Searching...</div>}
+              {searchLoading && <div style={{ fontSize: "12px", color: "#7a6b94", marginTop: "8px" }}>Searching...</div>}
               {searchResults.length > 0 && (
                 <div style={{ marginTop: "12px", display: "flex", flexDirection: "column", gap: "8px" }}>
                   {searchResults.map(u => (
-                    <div key={u._id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 14px", backgroundColor: "#0a0a0f", border: "1px solid #1e1e2e", borderRadius: "8px" }}>
+                    <div key={u._id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 14px", backgroundColor: "#120b22", border: "1px solid #2a1845", borderRadius: "8px" }}>
                       <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                        <div style={{ width: "32px", height: "32px", borderRadius: "50%", backgroundColor: "rgba(99,102,241,0.15)", border: "1px solid rgba(99,102,241,0.3)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "13px", fontWeight: 700, color: "#a5b4fc" }}>{u.avatar || u.username.slice(0, 2).toUpperCase()}</div>
+                        <div style={{ width: "32px", height: "32px", borderRadius: "50%", backgroundColor: "rgba(126,93,189,0.15)", border: "1px solid rgba(126,93,189,0.3)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "13px", fontWeight: 700, color: "#b49fdb" }}>{u.avatar || u.username.slice(0, 2).toUpperCase()}</div>
                         <div>
-                          <div style={{ fontWeight: 600, color: "#f8fafc", fontSize: "14px" }}>{u.username}</div>
-                          <div style={{ fontSize: "11px", color: "#64748b" }}>{u.college || "Independent"} · ELO {u.eloRating}</div>
+                          <div style={{ fontWeight: 600, color: "#eee8f5", fontSize: "14px" }}>{u.username}</div>
+                          <div style={{ fontSize: "11px", color: "#7a6b94" }}>{u.college || "Independent"} Â· ELO {u.eloRating}</div>
                         </div>
                       </div>
                       <Button size="sm" onClick={() => handleSendRequest(u.username)}>+ Add Friend</Button>
@@ -605,22 +605,22 @@ function Dashboard() {
             {/* Pending Friend Requests */}
             {friendRequests.length > 0 && (
               <Card style={{ padding: "24px" }}>
-                <div style={{ fontSize: "14px", fontWeight: 700, color: "#f59e0b", marginBottom: "16px", display: "flex", alignItems: "center", gap: "8px" }}>
-                  📩 Pending Requests <span style={{ fontSize: "11px", background: "rgba(245,158,11,0.15)", border: "1px solid rgba(245,158,11,0.3)", color: "#f59e0b", padding: "1px 8px", borderRadius: "999px" }}>{friendRequests.length}</span>
+                <div style={{ fontSize: "14px", fontWeight: 700, color: "#d4a053", marginBottom: "16px", display: "flex", alignItems: "center", gap: "8px" }}>
+                  ðŸ“© Pending Requests <span style={{ fontSize: "11px", background: "rgba(212,160,83,0.15)", border: "1px solid rgba(212,160,83,0.3)", color: "#d4a053", padding: "1px 8px", borderRadius: "999px" }}>{friendRequests.length}</span>
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
                   {friendRequests.map((req, i) => (
-                    <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", backgroundColor: "rgba(245,158,11,0.05)", border: "1px solid rgba(245,158,11,0.2)", borderRadius: "10px" }}>
+                    <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", backgroundColor: "rgba(212,160,83,0.05)", border: "1px solid rgba(212,160,83,0.2)", borderRadius: "10px" }}>
                       <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                        <div style={{ width: "36px", height: "36px", borderRadius: "50%", backgroundColor: "rgba(245,158,11,0.15)", border: "1px solid rgba(245,158,11,0.3)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "14px", fontWeight: 700, color: "#f59e0b" }}>{req.from?.avatar || req.from?.username?.slice(0, 2).toUpperCase()}</div>
+                        <div style={{ width: "36px", height: "36px", borderRadius: "50%", backgroundColor: "rgba(212,160,83,0.15)", border: "1px solid rgba(212,160,83,0.3)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "14px", fontWeight: 700, color: "#d4a053" }}>{req.from?.avatar || req.from?.username?.slice(0, 2).toUpperCase()}</div>
                         <div>
-                          <div style={{ fontWeight: 600, color: "#f8fafc" }}>{req.from?.username}</div>
-                          <div style={{ fontSize: "11px", color: "#64748b" }}>{req.from?.college || "Independent"} · ELO {req.from?.eloRating}</div>
+                          <div style={{ fontWeight: 600, color: "#eee8f5" }}>{req.from?.username}</div>
+                          <div style={{ fontSize: "11px", color: "#7a6b94" }}>{req.from?.college || "Independent"} Â· ELO {req.from?.eloRating}</div>
                         </div>
                       </div>
                       <div style={{ display: "flex", gap: "8px" }}>
-                        <Button size="sm" onClick={() => handleAcceptRequest(req.from?.username)} style={{ background: "linear-gradient(135deg,#10b981,#059669)", color: "#fff", border: "none" }}>✓ Accept</Button>
-                        <Button size="sm" variant="ghost" onClick={() => handleRejectRequest(req.from?.username)}>✗ Reject</Button>
+                        <Button size="sm" onClick={() => handleAcceptRequest(req.from?.username)} style={{ background: "linear-gradient(135deg,#5db885,#4a9e72)", color: "#fff", border: "none" }}>âœ“ Accept</Button>
+                        <Button size="sm" variant="ghost" onClick={() => handleRejectRequest(req.from?.username)}>âœ— Reject</Button>
                       </div>
                     </div>
                   ))}
@@ -630,39 +630,39 @@ function Dashboard() {
 
             {/* Friends List */}
             <Card style={{ padding: "24px" }}>
-              <div style={{ fontSize: "14px", fontWeight: 700, color: "#f8fafc", marginBottom: "16px", display: "flex", alignItems: "center", gap: "8px" }}>
-                👥 My Friends <span style={{ fontSize: "11px", color: "#64748b" }}>({friends.length})</span>
+              <div style={{ fontSize: "14px", fontWeight: 700, color: "#eee8f5", marginBottom: "16px", display: "flex", alignItems: "center", gap: "8px" }}>
+                ðŸ‘¥ My Friends <span style={{ fontSize: "11px", color: "#7a6b94" }}>({friends.length})</span>
               </div>
               {friendsLoading ? (
-                <div style={{ color: "#64748b", fontSize: "13px" }}>Loading friends...</div>
+                <div style={{ color: "#7a6b94", fontSize: "13px" }}>Loading friends...</div>
               ) : friends.length === 0 ? (
                 <div style={EMPTY_STATE}>
-                  <div style={EMPTY_ICON}>🤝</div>
+                  <div style={EMPTY_ICON}>ðŸ¤</div>
                   <div style={EMPTY_HEADING}>No friends yet</div>
                   <div style={EMPTY_DESC}>Search for users above and send a friend request to get started!</div>
                 </div>
               ) : (
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: "12px" }}>
                   {friends.map(f => (
-                    <div key={f._id} style={{ padding: "16px", backgroundColor: "#0a0a0f", border: "1px solid #1e1e2e", borderRadius: "12px", display: "flex", flexDirection: "column", gap: "12px" }}>
+                    <div key={f._id} style={{ padding: "16px", backgroundColor: "#120b22", border: "1px solid #2a1845", borderRadius: "12px", display: "flex", flexDirection: "column", gap: "12px" }}>
                       <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                        <div style={{ width: "40px", height: "40px", borderRadius: "50%", backgroundColor: "rgba(99,102,241,0.12)", border: "2px solid rgba(99,102,241,0.3)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "18px", fontWeight: 700, color: "#a5b4fc" }}>{f.avatar || f.username?.slice(0, 2).toUpperCase()}</div>
+                        <div style={{ width: "40px", height: "40px", borderRadius: "50%", backgroundColor: "rgba(126,93,189,0.12)", border: "2px solid rgba(126,93,189,0.3)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "18px", fontWeight: 700, color: "#b49fdb" }}>{f.avatar || f.username?.slice(0, 2).toUpperCase()}</div>
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontWeight: 700, color: "#f8fafc", fontSize: "14px" }}>{f.username}</div>
-                          <div style={{ fontSize: "11px", color: "#64748b", fontFamily: "JetBrains Mono, monospace" }}>ELO {f.eloRating} {f.degree && `· ${f.degree}`}</div>
-                          {f.college && <div style={{ fontSize: "11px", color: "#94a3b8", marginTop: "2px" }}>🏛 {f.college}</div>}
+                          <div style={{ fontWeight: 700, color: "#eee8f5", fontSize: "14px" }}>{f.username}</div>
+                          <div style={{ fontSize: "11px", color: "#7a6b94", fontFamily: "JetBrains Mono, monospace" }}>ELO {f.eloRating} {f.degree && `Â· ${f.degree}`}</div>
+                          {f.college && <div style={{ fontSize: "11px", color: "#a99bc2", marginTop: "2px" }}>ðŸ› {f.college}</div>}
                         </div>
                       </div>
                       <div style={{ display: "flex", gap: "8px" }}>
                         <Button
                           size="sm"
-                          style={{ flex: 1, background: "linear-gradient(135deg,#6366f1,#818cf8)", color: "#fff", border: "none", fontWeight: 700 }}
+                          style={{ flex: 1, background: "linear-gradient(135deg,#7e5dbd,#9478cc)", color: "#fff", border: "none", fontWeight: 700 }}
                           onClick={() => handleInviteToBattle(f.username)}
                           disabled={invitingFriend === f.username}
                         >
-                          {invitingFriend === f.username ? "Sending..." : "⚔️ Invite to Battle"}
+                          {invitingFriend === f.username ? "Sending..." : "âš”ï¸ Invite to Battle"}
                         </Button>
-                        <Button size="sm" variant="ghost" onClick={() => handleRemoveFriend(f.username)} style={{ color: "#ef4444" }}>✕</Button>
+                        <Button size="sm" variant="ghost" onClick={() => handleRemoveFriend(f.username)} style={{ color: "#c75c4a" }}>âœ•</Button>
                       </div>
                     </div>
                   ))}
@@ -674,49 +674,49 @@ function Dashboard() {
           <motion.div variants={itemVariants} style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
 
             <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "20px" }}>
-              <Card style={{ padding: "20px", display: "flex", flexDirection: "column", gap: "8px", border: "1px solid #1e1e2e", borderRadius: "12px", background: "linear-gradient(135deg, #111118, rgba(99,102,241,0.05))" }}>
-                <span style={{ fontSize: "11px", color: "#818cf8", textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 700 }}>Total Registered Combatants</span>
-                <span style={{ fontSize: "40px", fontWeight: 800, fontFamily: "JetBrains Mono, monospace", background: "linear-gradient(135deg, #a5b4fc, #6366f1)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-                  {telemetry?.totalUsers ?? "—"}
+              <Card style={{ padding: "20px", display: "flex", flexDirection: "column", gap: "8px", border: "1px solid #2a1845", borderRadius: "12px", background: "linear-gradient(135deg, #1a1030, rgba(126,93,189,0.05))" }}>
+                <span style={{ fontSize: "11px", color: "#9478cc", textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 700 }}>Total Registered Combatants</span>
+                <span style={{ fontSize: "40px", fontWeight: 800, fontFamily: "JetBrains Mono, monospace", background: "linear-gradient(135deg, #b49fdb, #7e5dbd)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+                  {telemetry?.totalUsers ?? "â€”"}
                 </span>
-                <span style={{ fontSize: "12px", color: "#64748b" }}>Registered users in database</span>
+                <span style={{ fontSize: "12px", color: "#7a6b94" }}>Registered users in database</span>
               </Card>
-              <Card style={{ padding: "20px", display: "flex", flexDirection: "column", gap: "8px", border: "1px solid #1e1e2e", borderRadius: "12px", background: "linear-gradient(135deg, #111118, rgba(34,211,238,0.05))" }}>
-                <span style={{ fontSize: "11px", color: "#22d3ee", textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 700 }}>Total Battles Completed</span>
-                <span style={{ fontSize: "40px", fontWeight: 800, fontFamily: "JetBrains Mono, monospace", background: "linear-gradient(135deg, #99f6e4, #06b6d4)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-                  {telemetry?.totalRooms ?? "—"}
+              <Card style={{ padding: "20px", display: "flex", flexDirection: "column", gap: "8px", border: "1px solid #2a1845", borderRadius: "12px", background: "linear-gradient(135deg, #1a1030, rgba(212,160,83,0.05))" }}>
+                <span style={{ fontSize: "11px", color: "#d4a053", textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 700 }}>Total Battles Completed</span>
+                <span style={{ fontSize: "40px", fontWeight: 800, fontFamily: "JetBrains Mono, monospace", background: "linear-gradient(135deg, #b49fdb, #7e5dbd)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+                  {telemetry?.totalRooms ?? "â€”"}
                 </span>
-                <span style={{ fontSize: "12px", color: "#64748b" }}>Historical battle instances</span>
+                <span style={{ fontSize: "12px", color: "#7a6b94" }}>Historical battle instances</span>
               </Card>
-              <Card style={{ padding: "20px", display: "flex", flexDirection: "column", gap: "8px", border: "1px solid #1e1e2e", borderRadius: "12px", background: "linear-gradient(135deg, #111118, rgba(16,185,129,0.05))" }}>
-                <span style={{ fontSize: "11px", color: "#34d399", textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 700 }}>Active WebSocket Duels</span>
-                <span style={{ fontSize: "40px", fontWeight: 800, fontFamily: "JetBrains Mono, monospace", background: "linear-gradient(135deg, #a7f3d0, #10b981)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-                  {telemetry?.activeRoomsCount ?? "—"}
+              <Card style={{ padding: "20px", display: "flex", flexDirection: "column", gap: "8px", border: "1px solid #2a1845", borderRadius: "12px", background: "linear-gradient(135deg, #1a1030, rgba(93,184,133,0.05))" }}>
+                <span style={{ fontSize: "11px", color: "#5db885", textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 700 }}>Active WebSocket Duels</span>
+                <span style={{ fontSize: "40px", fontWeight: 800, fontFamily: "JetBrains Mono, monospace", background: "linear-gradient(135deg, #d4c6ea, #5db885)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+                  {telemetry?.activeRoomsCount ?? "â€”"}
                 </span>
-                <span style={{ fontSize: "12px", color: "#64748b" }}>Rooms with status &quot;active&quot;</span>
+                <span style={{ fontSize: "12px", color: "#7a6b94" }}>Rooms with status &quot;active&quot;</span>
               </Card>
             </div>
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px" }}>
               <Card style={{ padding: "24px", display: "flex", flexDirection: "column", gap: "16px" }}>
-                <div style={{ fontSize: "15px", fontWeight: 700, color: "#f8fafc", display: "flex", alignItems: "center", gap: "8px" }}>
-                  <span>💾</span> Sandbox & Node Memory Usage
+                <div style={{ fontSize: "15px", fontWeight: 700, color: "#eee8f5", display: "flex", alignItems: "center", gap: "8px" }}>
+                  <span>ðŸ’¾</span> Sandbox & Node Memory Usage
                 </div>
                 
                 {telemetry?.memory ? (
                   <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", color: "#94a3b8" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", color: "#a99bc2" }}>
                       <span>V8 Heap Used</span>
                       <span style={{ fontFamily: "JetBrains Mono, monospace" }}>
                         {telemetry.memory.heapUsed} MB / {telemetry.memory.heapTotal} MB
                       </span>
                     </div>
-                    <div style={{ width: "100%", height: "8px", backgroundColor: "#0a0a0f", borderRadius: "4px", overflow: "hidden" }}>
+                    <div style={{ width: "100%", height: "8px", backgroundColor: "#120b22", borderRadius: "4px", overflow: "hidden" }}>
                       <div 
                         style={{ 
                           width: `${Math.min(100, Math.round((telemetry.memory.heapUsed / telemetry.memory.heapTotal) * 100))}%`, 
                           height: "100%", 
-                          background: "linear-gradient(90deg, #6366f1, #818cf8)", 
+                          background: "linear-gradient(90deg, #7e5dbd, #9478cc)", 
                           borderRadius: "4px",
                           transition: "width 0.5s ease-in-out" 
                         }} 
@@ -724,23 +724,23 @@ function Dashboard() {
                     </div>
                   </div>
                 ) : (
-                  <div style={{ color: "#64748b", fontSize: "13px" }}>Memory stats loading...</div>
+                  <div style={{ color: "#7a6b94", fontSize: "13px" }}>Memory stats loading...</div>
                 )}
 
                 {telemetry?.memory ? (
                   <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", color: "#94a3b8" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", color: "#a99bc2" }}>
                       <span>System Memory Usage</span>
                       <span style={{ fontFamily: "JetBrains Mono, monospace" }}>
                         {telemetry.memory.totalSystem - telemetry.memory.freeSystem} MB / {telemetry.memory.totalSystem} MB
                       </span>
                     </div>
-                    <div style={{ width: "100%", height: "8px", backgroundColor: "#0a0a0f", borderRadius: "4px", overflow: "hidden" }}>
+                    <div style={{ width: "100%", height: "8px", backgroundColor: "#120b22", borderRadius: "4px", overflow: "hidden" }}>
                       <div 
                         style={{ 
                           width: `${Math.min(100, Math.round(((telemetry.memory.totalSystem - telemetry.memory.freeSystem) / telemetry.memory.totalSystem) * 100))}%`, 
                           height: "100%", 
-                          background: "linear-gradient(90deg, #22d3ee, #06b6d4)", 
+                          background: "linear-gradient(90deg, #d4a053, #7e5dbd)", 
                           borderRadius: "4px",
                           transition: "width 0.5s ease-in-out" 
                         }} 
@@ -750,58 +750,58 @@ function Dashboard() {
                 ) : null}
 
                 {telemetry?.memory ? (
-                  <div style={{ display: "flex", justifyContent: "space-between", padding: "10px", backgroundColor: "#0a0a0f", borderRadius: "8px", fontSize: "12px", border: "1px solid #1e1e2e" }}>
-                    <span style={{ color: "#64748b" }}>Process Resident Set Size (RSS)</span>
-                    <span style={{ fontFamily: "JetBrains Mono, monospace", fontWeight: 700, color: "#f8fafc" }}>{telemetry.memory.rss} MB</span>
+                  <div style={{ display: "flex", justifyContent: "space-between", padding: "10px", backgroundColor: "#120b22", borderRadius: "8px", fontSize: "12px", border: "1px solid #2a1845" }}>
+                    <span style={{ color: "#7a6b94" }}>Process Resident Set Size (RSS)</span>
+                    <span style={{ fontFamily: "JetBrains Mono, monospace", fontWeight: 700, color: "#eee8f5" }}>{telemetry.memory.rss} MB</span>
                   </div>
                 ) : null}
               </Card>
 
               <Card style={{ padding: "24px", display: "flex", flexDirection: "column", gap: "16px" }}>
-                <div style={{ fontSize: "15px", fontWeight: 700, color: "#f8fafc", display: "flex", alignItems: "center", gap: "8px" }}>
-                  <span>⚙️</span> Sandbox CPU & Load Averages
+                <div style={{ fontSize: "15px", fontWeight: 700, color: "#eee8f5", display: "flex", alignItems: "center", gap: "8px" }}>
+                  <span>âš™ï¸</span> Sandbox CPU & Load Averages
                 </div>
                 
                 <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px" }}>
-                    <span style={{ color: "#64748b" }}>CPU Model</span>
-                    <span style={{ color: "#f8fafc", fontWeight: 600, textAlign: "right", maxWidth: "220px", fontSize: "11px" }}>{telemetry?.cpu?.model ?? "—"}</span>
+                    <span style={{ color: "#7a6b94" }}>CPU Model</span>
+                    <span style={{ color: "#eee8f5", fontWeight: 600, textAlign: "right", maxWidth: "220px", fontSize: "11px" }}>{telemetry?.cpu?.model ?? "â€”"}</span>
                   </div>
                   <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px" }}>
-                    <span style={{ color: "#64748b" }}>Processing Cores</span>
-                    <span style={{ fontFamily: "JetBrains Mono, monospace", fontWeight: 700, color: "#f8fafc" }}>{telemetry?.cpu?.cores ?? "—"} Cores</span>
+                    <span style={{ color: "#7a6b94" }}>Processing Cores</span>
+                    <span style={{ fontFamily: "JetBrains Mono, monospace", fontWeight: 700, color: "#eee8f5" }}>{telemetry?.cpu?.cores ?? "â€”"} Cores</span>
                   </div>
                 </div>
 
-                <div style={{ display: "flex", flexDirection: "column", gap: "6px", borderTop: "1px solid #1e1e2e", paddingTop: "12px", marginTop: "4px" }}>
-                  <span style={{ fontSize: "11px", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em", fontWeight: 600 }}>OS Load Averages (1m / 5m / 15m)</span>
+                <div style={{ display: "flex", flexDirection: "column", gap: "6px", borderTop: "1px solid #2a1845", paddingTop: "12px", marginTop: "4px" }}>
+                  <span style={{ fontSize: "11px", color: "#7a6b94", textTransform: "uppercase", letterSpacing: "0.05em", fontWeight: 600 }}>OS Load Averages (1m / 5m / 15m)</span>
                   {telemetry?.cpu?.loadAvg ? (
                     <div style={{ display: "flex", gap: "10px", marginTop: "4px" }}>
                       {telemetry.cpu.loadAvg.map((load, i) => (
-                        <div key={i} style={{ flex: 1, backgroundColor: "#0a0a0f", border: "1px solid #1e1e2e", borderRadius: "8px", padding: "10px", textAlign: "center" }}>
-                          <div style={{ fontSize: "18px", fontWeight: 700, fontFamily: "JetBrains Mono, monospace", color: load > 2 ? "#ef4444" : "#10b981" }}>{load.toFixed(2)}</div>
-                          <div style={{ fontSize: "9px", color: "#64748b", textTransform: "uppercase", marginTop: "2px" }}>{i === 0 ? "1 min" : i === 1 ? "5 min" : "15 min"}</div>
+                        <div key={i} style={{ flex: 1, backgroundColor: "#120b22", border: "1px solid #2a1845", borderRadius: "8px", padding: "10px", textAlign: "center" }}>
+                          <div style={{ fontSize: "18px", fontWeight: 700, fontFamily: "JetBrains Mono, monospace", color: load > 2 ? "#c75c4a" : "#5db885" }}>{load.toFixed(2)}</div>
+                          <div style={{ fontSize: "9px", color: "#7a6b94", textTransform: "uppercase", marginTop: "2px" }}>{i === 0 ? "1 min" : i === 1 ? "5 min" : "15 min"}</div>
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <div style={{ color: "#64748b", fontSize: "12px" }}>Load averages not available</div>
+                    <div style={{ color: "#7a6b94", fontSize: "12px" }}>Load averages not available</div>
                   )}
                 </div>
               </Card>
             </div>
 
             <Card style={{ padding: 0, overflow: "hidden" }}>
-              <div style={{ padding: "20px 24px", borderBottom: "1px solid #1e1e2e", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span style={{ fontSize: "15px", fontWeight: 700, color: "#f8fafc", display: "flex", alignItems: "center", gap: "8px" }}>
-                  <span>✍️</span> Rapid Problem Creators Audit
+              <div style={{ padding: "20px 24px", borderBottom: "1px solid #2a1845", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span style={{ fontSize: "15px", fontWeight: 700, color: "#eee8f5", display: "flex", alignItems: "center", gap: "8px" }}>
+                  <span>âœï¸</span> Rapid Problem Creators Audit
                 </span>
-                <span style={{ fontSize: "11px", color: "#64748b", fontFamily: "JetBrains Mono, monospace" }}>Database aggregates</span>
+                <span style={{ fontSize: "11px", color: "#7a6b94", fontFamily: "JetBrains Mono, monospace" }}>Database aggregates</span>
               </div>
               
               {!telemetry?.creatorsAudit || telemetry.creatorsAudit.length === 0 ? (
                 <div style={{ ...EMPTY_STATE, padding: "40px" }}>
-                  <div style={EMPTY_ICON}>📭</div>
+                  <div style={EMPTY_ICON}>ðŸ“­</div>
                   <div style={EMPTY_HEADING}>No problem creators found</div>
                   <div style={EMPTY_DESC}>User-generated battles will aggregate here.</div>
                 </div>
@@ -809,9 +809,9 @@ function Dashboard() {
                 <div style={{ overflowX: "auto" }}>
                   <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px" }}>
                     <thead>
-                      <tr style={{ borderBottom: "1px solid #1e1e2e", backgroundColor: "rgba(30,30,46,0.4)" }}>
+                      <tr style={{ borderBottom: "1px solid #2a1845", backgroundColor: "rgba(42,24,69,0.4)" }}>
                         {["Rank", "Creator", "College / Institution", "Battles Written", "ELO Rating"].map((h) => (
-                          <th key={h} style={{ padding: "12px 24px", textAlign: "left", fontSize: "11px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em", fontFamily: "JetBrains Mono, monospace" }}>{h}</th>
+                          <th key={h} style={{ padding: "12px 24px", textAlign: "left", fontSize: "11px", fontWeight: 700, color: "#7a6b94", textTransform: "uppercase", letterSpacing: "0.06em", fontFamily: "JetBrains Mono, monospace" }}>{h}</th>
                         ))}
                       </tr>
                     </thead>
@@ -819,26 +819,26 @@ function Dashboard() {
                       {telemetry.creatorsAudit.map((creator, i) => (
                         <tr 
                           key={creator._id || i} 
-                          style={{ borderBottom: "1px solid #1e1e2e" }}
+                          style={{ borderBottom: "1px solid #2a1845" }}
                         >
-                          <td style={{ padding: "14px 24px", fontFamily: "JetBrains Mono, monospace", fontWeight: 700, color: i === 0 ? "#f59e0b" : i === 1 ? "#cbd5e1" : i === 2 ? "#b45309" : "#64748b" }}>
+                          <td style={{ padding: "14px 24px", fontFamily: "JetBrains Mono, monospace", fontWeight: 700, color: i === 0 ? "#d4a053" : i === 1 ? "#b49fdb" : i === 2 ? "#8b4513" : "#7a6b94" }}>
                             #{i + 1}
                           </td>
                           <td style={{ padding: "14px 24px" }}>
                             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                              <div style={{ width: "28px", height: "28px", borderRadius: "50%", backgroundColor: "rgba(34,211,238,0.1)", border: "1px solid rgba(34,211,238,0.2)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "12px" }}>
-                                👤
+                              <div style={{ width: "28px", height: "28px", borderRadius: "50%", backgroundColor: "rgba(212,160,83,0.1)", border: "1px solid rgba(212,160,83,0.2)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "12px" }}>
+                                ðŸ‘¤
                               </div>
-                              <span style={{ fontWeight: 600, color: "#f8fafc" }}>{creator.username || "Anonymous"}</span>
+                              <span style={{ fontWeight: 600, color: "#eee8f5" }}>{creator.username || "Anonymous"}</span>
                             </div>
                           </td>
-                          <td style={{ padding: "14px 24px", color: creator.college ? "#10b981" : "#64748b", fontWeight: creator.college ? 600 : 400 }}>
-                            {creator.college ? `🎓 ${creator.college}` : "Independent"}
+                          <td style={{ padding: "14px 24px", color: creator.college ? "#5db885" : "#7a6b94", fontWeight: creator.college ? 600 : 400 }}>
+                            {creator.college ? `ðŸŽ“ ${creator.college}` : "Independent"}
                           </td>
-                          <td style={{ padding: "14px 24px", fontFamily: "JetBrains Mono, monospace", fontWeight: 700, color: "#a5b4fc" }}>
+                          <td style={{ padding: "14px 24px", fontFamily: "JetBrains Mono, monospace", fontWeight: 700, color: "#b49fdb" }}>
                             {creator.problemsCount} Problems
                           </td>
-                          <td style={{ padding: "14px 24px", fontFamily: "JetBrains Mono, monospace", fontWeight: 700, color: "#22d3ee" }}>
+                          <td style={{ padding: "14px 24px", fontFamily: "JetBrains Mono, monospace", fontWeight: 700, color: "#d4a053" }}>
                             {creator.eloRating}
                           </td>
                         </tr>
@@ -854,11 +854,11 @@ function Dashboard() {
       </motion.div>
 
       {showAvatarModal && (
-        <div style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.8)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", zIndex: 100, justifyContent: "center" }}>
-          <div style={{ backgroundColor: "#111118", border: "1px solid #1e1e2e", borderRadius: "16px", padding: "24px", maxWidth: "360px", width: "100%", textAlign: "center" }}>
-            <h3 style={{ fontSize: "18px", fontWeight: 700, marginBottom: "16px", color: "#f8fafc" }}>Select Gaming Avatar</h3>
+        <div style={{ position: "fixed", inset: 0, backgroundColor: "rgba(5,3,12,0.85)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", zIndex: 100, justifyContent: "center" }}>
+          <div style={{ backgroundColor: "#1a1030", border: "1px solid #2a1845", borderRadius: "16px", padding: "24px", maxWidth: "360px", width: "100%", textAlign: "center" }}>
+            <h3 style={{ fontSize: "18px", fontWeight: 700, marginBottom: "16px", color: "#eee8f5" }}>Select Gaming Avatar</h3>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "14px", marginBottom: "20px" }}>
-              {["💻", "🔥", "⚡", "🏆", "💀", "👾", "🤖", "🐼"].map((avatar) => (
+              {["ðŸ’»", "ðŸ”¥", "âš¡", "ðŸ†", "ðŸ’€", "ðŸ‘¾", "ðŸ¤–", "ðŸ¼"].map((avatar) => (
                 <button
                   key={avatar}
                   onClick={() => handleUpdateAvatar(avatar)}
@@ -866,8 +866,8 @@ function Dashboard() {
                     fontSize: "32px",
                     padding: "10px",
                     borderRadius: "12px",
-                    backgroundColor: displayUser?.avatar === avatar ? "rgba(99,102,241,0.2)" : "#0a0a0f",
-                    border: displayUser?.avatar === avatar ? "2px solid #6366f1" : "1px solid #1e1e2e",
+                    backgroundColor: displayUser?.avatar === avatar ? "rgba(126,93,189,0.2)" : "#120b22",
+                    border: displayUser?.avatar === avatar ? "2px solid #7e5dbd" : "1px solid #2a1845",
                     cursor: "pointer",
                     transition: "all 0.15s",
                   }}
@@ -883,16 +883,16 @@ function Dashboard() {
       )}
 
       {showJoinModal && (
-        <div style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.8)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", zIndex: 100, justifyContent: "center" }}>
-          <div style={{ backgroundColor: "#111118", border: "1px solid #1e1e2e", borderRadius: "16px", padding: "32px", maxWidth: "420px", width: "100%" }}>
+        <div style={{ position: "fixed", inset: 0, backgroundColor: "rgba(5,3,12,0.85)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", zIndex: 100, justifyContent: "center" }}>
+          <div style={{ backgroundColor: "#1a1030", border: "1px solid #2a1845", borderRadius: "16px", padding: "32px", maxWidth: "420px", width: "100%" }}>
             <div style={{ textAlign: "center", marginBottom: "24px" }}>
-              <div style={{ fontSize: "40px", marginBottom: "12px" }}>🎮</div>
-              <h3 style={{ fontSize: "20px", fontWeight: 700, color: "#f8fafc", marginBottom: "6px" }}>Join Battle Room</h3>
-              <p style={{ fontSize: "13px", color: "#64748b" }}>Enter the Room ID shared by your opponent to enter their battle lobby.</p>
+              <div style={{ fontSize: "40px", marginBottom: "12px" }}>ðŸŽ®</div>
+              <h3 style={{ fontSize: "20px", fontWeight: 700, color: "#eee8f5", marginBottom: "6px" }}>Join Battle Room</h3>
+              <p style={{ fontSize: "13px", color: "#7a6b94" }}>Enter the Room ID shared by your opponent to enter their battle lobby.</p>
             </div>
 
             <div style={{ marginBottom: "24px" }}>
-              <label style={{ fontSize: "11px", color: "#64748b", textTransform: "uppercase", fontWeight: 600, letterSpacing: "0.08em", display: "block", marginBottom: "8px" }}>Room ID</label>
+              <label style={{ fontSize: "11px", color: "#7a6b94", textTransform: "uppercase", fontWeight: 600, letterSpacing: "0.08em", display: "block", marginBottom: "8px" }}>Room ID</label>
               <input
                 type="text"
                 value={joinRoomId}
@@ -904,9 +904,9 @@ function Dashboard() {
                   width: "100%",
                   padding: "14px 16px",
                   borderRadius: "12px",
-                  backgroundColor: "#0a0a0f",
-                  border: "1px solid #1e1e2e",
-                  color: "#f8fafc",
+                  backgroundColor: "#120b22",
+                  border: "1px solid #2a1845",
+                  color: "#eee8f5",
                   fontSize: "18px",
                   fontFamily: "JetBrains Mono, monospace",
                   fontWeight: 700,
@@ -915,8 +915,8 @@ function Dashboard() {
                   textTransform: "uppercase",
                   outline: "none",
                 }}
-                onFocus={(e) => e.target.style.borderColor = "#6366f1"}
-                onBlur={(e) => e.target.style.borderColor = "#1e1e2e"}
+                onFocus={(e) => e.target.style.borderColor = "#7e5dbd"}
+                onBlur={(e) => e.target.style.borderColor = "#2a1845"}
               />
             </div>
 
@@ -929,13 +929,13 @@ function Dashboard() {
       )}
 
       {showCreateModal && (
-        <div style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.8)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", zIndex: 100, justifyContent: "center" }}>
-          <div style={{ backgroundColor: "#111118", border: "1px solid #1e1e2e", borderRadius: "16px", padding: "24px", maxWidth: "420px", width: "100%" }}>
-            <h3 style={{ fontSize: "18px", fontWeight: 700, marginBottom: "16px", color: "#f8fafc", textAlign: "center" }}>Create Coding Battle</h3>
+        <div style={{ position: "fixed", inset: 0, backgroundColor: "rgba(5,3,12,0.85)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", zIndex: 100, justifyContent: "center" }}>
+          <div style={{ backgroundColor: "#1a1030", border: "1px solid #2a1845", borderRadius: "16px", padding: "24px", maxWidth: "420px", width: "100%" }}>
+            <h3 style={{ fontSize: "18px", fontWeight: 700, marginBottom: "16px", color: "#eee8f5", textAlign: "center" }}>Create Coding Battle</h3>
             
             <div style={{ display: "flex", flexDirection: "column", gap: "16px", marginBottom: "24px" }}>
               <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                <span style={{ fontSize: "11px", color: "#64748b", textTransform: "uppercase", fontWeight: 600 }}>Battle Format</span>
+                <span style={{ fontSize: "11px", color: "#7a6b94", textTransform: "uppercase", fontWeight: 600 }}>Battle Format</span>
                 <div style={{ display: "flex", gap: "10px" }}>
                   <button
                     onClick={() => setBattleFormat("1v1")}
@@ -943,9 +943,9 @@ function Dashboard() {
                       flex: 1,
                       padding: "10px",
                       borderRadius: "8px",
-                      backgroundColor: battleFormat === "1v1" ? "rgba(99,102,241,0.15)" : "#0a0a0f",
-                      border: battleFormat === "1v1" ? "1px solid #6366f1" : "1px solid #1e1e2e",
-                      color: battleFormat === "1v1" ? "#a5b4fc" : "#94a3b8",
+                      backgroundColor: battleFormat === "1v1" ? "rgba(126,93,189,0.15)" : "#120b22",
+                      border: battleFormat === "1v1" ? "1px solid #7e5dbd" : "1px solid #2a1845",
+                      color: battleFormat === "1v1" ? "#b49fdb" : "#a99bc2",
                       fontWeight: 600,
                       cursor: "pointer"
                     }}
@@ -959,9 +959,9 @@ function Dashboard() {
                       flex: 1,
                       padding: "10px",
                       borderRadius: "8px",
-                      backgroundColor: battleFormat === "2v2" ? "rgba(99,102,241,0.15)" : "#0a0a0f",
-                      border: battleFormat === "2v2" ? "1px solid #6366f1" : "1px solid #1e1e2e",
-                      color: battleFormat === "2v2" ? "#a5b4fc" : "#94a3b8",
+                      backgroundColor: battleFormat === "2v2" ? "rgba(126,93,189,0.15)" : "#120b22",
+                      border: battleFormat === "2v2" ? "1px solid #7e5dbd" : "1px solid #2a1845",
+                      color: battleFormat === "2v2" ? "#b49fdb" : "#a99bc2",
                       fontWeight: 600,
                       cursor: "pointer"
                     }}
@@ -982,10 +982,10 @@ function Dashboard() {
         </div>
       )}
       {showVerifyModal && (
-        <div style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.8)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", zIndex: 100, justifyContent: "center" }}>
-          <div style={{ backgroundColor: "#111118", border: "1px solid #1e1e2e", borderRadius: "16px", padding: "24px", maxWidth: "380px", width: "100%", textAlign: "center" }}>
-            <h3 style={{ fontSize: "18px", fontWeight: 700, marginBottom: "12px", color: "#f8fafc" }}>🎓 Verify College Standing</h3>
-            <p style={{ fontSize: "12px", color: "#64748b", marginBottom: "20px" }}>
+        <div style={{ position: "fixed", inset: 0, backgroundColor: "rgba(5,3,12,0.85)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", zIndex: 100, justifyContent: "center" }}>
+          <div style={{ backgroundColor: "#1a1030", border: "1px solid #2a1845", borderRadius: "16px", padding: "24px", maxWidth: "380px", width: "100%", textAlign: "center" }}>
+            <h3 style={{ fontSize: "18px", fontWeight: 700, marginBottom: "12px", color: "#eee8f5" }}>ðŸŽ“ Verify College Standing</h3>
+            <p style={{ fontSize: "12px", color: "#7a6b94", marginBottom: "20px" }}>
               Enter your university domain email (ending in <b>.edu</b> or <b>.ac.in</b>) to verify your academic league standing.
             </p>
             <input
@@ -997,9 +997,9 @@ function Dashboard() {
                 width: "100%",
                 padding: "12px",
                 borderRadius: "8px",
-                backgroundColor: "#0a0a0f",
-                border: "1px solid #1e1e2e",
-                color: "#f8fafc",
+                backgroundColor: "#120b22",
+                border: "1px solid #2a1845",
+                color: "#eee8f5",
                 fontSize: "13px",
                 marginBottom: "20px",
                 textAlign: "center"
@@ -1013,37 +1013,37 @@ function Dashboard() {
         </div>
       )}
 
-      {/* ── Edit Profile Modal ── */}
+      {/* â”€â”€ Edit Profile Modal â”€â”€ */}
       {showProfileModal && (
-        <div style={{ position: "fixed", inset: 0, backgroundColor: "rgba(5,5,8,0.92)", backdropFilter: "blur(16px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100, padding: "16px" }}>
-          <div style={{ backgroundColor: "#111118", border: "1px solid #1e1e2e", borderRadius: "20px", padding: "32px", width: "100%", maxWidth: "480px", display: "flex", flexDirection: "column", gap: "20px", boxShadow: "0 24px 80px rgba(0,0,0,0.6)" }}>
+        <div style={{ position: "fixed", inset: 0, backgroundColor: "rgba(5,3,12,0.92)", backdropFilter: "blur(16px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100, padding: "16px" }}>
+          <div style={{ backgroundColor: "#1a1030", border: "1px solid #2a1845", borderRadius: "20px", padding: "32px", width: "100%", maxWidth: "480px", display: "flex", flexDirection: "column", gap: "20px", boxShadow: "0 24px 80px rgba(0,0,0,0.6)" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <div>
-                <div style={{ fontSize: "20px", fontWeight: 800, color: "#f8fafc" }}>Edit Profile</div>
-                <div style={{ fontSize: "12px", color: "#64748b", marginTop: "4px" }}>Update your academic info and bio</div>
+                <div style={{ fontSize: "20px", fontWeight: 800, color: "#eee8f5" }}>Edit Profile</div>
+                <div style={{ fontSize: "12px", color: "#7a6b94", marginTop: "4px" }}>Update your academic info and bio</div>
               </div>
-              <button onClick={() => setShowProfileModal(false)} style={{ background: "none", border: "none", color: "#64748b", fontSize: "22px", cursor: "pointer", lineHeight: 1 }}>×</button>
+              <button onClick={() => setShowProfileModal(false)} style={{ background: "none", border: "none", color: "#7a6b94", fontSize: "22px", cursor: "pointer", lineHeight: 1 }}>Ã—</button>
             </div>
 
             <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
               <div>
-                <label style={{ fontSize: "11px", fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em", display: "block", marginBottom: "6px" }}>🏛 College / University</label>
+                <label style={{ fontSize: "11px", fontWeight: 700, color: "#a99bc2", textTransform: "uppercase", letterSpacing: "0.08em", display: "block", marginBottom: "6px" }}>ðŸ› College / University</label>
                 <input
                   type="text"
                   placeholder="e.g. IIT Bombay, MIT, Stanford..."
                   value={profileForm.college}
                   onChange={e => setProfileForm(p => ({ ...p, college: e.target.value }))}
-                  style={{ width: "100%", padding: "10px 14px", backgroundColor: "#0a0a0f", border: "1px solid #1e1e2e", borderRadius: "10px", color: "#f8fafc", fontSize: "14px", outline: "none", boxSizing: "border-box" }}
+                  style={{ width: "100%", padding: "10px 14px", backgroundColor: "#120b22", border: "1px solid #2a1845", borderRadius: "10px", color: "#eee8f5", fontSize: "14px", outline: "none", boxSizing: "border-box" }}
                 />
               </div>
 
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
                 <div>
-                  <label style={{ fontSize: "11px", fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em", display: "block", marginBottom: "6px" }}>📚 Degree</label>
+                  <label style={{ fontSize: "11px", fontWeight: 700, color: "#a99bc2", textTransform: "uppercase", letterSpacing: "0.08em", display: "block", marginBottom: "6px" }}>ðŸ“š Degree</label>
                   <select
                     value={profileForm.degree}
                     onChange={e => setProfileForm(p => ({ ...p, degree: e.target.value }))}
-                    style={{ width: "100%", padding: "10px 14px", backgroundColor: "#0a0a0f", border: "1px solid #1e1e2e", borderRadius: "10px", color: profileForm.degree ? "#f8fafc" : "#64748b", fontSize: "14px", outline: "none", appearance: "none", cursor: "pointer" }}
+                    style={{ width: "100%", padding: "10px 14px", backgroundColor: "#120b22", border: "1px solid #2a1845", borderRadius: "10px", color: profileForm.degree ? "#eee8f5" : "#7a6b94", fontSize: "14px", outline: "none", appearance: "none", cursor: "pointer" }}
                   >
                     <option value="">Select degree</option>
                     <option>B.Tech</option>
@@ -1059,11 +1059,11 @@ function Dashboard() {
                   </select>
                 </div>
                 <div>
-                  <label style={{ fontSize: "11px", fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em", display: "block", marginBottom: "6px" }}>📅 Year</label>
+                  <label style={{ fontSize: "11px", fontWeight: 700, color: "#a99bc2", textTransform: "uppercase", letterSpacing: "0.08em", display: "block", marginBottom: "6px" }}>ðŸ“… Year</label>
                   <select
                     value={profileForm.year}
                     onChange={e => setProfileForm(p => ({ ...p, year: e.target.value }))}
-                    style={{ width: "100%", padding: "10px 14px", backgroundColor: "#0a0a0f", border: "1px solid #1e1e2e", borderRadius: "10px", color: profileForm.year ? "#f8fafc" : "#64748b", fontSize: "14px", outline: "none", appearance: "none", cursor: "pointer" }}
+                    style={{ width: "100%", padding: "10px 14px", backgroundColor: "#120b22", border: "1px solid #2a1845", borderRadius: "10px", color: profileForm.year ? "#eee8f5" : "#7a6b94", fontSize: "14px", outline: "none", appearance: "none", cursor: "pointer" }}
                   >
                     <option value="">Select year</option>
                     <option>1st Year</option>
@@ -1078,13 +1078,13 @@ function Dashboard() {
               </div>
 
               <div>
-                <label style={{ fontSize: "11px", fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em", display: "block", marginBottom: "6px" }}>📝 Bio <span style={{ fontWeight: 400, textTransform: "none", letterSpacing: "normal" }}>({profileForm.bio.length}/200)</span></label>
+                <label style={{ fontSize: "11px", fontWeight: 700, color: "#a99bc2", textTransform: "uppercase", letterSpacing: "0.08em", display: "block", marginBottom: "6px" }}>ðŸ“ Bio <span style={{ fontWeight: 400, textTransform: "none", letterSpacing: "normal" }}>({profileForm.bio.length}/200)</span></label>
                 <textarea
                   placeholder="A short intro about yourself..."
                   value={profileForm.bio}
                   onChange={e => setProfileForm(p => ({ ...p, bio: e.target.value.slice(0, 200) }))}
                   rows={3}
-                  style={{ width: "100%", padding: "10px 14px", backgroundColor: "#0a0a0f", border: "1px solid #1e1e2e", borderRadius: "10px", color: "#f8fafc", fontSize: "14px", outline: "none", resize: "vertical", fontFamily: "inherit", lineHeight: 1.5, boxSizing: "border-box" }}
+                  style={{ width: "100%", padding: "10px 14px", backgroundColor: "#120b22", border: "1px solid #2a1845", borderRadius: "10px", color: "#eee8f5", fontSize: "14px", outline: "none", resize: "vertical", fontFamily: "inherit", lineHeight: 1.5, boxSizing: "border-box" }}
                 />
               </div>
             </div>
@@ -1092,7 +1092,7 @@ function Dashboard() {
             <div style={{ display: "flex", gap: "12px" }}>
               <Button variant="ghost" style={{ flex: 1 }} onClick={() => setShowProfileModal(false)}>Cancel</Button>
               <Button variant="primary" style={{ flex: 2 }} onClick={handleSaveProfile} disabled={savingProfile}>
-                {savingProfile ? "Saving..." : "💾 Save Profile"}
+                {savingProfile ? "Saving..." : "ðŸ’¾ Save Profile"}
               </Button>
             </div>
           </div>
@@ -1103,3 +1103,4 @@ function Dashboard() {
 }
 
 export default Dashboard;
+

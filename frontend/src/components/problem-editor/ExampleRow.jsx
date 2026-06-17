@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 
 function ExampleRow({ index, example, onChange, onRemove, canRemove }) {
   const handleFieldChange = (field, value) => {

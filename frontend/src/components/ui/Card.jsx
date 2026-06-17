@@ -1,8 +1,8 @@
 import { motion } from "framer-motion";
 
 const CARD_STYLE = {
-  backgroundColor: "#111118",
-  border: "1px solid #1e1e2e",
+  backgroundColor: "#1a1030",
+  border: "1px solid #2a1845",
   borderRadius: "12px",
   padding: "24px",
   transition: "border-color 0.2s ease",
@@ -16,7 +16,7 @@ function Card({ children, hoverable = false, style: customStyle = {}, onClick, .
       transition={{ duration: 0.3, ease: "easeOut" }}
       whileHover={
         hoverable
-          ? { borderColor: "#6366f1", transition: { duration: 0.2 } }
+          ? { borderColor: "#7e5dbd", transition: { duration: 0.2 } }
           : {}
       }
       style={{ ...CARD_STYLE, cursor: hoverable ? "pointer" : "default", ...customStyle }}

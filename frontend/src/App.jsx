@@ -18,23 +18,23 @@ import PublicProfile from "./pages/PublicProfile";
 const TOAST_OPTIONS = {
   duration: 4000,
   style: {
-    background: "#111118",
-    color: "#f8fafc",
-    border: "1px solid #1e1e2e",
+    background: "#1a1030",
+    color: "#eee8f5",
+    border: "1px solid #2a1845",
     borderRadius: "12px",
     fontSize: "14px",
     fontFamily: "Inter, system-ui, sans-serif",
   },
   success: {
     iconTheme: {
-      primary: "#10b981",
-      secondary: "#111118",
+      primary: "#5db885",
+      secondary: "#1a1030",
     },
   },
   error: {
     iconTheme: {
-      primary: "#ef4444",
-      secondary: "#111118",
+      primary: "#c75c4a",
+      secondary: "#1a1030",
     },
   },
 };

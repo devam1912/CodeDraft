@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+﻿import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useSocket } from "../context/SocketContext";
@@ -6,7 +6,7 @@ import { roomAPI, userAPI } from "../services/api";
 import toast from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
 
-/* ── Inline PlayerCard (self-contained, no import needed) ── */
+/* â”€â”€ Inline PlayerCard (self-contained, no import needed) â”€â”€ */
 function PlayerCard({ player, team, selectedLanguage, isMe, onChangeLanguage, glow, glowRgb }) {
 
   if (!player) {
@@ -23,7 +23,7 @@ function PlayerCard({ player, team, selectedLanguage, isMe, onChangeLanguage, gl
         backdropFilter: "blur(8px)",
       }}>
         <div style={{ width: 40, height: 40, borderRadius: "50%", border: `1px dashed rgba(${glowRgb},0.3)`, display: "flex", alignItems: "center", justifyContent: "center", color: glow, fontSize: 18 }}>+</div>
-        <span style={{ fontSize: 11, color: "#64748b", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", fontFamily: "monospace" }}>Waiting for fighter...</span>
+        <span style={{ fontSize: 11, color: "#7a6b94", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", fontFamily: "monospace" }}>Waiting for fighter...</span>
       </div>
     );
   }
@@ -47,29 +47,29 @@ function PlayerCard({ player, team, selectedLanguage, isMe, onChangeLanguage, gl
       <div style={{ display: "flex", alignItems: "center", gap: 14, position: "relative", zIndex: 1 }}>
         <div style={{
           width: 48, height: 48, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center",
-          fontSize: 20, fontWeight: 800, background: "rgba(10,10,15,0.8)",
+          fontSize: 20, fontWeight: 800, background: "rgba(13,8,24,0.8)",
           border: `2px solid ${glow}`, color: glow,
           boxShadow: `0 0 16px rgba(${glowRgb},0.25)`,
         }}>{initials}</div>
         <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-          <span style={{ fontSize: 15, fontWeight: 700, color: "#f8fafc", letterSpacing: "-0.01em" }}>{player.username}</span>
+          <span style={{ fontSize: 15, fontWeight: 700, color: "#eee8f5", letterSpacing: "-0.01em" }}>{player.username}</span>
           {player.college ? (
-            <span style={{ fontSize: 10, color: "#94a3b8", fontWeight: 600 }}>🎓 {player.college}</span>
+            <span style={{ fontSize: 10, color: "#a99bc2", fontWeight: 600 }}>ðŸŽ“ {player.college}</span>
           ) : (
-            <span style={{ fontSize: 10, color: "#64748b", fontStyle: "italic" }}>No college standing</span>
+            <span style={{ fontSize: 10, color: "#7a6b94", fontStyle: "italic" }}>No college standing</span>
           )}
           
           {isMe ? (
             <div style={{ marginTop: 6, display: "flex", alignItems: "center", gap: 6 }}>
-              <span style={{ fontSize: 9, color: "#64748b", textTransform: "uppercase" }}>Coding In:</span>
+              <span style={{ fontSize: 9, color: "#7a6b94", textTransform: "uppercase" }}>Coding In:</span>
               <select
                 value={selectedLanguage || "javascript"}
                 onChange={(e) => onChangeLanguage(e.target.value)}
                 style={{
-                  backgroundColor: "#0a0a0f",
-                  border: "1px solid rgba(255,255,255,0.1)",
+                  backgroundColor: "#120b22",
+                  border: "1px solid rgba(126,93,189,0.15)",
                   borderRadius: 6,
-                  color: "#22d3ee",
+                  color: "#d4a053",
                   fontSize: 9,
                   fontWeight: 600,
                   padding: "2px 4px",
@@ -88,8 +88,8 @@ function PlayerCard({ player, team, selectedLanguage, isMe, onChangeLanguage, gl
             </div>
           ) : (
             <div style={{ marginTop: 6, display: "flex", alignItems: "center", gap: 6 }}>
-              <span style={{ fontSize: 9, color: "#64748b", textTransform: "uppercase" }}>Coding In:</span>
-              <span style={{ fontSize: 9, fontWeight: 700, color: "#f59e0b", background: "rgba(245,158,11,0.1)", padding: "1px 6px", borderRadius: 4, textTransform: "uppercase" }}>
+              <span style={{ fontSize: 9, color: "#7a6b94", textTransform: "uppercase" }}>Coding In:</span>
+              <span style={{ fontSize: 9, fontWeight: 700, color: "#d4a053", background: "rgba(212,160,83,0.1)", padding: "1px 6px", borderRadius: 4, textTransform: "uppercase" }}>
                 {selectedLanguage || "Selecting..."}
               </span>
             </div>
@@ -97,8 +97,8 @@ function PlayerCard({ player, team, selectedLanguage, isMe, onChangeLanguage, gl
         </div>
       </div>
       <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4, position: "relative", zIndex: 1 }}>
-        <span style={{ fontSize: 9, color: "#64748b", textTransform: "uppercase", fontWeight: 700, letterSpacing: "0.1em", fontFamily: "monospace" }}>ELO</span>
-        <span style={{ fontSize: 22, fontWeight: 800, fontFamily: "JetBrains Mono, monospace", background: `linear-gradient(135deg, ${glow}, #f8fafc)`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>{player.eloRating}</span>
+        <span style={{ fontSize: 9, color: "#7a6b94", textTransform: "uppercase", fontWeight: 700, letterSpacing: "0.1em", fontFamily: "monospace" }}>ELO</span>
+        <span style={{ fontSize: 22, fontWeight: 800, fontFamily: "JetBrains Mono, monospace", background: `linear-gradient(135deg, ${glow}, #eee8f5)`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>{player.eloRating}</span>
       </div>
     </div>
   );
@@ -124,7 +124,7 @@ function ChallengeFramingCard({ teamLabel, isMyTeam, problem, roomId, color, rgb
       <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, background: `linear-gradient(90deg, transparent, ${color}, transparent)` }} />
       
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <span style={{ fontSize: 9, fontWeight: 800, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.08em", fontFamily: "monospace" }}>
+        <span style={{ fontSize: 9, fontWeight: 800, color: "#7a6b94", textTransform: "uppercase", letterSpacing: "0.08em", fontFamily: "monospace" }}>
           {isMyTeam ? "YOUR TEAM'S CHALLENGE" : `${teamLabel}'S CHALLENGE`}
         </span>
       </div>
@@ -133,23 +133,23 @@ function ChallengeFramingCard({ teamLabel, isMyTeam, problem, roomId, color, rgb
         problem ? (
           <div style={{
             display: "flex", alignItems: "center", justifyContent: "space-between",
-            background: "rgba(16,185,129,0.05)", border: "1px solid rgba(16,185,129,0.15)",
+            background: "rgba(93,184,133,0.05)", border: "1px solid rgba(93,184,133,0.15)",
             borderRadius: 12, padding: "10px 14px",
           }}>
             <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-              <span style={{ fontSize: 9, fontWeight: 800, color: "#10b981", letterSpacing: "0.08em" }}>✅ READY</span>
-              <span style={{ fontSize: 12, fontWeight: 600, color: "#f8fafc" }}>{problem.title}</span>
+              <span style={{ fontSize: 9, fontWeight: 800, color: "#5db885", letterSpacing: "0.08em" }}>âœ… READY</span>
+              <span style={{ fontSize: 12, fontWeight: 600, color: "#eee8f5" }}>{problem.title}</span>
             </div>
             <button
               onClick={() => navigate(`/room/${roomId}/edit`)}
               style={{
                 padding: "6px 12px", borderRadius: 8, fontSize: 9, fontWeight: 700,
-                background: "rgba(26,26,36,0.8)", border: "1px solid #1e1e2e", color: "#94a3b8",
+                background: "rgba(26,26,36,0.8)", border: "1px solid #2a1845", color: "#a99bc2",
                 cursor: "pointer", textTransform: "uppercase",
                 transition: "all 0.2s",
               }}
               onMouseEnter={(e) => { e.target.style.borderColor = color; e.target.style.color = color; }}
-              onMouseLeave={(e) => { e.target.style.borderColor = "#1e1e2e"; e.target.style.color = "#94a3b8"; }}
+              onMouseLeave={(e) => { e.target.style.borderColor = "#2a1845"; e.target.style.color = "#a99bc2"; }}
             >Edit</button>
           </div>
         ) : (
@@ -158,12 +158,12 @@ function ChallengeFramingCard({ teamLabel, isMyTeam, problem, roomId, color, rgb
             background: `rgba(${rgb}, 0.04)`, border: `1px solid rgba(${rgb}, 0.15)`,
             borderRadius: 12, padding: "12px 14px",
           }}>
-            <span style={{ fontSize: 9, fontWeight: 800, color: "#f59e0b" }}>⚠️ PENDING</span>
+            <span style={{ fontSize: 9, fontWeight: 800, color: "#d4a053" }}>âš ï¸ PENDING</span>
             <button
               onClick={() => navigate(`/room/${roomId}/edit`)}
               style={{
                 width: "100%", padding: "10px", borderRadius: 10, border: "none",
-                background: `linear-gradient(135deg, ${color}, #818cf8)`, color: "#fff",
+                background: `linear-gradient(135deg, ${color}, #9478cc)`, color: "#fff",
                 fontSize: 10, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.05em",
                 cursor: "pointer", boxShadow: `0 4px 12px rgba(${rgb}, 0.2)`,
                 transition: "all 0.2s",
@@ -171,7 +171,7 @@ function ChallengeFramingCard({ teamLabel, isMyTeam, problem, roomId, color, rgb
               onMouseEnter={(e) => e.target.style.filter = "brightness(1.15)"}
               onMouseLeave={(e) => e.target.style.filter = "brightness(1)"}
             >
-              📝 FRAME CHALLENGE
+              ðŸ“ FRAME CHALLENGE
             </button>
           </div>
         )
@@ -179,11 +179,11 @@ function ChallengeFramingCard({ teamLabel, isMyTeam, problem, roomId, color, rgb
         problem ? (
           <div style={{
             display: "flex", alignItems: "center", gap: 8,
-            background: "rgba(16,185,129,0.05)", border: "1px solid rgba(16,185,129,0.15)",
+            background: "rgba(93,184,133,0.05)", border: "1px solid rgba(93,184,133,0.15)",
             borderRadius: 12, padding: "10px 14px",
           }}>
-            <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#10b981" }} />
-            <span style={{ fontSize: 10, fontWeight: 700, color: "#10b981", textTransform: "uppercase" }}>✅ CUSTOM CHALLENGE READY</span>
+            <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#5db885" }} />
+            <span style={{ fontSize: 10, fontWeight: 700, color: "#5db885", textTransform: "uppercase" }}>âœ… CUSTOM CHALLENGE READY</span>
           </div>
         ) : (
           <div style={{
@@ -191,8 +191,8 @@ function ChallengeFramingCard({ teamLabel, isMyTeam, problem, roomId, color, rgb
             background: "rgba(17,17,24,0.6)", border: "1px solid rgba(30,30,46,0.4)",
             borderRadius: 12, padding: "10px 14px",
           }}>
-            <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#64748b", animation: "pulse 2s ease-in-out infinite" }} />
-            <span style={{ fontSize: 10, fontWeight: 600, color: "#64748b", textTransform: "uppercase" }}>Opponent is framing...</span>
+            <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#7a6b94", animation: "pulse 2s ease-in-out infinite" }} />
+            <span style={{ fontSize: 10, fontWeight: 600, color: "#7a6b94", textTransform: "uppercase" }}>Opponent is framing...</span>
           </div>
         )
       )}
@@ -230,9 +230,9 @@ function Lobby() {
   const opponentProblem = isParticipant ? (isTeamA ? room.problemB : room.problemA) : null;
 
   // Colors configuration based on user's team
-  const myTeamColor = "#6366f1";
+  const myTeamColor = "#7e5dbd";
   const myTeamRgb = "99,102,241";
-  const opponentTeamColor = "#ef4444";
+  const opponentTeamColor = "#c75c4a";
   const opponentTeamRgb = "239,68,68";
 
   // Symmetrical check: Team A is styled blue for Team A members or spectators
@@ -245,7 +245,7 @@ function Lobby() {
 
   const roomLoaded = !!room;
 
-  /* ─── Timer effect ─── */
+  /* â”€â”€â”€ Timer effect â”€â”€â”€ */
   useEffect(() => {
     if (!room || !room.setupExpiresAt) return;
     const interval = setInterval(() => {
@@ -266,7 +266,7 @@ function Lobby() {
     return () => clearInterval(interval);
   }, [room, isCreator, canStart]);
 
-  /* ─── Fetch room ─── */
+  /* â”€â”€â”€ Fetch room â”€â”€â”€ */
   useEffect(() => {
     if (!user) return;
     const fetchRoom = async () => {
@@ -291,7 +291,7 @@ function Lobby() {
     fetchRoom();
   }, [roomId, navigate, user?._id]);
 
-  /* ─── Socket listeners ─── */
+  /* â”€â”€â”€ Socket listeners â”€â”€â”€ */
   useEffect(() => {
     if (!socket || !room) return;
 
@@ -352,7 +352,7 @@ function Lobby() {
         return { ...prev, playerLanguages };
       });
       if (uId !== user?._id) {
-        toast(`Opponent changed their language to ${language.toUpperCase()}!`, { icon: "⚙️" });
+        toast(`Opponent changed their language to ${language.toUpperCase()}!`, { icon: "âš™ï¸" });
       }
     });
 
@@ -419,15 +419,15 @@ function Lobby() {
     }
   };
 
-  /* ─── Loading ─── */
+  /* â”€â”€â”€ Loading â”€â”€â”€ */
   if (isLoading) {
     return (
       <div style={{
         minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-        background: "#050508", color: "#22d3ee", fontFamily: "monospace", fontSize: 13,
+        background: "#050508", color: "#d4a053", fontFamily: "monospace", fontSize: 13,
       }}>
         <div style={{ animation: "pulse 2s ease-in-out infinite" }}>CONNECTING TO LOBBY...</div>
-        <span style={{ fontSize: 10, color: "#64748b", marginTop: 8 }}>DECRYPTING PROTOCOLS [v3.0]</span>
+        <span style={{ fontSize: 10, color: "#7a6b94", marginTop: 8 }}>DECRYPTING PROTOCOLS [v3.0]</span>
       </div>
     );
   }
@@ -438,11 +438,11 @@ function Lobby() {
   const timerDisplay = timerActive ? (timeLeft || "30:00") : null;
   const bothChallengesReady = !!room.problemA && !!room.problemB;
 
-  /* ─────────────────────────────────── RENDER ─────────────────────────────────── */
+  /* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ RENDER â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
   return (
     <div style={{
       minHeight: "100vh", display: "flex", flexDirection: "column",
-      background: "#050508", fontFamily: "Inter, sans-serif", color: "#f8fafc",
+      background: "#050508", fontFamily: "Inter, sans-serif", color: "#eee8f5",
       position: "relative", overflow: "hidden",
     }}>
       {/* Animated CSS */}
@@ -450,9 +450,9 @@ function Lobby() {
         @keyframes pulse { 0%,100%{opacity:1}50%{opacity:.4} }
         @keyframes gridPan { 0%{background-position:0 0}100%{background-position:50px 50px} }
         @keyframes orbFloat { 0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-6px) scale(1.06)} }
-        @keyframes timerPulse { 0%,100%{box-shadow:0 0 30px rgba(245,158,11,0.15), inset 0 0 30px rgba(245,158,11,0.05)}50%{box-shadow:0 0 50px rgba(245,158,11,0.3), inset 0 0 40px rgba(245,158,11,0.08)} }
+        @keyframes timerPulse { 0%,100%{box-shadow:0 0 30px rgba(212,160,83,0.15), inset 0 0 30px rgba(212,160,83,0.05)}50%{box-shadow:0 0 50px rgba(212,160,83,0.3), inset 0 0 40px rgba(212,160,83,0.08)} }
         @keyframes scanline { 0%{top:-100%}100%{top:100%} }
-        @keyframes borderGlow { 0%,100%{border-color:rgba(99,102,241,0.2)}50%{border-color:rgba(99,102,241,0.5)} }
+        @keyframes borderGlow { 0%,100%{border-color:rgba(126,93,189,0.2)}50%{border-color:rgba(126,93,189,0.5)} }
         .timer-box-active { animation: timerPulse 2s ease-in-out infinite; }
         .orb-anim { animation: orbFloat 4s ease-in-out infinite; }
       `}</style>
@@ -460,11 +460,11 @@ function Lobby() {
       {/* Background effects */}
       <div style={{
         position: "absolute", inset: 0, pointerEvents: "none", zIndex: 0,
-        backgroundImage: "linear-gradient(rgba(99,102,241,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(99,102,241,0.03) 1px, transparent 1px)",
+        backgroundImage: "linear-gradient(rgba(126,93,189,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(126,93,189,0.03) 1px, transparent 1px)",
         backgroundSize: "48px 48px", animation: "gridPan 25s linear infinite",
       }} />
-      <div style={{ position: "absolute", top: "-15%", left: "-10%", width: "50%", height: "50%", background: "radial-gradient(circle, rgba(99,102,241,0.1) 0%, transparent 70%)", pointerEvents: "none", filter: "blur(60px)" }} />
-      <div style={{ position: "absolute", bottom: "-15%", right: "-10%", width: "50%", height: "50%", background: "radial-gradient(circle, rgba(34,211,238,0.1) 0%, transparent 70%)", pointerEvents: "none", filter: "blur(60px)" }} />
+      <div style={{ position: "absolute", top: "-15%", left: "-10%", width: "50%", height: "50%", background: "radial-gradient(circle, rgba(126,93,189,0.1) 0%, transparent 70%)", pointerEvents: "none", filter: "blur(60px)" }} />
+      <div style={{ position: "absolute", bottom: "-15%", right: "-10%", width: "50%", height: "50%", background: "radial-gradient(circle, rgba(212,160,83,0.1) 0%, transparent 70%)", pointerEvents: "none", filter: "blur(60px)" }} />
 
       {/* Match starting countdown overlay */}
       <AnimatePresence>
@@ -474,26 +474,26 @@ function Lobby() {
             style={{ position: "fixed", inset: 0, background: "rgba(5,5,8,0.97)", backdropFilter: "blur(20px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100 }}
           >
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 28 }}>
-              <span style={{ fontSize: 12, fontWeight: 800, letterSpacing: "0.3em", color: "#6366f1", textTransform: "uppercase", animation: "pulse 1.5s ease-in-out infinite" }}>INITIALIZING BATTLE</span>
+              <span style={{ fontSize: 12, fontWeight: 800, letterSpacing: "0.3em", color: "#7e5dbd", textTransform: "uppercase", animation: "pulse 1.5s ease-in-out infinite" }}>INITIALIZING BATTLE</span>
               <motion.div
                 key={countdown}
                 initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 1.5, opacity: 0 }}
                 transition={{ duration: 0.5 }}
                 style={{
-                  width: 160, height: 160, borderRadius: "50%", border: "3px solid #6366f1",
+                  width: 160, height: 160, borderRadius: "50%", border: "3px solid #7e5dbd",
                   display: "flex", alignItems: "center", justifyContent: "center",
-                  background: "rgba(17,17,24,0.9)", boxShadow: "0 0 60px rgba(99,102,241,0.4)",
+                  background: "rgba(17,17,24,0.9)", boxShadow: "0 0 60px rgba(126,93,189,0.4)",
                 }}
               >
-                <span style={{ fontSize: 72, fontWeight: 900, fontFamily: "JetBrains Mono, monospace", color: "#f8fafc", textShadow: "0 0 20px rgba(34,211,238,0.5)" }}>{countdown}</span>
+                <span style={{ fontSize: 72, fontWeight: 900, fontFamily: "JetBrains Mono, monospace", color: "#eee8f5", textShadow: "0 0 20px rgba(212,160,83,0.5)" }}>{countdown}</span>
               </motion.div>
-              <span style={{ fontSize: 10, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.2em", fontFamily: "monospace" }}>Loading battle core...</span>
+              <span style={{ fontSize: 10, color: "#7a6b94", textTransform: "uppercase", letterSpacing: "0.2em", fontFamily: "monospace" }}>Loading battle core...</span>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* ─── HEADER ─── */}
+      {/* â”€â”€â”€ HEADER â”€â”€â”€ */}
       <header style={{
         display: "flex", alignItems: "center", justifyContent: "space-between",
         padding: "16px 32px", borderBottom: "1px solid rgba(30,30,46,0.6)",
@@ -503,17 +503,17 @@ function Lobby() {
         <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
           <button
             onClick={() => navigate("/dashboard")}
-            style={{ display: "flex", alignItems: "center", gap: 8, color: "#94a3b8", fontSize: 12, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", fontFamily: "monospace", background: "none", border: "none", cursor: "pointer", transition: "color 0.2s" }}
-            onMouseEnter={(e) => e.target.style.color = "#22d3ee"}
-            onMouseLeave={(e) => e.target.style.color = "#94a3b8"}
+            style={{ display: "flex", alignItems: "center", gap: 8, color: "#a99bc2", fontSize: 12, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", fontFamily: "monospace", background: "none", border: "none", cursor: "pointer", transition: "color 0.2s" }}
+            onMouseEnter={(e) => e.target.style.color = "#d4a053"}
+            onMouseLeave={(e) => e.target.style.color = "#a99bc2"}
           >
             <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
             EXIT LOBBY
           </button>
-          <div style={{ width: 1, height: 16, background: "#1e1e2e" }} />
+          <div style={{ width: 1, height: 16, background: "#2a1845" }} />
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#10b981", boxShadow: "0 0 8px rgba(16,185,129,0.5)", animation: "pulse 2s ease-in-out infinite" }} />
-            <span style={{ fontSize: 11, fontWeight: 800, color: "#22d3ee", letterSpacing: "0.12em", textTransform: "uppercase", fontFamily: "monospace", textShadow: "0 0 8px rgba(34,211,238,0.4)" }}>
+            <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#5db885", boxShadow: "0 0 8px rgba(93,184,133,0.5)", animation: "pulse 2s ease-in-out infinite" }} />
+            <span style={{ fontSize: 11, fontWeight: 800, color: "#d4a053", letterSpacing: "0.12em", textTransform: "uppercase", fontFamily: "monospace", textShadow: "0 0 8px rgba(212,160,83,0.4)" }}>
               LIVE LOBBY
             </span>
           </div>
@@ -523,29 +523,29 @@ function Lobby() {
           <span style={{
             padding: "6px 14px", borderRadius: 20, fontSize: 10, fontWeight: 700, fontFamily: "monospace",
             textTransform: "uppercase", letterSpacing: "0.1em",
-            background: "rgba(16,185,129,0.1)", border: "1px solid rgba(16,185,129,0.25)", color: "#10b981",
+            background: "rgba(93,184,133,0.1)", border: "1px solid rgba(93,184,133,0.25)", color: "#5db885",
           }}>
             {players.length} / {maxPlayers} PLAYERS
           </span>
           <span style={{
             padding: "6px 14px", borderRadius: 20, fontSize: 10, fontWeight: 700, fontFamily: "monospace",
             textTransform: "uppercase", letterSpacing: "0.1em",
-            background: "rgba(34,211,238,0.08)", border: "1px solid rgba(34,211,238,0.2)", color: "#22d3ee",
+            background: "rgba(212,160,83,0.08)", border: "1px solid rgba(212,160,83,0.2)", color: "#d4a053",
           }}>
             {room.battleFormat} MODE
           </span>
         </div>
       </header>
 
-      {/* ─── MAIN CONTENT ─── */}
+      {/* â”€â”€â”€ MAIN CONTENT â”€â”€â”€ */}
       <main style={{ flex: 1, display: "flex", flexDirection: "column", padding: "0 32px 32px", position: "relative", zIndex: 1 }}>
 
-        {/* ══════ GIANT TIMER SECTION ══════ */}
+        {/* â•â•â•â•â•â• GIANT TIMER SECTION â•â•â•â•â•â• */}
         <section style={{
           display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
           padding: "36px 0 28px",
         }}>
-          <span style={{ fontSize: 9, fontWeight: 800, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.25em", fontFamily: "monospace", marginBottom: 12 }}>
+          <span style={{ fontSize: 9, fontWeight: 800, color: "#7a6b94", textTransform: "uppercase", letterSpacing: "0.25em", fontFamily: "monospace", marginBottom: 12 }}>
             CHALLENGE FRAMING COUNTDOWN
           </span>
           <div
@@ -553,35 +553,35 @@ function Lobby() {
             style={{
               padding: "20px 60px", borderRadius: 24,
               background: timerActive
-                ? "linear-gradient(135deg, rgba(245,158,11,0.05), rgba(17,17,24,0.95))"
+                ? "linear-gradient(135deg, rgba(212,160,83,0.05), rgba(17,17,24,0.95))"
                 : "rgba(17,17,24,0.6)",
               border: timerActive
-                ? "2px solid rgba(245,158,11,0.3)"
+                ? "2px solid rgba(212,160,83,0.3)"
                 : "2px solid rgba(30,30,46,0.5)",
               position: "relative", overflow: "hidden",
               display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
             }}
           >
             {timerActive && (
-              <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, background: "linear-gradient(90deg, transparent, #f59e0b, transparent)" }} />
+              <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, background: "linear-gradient(90deg, transparent, #d4a053, transparent)" }} />
             )}
             <span style={{
               fontSize: 52, fontWeight: 900, fontFamily: "JetBrains Mono, monospace",
               letterSpacing: "0.08em", lineHeight: 1,
-              color: timerActive ? "#f59e0b" : "#22d3ee",
+              color: timerActive ? "#d4a053" : "#d4a053",
               textShadow: timerActive
-                ? "0 0 20px rgba(245,158,11,0.5), 0 0 40px rgba(245,158,11,0.2)"
-                : "0 0 15px rgba(34,211,238,0.3)",
+                ? "0 0 20px rgba(212,160,83,0.5), 0 0 40px rgba(212,160,83,0.2)"
+                : "0 0 15px rgba(212,160,83,0.3)",
             }}>
               {timerActive ? timerDisplay : "AWAITING OPPONENT"}
             </span>
-            <span style={{ fontSize: 9, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.15em", fontFamily: "monospace" }}>
+            <span style={{ fontSize: 9, color: "#7a6b94", textTransform: "uppercase", letterSpacing: "0.15em", fontFamily: "monospace" }}>
               {timerActive ? "REMAINING TO FRAME CHALLENGES" : "TIMER STARTS WHEN ALL PLAYERS JOIN"}
             </span>
           </div>
         </section>
 
-        {/* ══════ VS MATCHUP SECTION ══════ */}
+        {/* â•â•â•â•â•â• VS MATCHUP SECTION â•â•â•â•â•â• */}
         <section style={{
           display: "grid", gridTemplateColumns: "1fr auto 1fr", gap: 24,
           alignItems: "stretch", padding: "0 0 28px",
@@ -597,9 +597,9 @@ function Lobby() {
               </div>
               {/* Challenge status */}
               {room.problemA ? (
-                <span style={{ fontSize: 9, fontWeight: 700, color: "#10b981", textTransform: "uppercase", letterSpacing: "0.1em" }}>✅ READY</span>
+                <span style={{ fontSize: 9, fontWeight: 700, color: "#5db885", textTransform: "uppercase", letterSpacing: "0.1em" }}>âœ… READY</span>
               ) : (
-                <span style={{ fontSize: 9, fontWeight: 700, color: "#f59e0b", textTransform: "uppercase", letterSpacing: "0.1em", animation: "pulse 2s ease-in-out infinite" }}>⏳ FRAMING</span>
+                <span style={{ fontSize: 9, fontWeight: 700, color: "#d4a053", textTransform: "uppercase", letterSpacing: "0.1em", animation: "pulse 2s ease-in-out infinite" }}>â³ FRAMING</span>
               )}
             </div>
             <PlayerCard
@@ -646,8 +646,8 @@ function Lobby() {
                 position: "relative",
               }}
             >
-              <div style={{ position: "absolute", inset: 3, border: "1px solid rgba(255,255,255,0.1)", borderRadius: "50%", animation: "orbFloat 6s ease-in-out infinite reverse" }} />
-              <span style={{ fontSize: 16, fontWeight: 900, color: "#f8fafc", fontStyle: "italic", letterSpacing: "0.1em", textShadow: "0 0 10px rgba(255,255,255,0.5)" }}>VS</span>
+              <div style={{ position: "absolute", inset: 3, border: "1px solid rgba(126,93,189,0.15)", borderRadius: "50%", animation: "orbFloat 6s ease-in-out infinite reverse" }} />
+              <span style={{ fontSize: 16, fontWeight: 900, color: "#eee8f5", fontStyle: "italic", letterSpacing: "0.1em", textShadow: "0 0 10px rgba(255,255,255,0.5)" }}>VS</span>
             </div>
           </div>
 
@@ -661,9 +661,9 @@ function Lobby() {
                 </span>
               </div>
               {room.problemB ? (
-                <span style={{ fontSize: 9, fontWeight: 700, color: "#10b981", textTransform: "uppercase", letterSpacing: "0.1em" }}>✅ READY</span>
+                <span style={{ fontSize: 9, fontWeight: 700, color: "#5db885", textTransform: "uppercase", letterSpacing: "0.1em" }}>âœ… READY</span>
               ) : (
-                <span style={{ fontSize: 9, fontWeight: 700, color: "#f59e0b", textTransform: "uppercase", letterSpacing: "0.1em", animation: "pulse 2s ease-in-out infinite" }}>⏳ FRAMING</span>
+                <span style={{ fontSize: 9, fontWeight: 700, color: "#d4a053", textTransform: "uppercase", letterSpacing: "0.1em", animation: "pulse 2s ease-in-out infinite" }}>â³ FRAMING</span>
               )}
             </div>
             <PlayerCard
@@ -699,7 +699,7 @@ function Lobby() {
           </div>
         </section>
 
-        {/* ══════ BOTTOM GRID: Room Config & Room ID / Launch ══════ */}
+        {/* â•â•â•â•â•â• BOTTOM GRID: Room Config & Room ID / Launch â•â•â•â•â•â• */}
         <section style={{
           display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20,
           marginTop: 12
@@ -710,7 +710,7 @@ function Lobby() {
             border: "1px solid rgba(30,30,46,0.5)", borderRadius: 20,
             padding: 24, display: "flex", flexDirection: "column", gap: 16,
           }}>
-            <span style={{ fontSize: 11, fontWeight: 800, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.12em", fontFamily: "monospace", borderBottom: "1px solid rgba(30,30,46,0.5)", paddingBottom: 10 }}>ROOM CONFIG</span>
+            <span style={{ fontSize: 11, fontWeight: 800, color: "#a99bc2", textTransform: "uppercase", letterSpacing: "0.12em", fontFamily: "monospace", borderBottom: "1px solid rgba(30,30,46,0.5)", paddingBottom: 10 }}>ROOM CONFIG</span>
 
             {[
               ["Architect", room.creatorId?.username || "Host"],
@@ -719,8 +719,8 @@ function Lobby() {
               ["Time Limit", `${room.problem?.timeLimit || 10} Minutes`],
             ].map(([label, value]) => (
               <div key={label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 12 }}>
-                <span style={{ color: "#64748b", textTransform: "uppercase", fontSize: 10, letterSpacing: "0.06em" }}>{label}</span>
-                <span style={{ fontWeight: 700, color: "#f8fafc" }}>{value}</span>
+                <span style={{ color: "#7a6b94", textTransform: "uppercase", fontSize: 10, letterSpacing: "0.06em" }}>{label}</span>
+                <span style={{ fontWeight: 700, color: "#eee8f5" }}>{value}</span>
               </div>
             ))}
           </div>
@@ -733,8 +733,8 @@ function Lobby() {
               border: "1px solid rgba(30,30,46,0.5)", borderRadius: 20,
               padding: 20, display: "flex", flexDirection: "column", gap: 12,
             }}>
-              <span style={{ fontSize: 11, fontWeight: 800, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.12em", fontFamily: "monospace" }}>SHARE ROOM ID</span>
-              <p style={{ fontSize: 11, color: "#64748b", lineHeight: 1.5, margin: 0 }}>
+              <span style={{ fontSize: 11, fontWeight: 800, color: "#a99bc2", textTransform: "uppercase", letterSpacing: "0.12em", fontFamily: "monospace" }}>SHARE ROOM ID</span>
+              <p style={{ fontSize: 11, color: "#7a6b94", lineHeight: 1.5, margin: 0 }}>
                 Send this code to your opponent. They paste it on their dashboard to join.
               </p>
               <div style={{
@@ -744,19 +744,19 @@ function Lobby() {
               }}>
                 <span style={{
                   flex: 1, fontFamily: "JetBrains Mono, monospace", fontSize: 18, fontWeight: 800,
-                  color: "#22d3ee", letterSpacing: "0.2em", textTransform: "uppercase",
-                  textShadow: "0 0 12px rgba(34,211,238,0.3)",
+                  color: "#d4a053", letterSpacing: "0.2em", textTransform: "uppercase",
+                  textShadow: "0 0 12px rgba(212,160,83,0.3)",
                 }}>{room.roomId}</span>
                 <button
                   onClick={handleCopyRoomId}
                   style={{
                     padding: "10px 20px", borderRadius: 10, border: "1px solid rgba(30,30,46,0.5)",
-                    background: "rgba(26,26,36,0.8)", color: "#f8fafc", fontSize: 11, fontWeight: 700,
+                    background: "rgba(26,26,36,0.8)", color: "#eee8f5", fontSize: 11, fontWeight: 700,
                     textTransform: "uppercase", letterSpacing: "0.08em", cursor: "pointer",
                     transition: "all 0.2s",
                   }}
-                  onMouseEnter={(e) => { e.target.style.background = "#22d3ee"; e.target.style.color = "#050508"; }}
-                  onMouseLeave={(e) => { e.target.style.background = "rgba(26,26,36,0.8)"; e.target.style.color = "#f8fafc"; }}
+                  onMouseEnter={(e) => { e.target.style.background = "#d4a053"; e.target.style.color = "#050508"; }}
+                  onMouseLeave={(e) => { e.target.style.background = "rgba(26,26,36,0.8)"; e.target.style.color = "#eee8f5"; }}
                 >COPY ID</button>
               </div>
               {isCreator && players.length < maxPlayers && (
@@ -766,15 +766,15 @@ function Lobby() {
                     setShowInviteModal(true);
                   }}
                   style={{
-                    width: "100%", padding: "12px", borderRadius: 12, border: "1px solid rgba(99,102,241,0.3)",
-                    background: "rgba(99,102,241,0.08)", color: "#818cf8", fontSize: 11, fontWeight: 700,
+                    width: "100%", padding: "12px", borderRadius: 12, border: "1px solid rgba(126,93,189,0.3)",
+                    background: "rgba(126,93,189,0.08)", color: "#9478cc", fontSize: 11, fontWeight: 700,
                     textTransform: "uppercase", letterSpacing: "0.08em", cursor: "pointer",
                     transition: "all 0.2s", marginTop: 4, display: "flex", alignItems: "center", justifyContent: "center", gap: 6
                   }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(99,102,241,0.16)"; e.currentTarget.style.borderColor = "#6366f1"; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(99,102,241,0.08)"; e.currentTarget.style.borderColor = "rgba(99,102,241,0.3)"; }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(126,93,189,0.16)"; e.currentTarget.style.borderColor = "#7e5dbd"; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(126,93,189,0.08)"; e.currentTarget.style.borderColor = "rgba(126,93,189,0.3)"; }}
                 >
-                  🤝 Invite from Friends
+                  ðŸ¤ Invite from Friends
                 </button>
               )}
             </div>
@@ -791,33 +791,33 @@ function Lobby() {
                     cursor: canStart && bothChallengesReady ? "pointer" : "not-allowed",
                     transition: "all 0.3s",
                     ...(canStart && bothChallengesReady ? {
-                      background: "linear-gradient(135deg, #6366f1, #818cf8, #22d3ee)",
-                      color: "#f8fafc",
-                      boxShadow: "0 8px 32px rgba(99,102,241,0.35), 0 0 40px rgba(99,102,241,0.15)",
+                      background: "linear-gradient(135deg, #7e5dbd, #9478cc, #d4a053)",
+                      color: "#eee8f5",
+                      boxShadow: "0 8px 32px rgba(126,93,189,0.35), 0 0 40px rgba(126,93,189,0.15)",
                       borderTop: "1px solid rgba(255,255,255,0.15)",
                     } : {
                       background: "rgba(17,17,24,0.7)",
                       border: "1px solid rgba(30,30,46,0.5)",
-                      color: "#64748b",
+                      color: "#7a6b94",
                     }),
                   }}
                   onMouseEnter={(e) => { if (canStart && bothChallengesReady) e.target.style.filter = "brightness(1.15)"; }}
                   onMouseLeave={(e) => e.target.style.filter = "brightness(1)"}
                 >
                   {canStart
-                    ? (bothChallengesReady ? "🚀 LAUNCH BATTLE" : "⏳ WAITING FOR CHALLENGES")
-                    : "⏳ AWAITING OPPONENTS"}
+                    ? (bothChallengesReady ? "ðŸš€ LAUNCH BATTLE" : "â³ WAITING FOR CHALLENGES")
+                    : "â³ AWAITING OPPONENTS"}
                 </button>
               ) : (
                 <div style={{
                   width: "100%", padding: "18px", borderRadius: 16,
                   background: "rgba(17,17,24,0.5)", border: "1px solid rgba(30,30,46,0.4)",
                   textAlign: "center", fontSize: 11, fontWeight: 700, fontFamily: "monospace",
-                  color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.12em",
+                  color: "#a99bc2", textTransform: "uppercase", letterSpacing: "0.12em",
                   display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
                   animation: "pulse 2s ease-in-out infinite",
                 }}>
-                  <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#f59e0b", boxShadow: "0 0 8px rgba(245,158,11,0.5)" }} />
+                  <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#d4a053", boxShadow: "0 0 8px rgba(212,160,83,0.5)" }} />
                   WAITING FOR HOST TO LAUNCH...
                 </div>
               )}
@@ -836,36 +836,36 @@ function Lobby() {
             <motion.div
               initial={{ scale: 0.95, y: 10 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 10 }}
               style={{
-                width: "440px", backgroundColor: "#111118", border: "1px solid #1e1e2e",
+                width: "440px", backgroundColor: "#1a1030", border: "1px solid #2a1845",
                 borderRadius: "20px", padding: "24px", display: "flex", flexDirection: "column", gap: "20px",
                 boxShadow: "0 20px 50px rgba(0,0,0,0.6)"
               }}
             >
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span style={{ fontSize: "16px", fontWeight: 800, color: "#f8fafc" }}>🤝 Invite Friends to Battle</span>
+                <span style={{ fontSize: "16px", fontWeight: 800, color: "#eee8f5" }}>ðŸ¤ Invite Friends to Battle</span>
                 <button
                   onClick={() => setShowInviteModal(false)}
-                  style={{ background: "none", border: "none", color: "#64748b", fontSize: "18px", cursor: "pointer" }}
-                >✕</button>
+                  style={{ background: "none", border: "none", color: "#7a6b94", fontSize: "18px", cursor: "pointer" }}
+                >âœ•</button>
               </div>
 
               <div style={{ maxHeight: "300px", overflowY: "auto", display: "flex", flexDirection: "column", gap: "10px", paddingRight: "4px" }}>
                 {friendsLoading ? (
-                  <div style={{ color: "#64748b", fontSize: "13px", textAlign: "center", padding: "20px" }}>Loading friends...</div>
+                  <div style={{ color: "#7a6b94", fontSize: "13px", textAlign: "center", padding: "20px" }}>Loading friends...</div>
                 ) : friends.length === 0 ? (
-                  <div style={{ color: "#64748b", fontSize: "13px", textAlign: "center", padding: "20px" }}>
+                  <div style={{ color: "#7a6b94", fontSize: "13px", textAlign: "center", padding: "20px" }}>
                     No friends available. Search and add friends on your dashboard first.
                   </div>
                 ) : (
                   friends.map((f) => (
-                    <div key={f._id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 14px", backgroundColor: "#0a0a0f", border: "1px solid #1e1e2e", borderRadius: "12px" }}>
+                    <div key={f._id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 14px", backgroundColor: "#120b22", border: "1px solid #2a1845", borderRadius: "12px" }}>
                       <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                        <div style={{ width: "32px", height: "32px", borderRadius: "50%", backgroundColor: "rgba(99,102,241,0.15)", border: "1px solid rgba(99,102,241,0.3)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "13px", fontWeight: 700, color: "#a5b4fc" }}>
+                        <div style={{ width: "32px", height: "32px", borderRadius: "50%", backgroundColor: "rgba(126,93,189,0.15)", border: "1px solid rgba(126,93,189,0.3)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "13px", fontWeight: 700, color: "#b49fdb" }}>
                           {f.avatar || f.username.slice(0, 2).toUpperCase()}
                         </div>
                         <div>
-                          <div style={{ fontWeight: 600, color: "#f8fafc", fontSize: "13px" }}>{f.username}</div>
-                          <div style={{ fontSize: "11px", color: "#64748b" }}>ELO {f.eloRating}</div>
+                          <div style={{ fontWeight: 600, color: "#eee8f5", fontSize: "13px" }}>{f.username}</div>
+                          <div style={{ fontSize: "11px", color: "#7a6b94" }}>ELO {f.eloRating}</div>
                         </div>
                       </div>
                       <button
@@ -873,12 +873,12 @@ function Lobby() {
                         disabled={invitingFriend === f.username}
                         style={{
                           padding: "6px 12px", borderRadius: "8px", border: "none",
-                          background: "linear-gradient(135deg, #6366f1, #818cf8)", color: "#fff",
+                          background: "linear-gradient(135deg, #7e5dbd, #9478cc)", color: "#fff",
                           fontSize: "11px", fontWeight: 700, cursor: "pointer",
                           transition: "all 0.2s"
                         }}
                       >
-                        {invitingFriend === f.username ? "Inviting..." : "⚔️ Invite"}
+                        {invitingFriend === f.username ? "Inviting..." : "âš”ï¸ Invite"}
                       </button>
                     </div>
                   ))
@@ -899,15 +899,15 @@ function Lobby() {
             <motion.div
               initial={{ scale: 0.95, y: 15 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 15 }}
               style={{
-                width: "400px", backgroundColor: "#111118", border: "1px solid #1e1e2e",
+                width: "400px", backgroundColor: "#1a1030", border: "1px solid #2a1845",
                 borderRadius: "24px", padding: "28px", display: "flex", flexDirection: "column", gap: "24px",
                 textAlign: "center", boxShadow: "0 20px 50px rgba(0,0,0,0.6)"
               }}
             >
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                <span style={{ fontSize: 24 }}>⚔️</span>
-                <h3 style={{ fontSize: "18px", fontWeight: 800, color: "#f8fafc", margin: 0 }}>Select Coding Language</h3>
-                <p style={{ fontSize: "12px", color: "#64748b", margin: 0, lineHeight: 1.5 }}>
+                <span style={{ fontSize: 24 }}>âš”ï¸</span>
+                <h3 style={{ fontSize: "18px", fontWeight: 800, color: "#eee8f5", margin: 0 }}>Select Coding Language</h3>
+                <p style={{ fontSize: "12px", color: "#7a6b94", margin: 0, lineHeight: 1.5 }}>
                   Choose your target language for this battle. Your opponent will see this to frame your challenge appropriately.
                 </p>
               </div>
@@ -929,12 +929,12 @@ function Lobby() {
                       setShowLanguageModal(false);
                     }}
                     style={{
-                      padding: "12px", borderRadius: "12px", border: "1px solid #1e1e2e",
-                      backgroundColor: "#0a0a0f", color: "#f8fafc", fontSize: "12px", fontWeight: 700,
+                      padding: "12px", borderRadius: "12px", border: "1px solid #2a1845",
+                      backgroundColor: "#120b22", color: "#eee8f5", fontSize: "12px", fontWeight: 700,
                       cursor: "pointer", transition: "all 0.2s",
                     }}
-                    onMouseEnter={(e) => { e.target.style.borderColor = "#6366f1"; e.target.style.background = "rgba(99,102,241,0.05)"; }}
-                    onMouseLeave={(e) => { e.target.style.borderColor = "#1e1e2e"; e.target.style.background = "#0a0a0f"; }}
+                    onMouseEnter={(e) => { e.target.style.borderColor = "#7e5dbd"; e.target.style.background = "rgba(126,93,189,0.05)"; }}
+                    onMouseLeave={(e) => { e.target.style.borderColor = "#2a1845"; e.target.style.background = "#120b22"; }}
                   >
                     {lang.label}
                   </button>

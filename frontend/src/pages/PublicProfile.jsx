@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+﻿import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
@@ -20,8 +20,8 @@ const PAGE = {
   minHeight: "100vh",
   display: "flex",
   flexDirection: "column",
-  backgroundColor: "#0a0a0f",
-  color: "#f8fafc",
+  backgroundColor: "#120b22",
+  color: "#eee8f5",
   fontFamily: "Inter, sans-serif",
 };
 
@@ -30,9 +30,9 @@ const NAV = {
   alignItems: "center",
   justifyContent: "space-between",
   padding: "16px 32px",
-  borderBottom: "1px solid #1e1e2e",
+  borderBottom: "1px solid #2a1845",
   backdropFilter: "blur(12px)",
-  backgroundColor: "rgba(10,10,15,0.85)",
+  backgroundColor: "rgba(13,8,24,0.85)",
   position: "sticky",
   top: 0,
   zIndex: 50,
@@ -41,7 +41,7 @@ const NAV = {
 const LOGO = {
   fontSize: "20px",
   fontWeight: 800,
-  background: "linear-gradient(135deg,#6366f1,#22d3ee)",
+  background: "linear-gradient(135deg,#7e5dbd,#d4a053)",
   WebkitBackgroundClip: "text",
   WebkitTextFillColor: "transparent",
 };
@@ -58,8 +58,8 @@ const MAIN = {
 };
 
 const CARD = {
-  backgroundColor: "#111118",
-  border: "1px solid #1e1e2e",
+  backgroundColor: "#1a1030",
+  border: "1px solid #2a1845",
   borderRadius: "12px",
   padding: "24px",
 };
@@ -72,8 +72,8 @@ const RESULT_BADGE = (r) => ({
   letterSpacing: "0.08em",
   padding: "2px 8px",
   borderRadius: "4px",
-  backgroundColor: r === "win" ? "rgba(16,185,129,0.1)" : r === "loss" ? "rgba(239,68,68,0.1)" : "rgba(245,158,11,0.1)",
-  color: r === "win" ? "#10b981" : r === "loss" ? "#ef4444" : "#f59e0b",
+  backgroundColor: r === "win" ? "rgba(93,184,133,0.1)" : r === "loss" ? "rgba(199,92,74,0.1)" : "rgba(212,160,83,0.1)",
+  color: r === "win" ? "#5db885" : r === "loss" ? "#c75c4a" : "#d4a053",
 });
 
 const DIFF_BADGE = (d) => ({
@@ -82,15 +82,15 @@ const DIFF_BADGE = (d) => ({
   textTransform: "uppercase",
   padding: "2px 6px",
   borderRadius: "3px",
-  backgroundColor: d === "easy" ? "rgba(16,185,129,0.1)" : d === "medium" ? "rgba(245,158,11,0.1)" : "rgba(239,68,68,0.1)",
-  color: d === "easy" ? "#10b981" : d === "medium" ? "#f59e0b" : "#ef4444",
+  backgroundColor: d === "easy" ? "rgba(93,184,133,0.1)" : d === "medium" ? "rgba(212,160,83,0.1)" : "rgba(199,92,74,0.1)",
+  color: d === "easy" ? "#5db885" : d === "medium" ? "#d4a053" : "#c75c4a",
   marginLeft: "8px",
 });
 
 const SECTION_HEAD = {
   fontSize: "14px",
   fontWeight: 700,
-  color: "#94a3b8",
+  color: "#a99bc2",
   textTransform: "uppercase",
   letterSpacing: "0.08em",
   marginBottom: "16px",
@@ -99,8 +99,8 @@ const SECTION_HEAD = {
 const CustomTooltip = ({ active, payload }) => {
   if (active && payload && payload.length) {
     return (
-      <div style={{ backgroundColor: "#111118", border: "1px solid #1e1e2e", borderRadius: "8px", padding: "8px 12px", fontFamily: "JetBrains Mono, monospace", fontSize: "12px" }}>
-        <div style={{ color: "#a5b4fc", fontWeight: 700 }}>ELO: {payload[0].value}</div>
+      <div style={{ backgroundColor: "#1a1030", border: "1px solid #2a1845", borderRadius: "8px", padding: "8px 12px", fontFamily: "JetBrains Mono, monospace", fontSize: "12px" }}>
+        <div style={{ color: "#b49fdb", fontWeight: 700 }}>ELO: {payload[0].value}</div>
       </div>
     );
   }
@@ -159,8 +159,8 @@ function PublicProfile() {
   if (isLoading) {
     return (
       <div style={{ ...PAGE, alignItems: "center", justifyContent: "center", gap: "12px" }}>
-        <div style={{ fontSize: "24px" }}>⏳</div>
-        <div style={{ color: "#94a3b8", fontFamily: "JetBrains Mono, monospace", fontSize: "13px" }}>Loading profile...</div>
+        <div style={{ fontSize: "24px" }}>â³</div>
+        <div style={{ color: "#a99bc2", fontFamily: "JetBrains Mono, monospace", fontSize: "13px" }}>Loading profile...</div>
       </div>
     );
   }
@@ -176,18 +176,18 @@ function PublicProfile() {
         <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
           <button
             onClick={() => navigate(-1)}
-            style={{ background: "none", border: "none", color: "#94a3b8", cursor: "pointer", fontSize: "13px", display: "flex", alignItems: "center", gap: "6px" }}
+            style={{ background: "none", border: "none", color: "#a99bc2", cursor: "pointer", fontSize: "13px", display: "flex", alignItems: "center", gap: "6px" }}
           >
-            ← Back
+            â† Back
           </button>
-          <span style={{ color: "#1e1e2e" }}>|</span>
+          <span style={{ color: "#2a1845" }}>|</span>
           <Link to="/" style={{ textDecoration: "none" }}>
             <span style={LOGO}>CodeDraft</span>
           </Link>
         </div>
         <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
-          <Link to="/leaderboard" style={{ textDecoration: "none", color: "#94a3b8", fontSize: "13px" }}>Leaderboard</Link>
-          <Link to="/dashboard" style={{ textDecoration: "none", color: "#94a3b8", fontSize: "13px" }}>Dashboard</Link>
+          <Link to="/leaderboard" style={{ textDecoration: "none", color: "#a99bc2", fontSize: "13px" }}>Leaderboard</Link>
+          <Link to="/dashboard" style={{ textDecoration: "none", color: "#a99bc2", fontSize: "13px" }}>Dashboard</Link>
         </div>
       </nav>
 
@@ -200,7 +200,7 @@ function PublicProfile() {
                   width: "72px",
                   height: "72px",
                   borderRadius: "50%",
-                  background: "linear-gradient(135deg,#6366f1,#22d3ee)",
+                  background: "linear-gradient(135deg,#7e5dbd,#d4a053)",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
@@ -213,21 +213,21 @@ function PublicProfile() {
                 {profile.avatar || profile.username?.slice(0, 2).toUpperCase()}
               </div>
               <div>
-                <h1 style={{ fontSize: "24px", fontWeight: 800, color: "#f8fafc", marginBottom: "2px" }}>{profile.username}</h1>
+                <h1 style={{ fontSize: "24px", fontWeight: 800, color: "#eee8f5", marginBottom: "2px" }}>{profile.username}</h1>
                 {profile.college && (
-                  <div style={{ fontSize: "13px", color: "#64748b", marginBottom: "4px" }}>🏛 {profile.college}{profile.degree ? ` · ${profile.degree}` : ""}{profile.year ? ` · ${profile.year}` : ""}</div>
+                  <div style={{ fontSize: "13px", color: "#7a6b94", marginBottom: "4px" }}>ðŸ› {profile.college}{profile.degree ? ` Â· ${profile.degree}` : ""}{profile.year ? ` Â· ${profile.year}` : ""}</div>
                 )}
                 {profile.bio && (
-                  <div style={{ fontSize: "13px", color: "#94a3b8", fontStyle: "italic", marginBottom: "4px", maxWidth: "320px" }}>"{profile.bio}"</div>
+                  <div style={{ fontSize: "13px", color: "#a99bc2", fontStyle: "italic", marginBottom: "4px", maxWidth: "320px" }}>"{profile.bio}"</div>
                 )}
                 <div style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap" }}>
                   <span
                     style={{
                       fontSize: "11px",
                       fontWeight: 700,
-                      color: "#6366f1",
-                      backgroundColor: "rgba(99,102,241,0.12)",
-                      border: "1px solid rgba(99,102,241,0.3)",
+                      color: "#7e5dbd",
+                      backgroundColor: "rgba(126,93,189,0.12)",
+                      border: "1px solid rgba(126,93,189,0.3)",
                       borderRadius: "6px",
                       padding: "2px 8px",
                     }}
@@ -237,8 +237,8 @@ function PublicProfile() {
                   <span
                     style={{
                       fontSize: "11px",
-                      color: "#64748b",
-                      backgroundColor: "#1e1e2e",
+                      color: "#7a6b94",
+                      backgroundColor: "#2a1845",
                       borderRadius: "6px",
                       padding: "2px 8px",
                       fontFamily: "JetBrains Mono, monospace",
@@ -256,9 +256,9 @@ function PublicProfile() {
                   size="md"
                   onClick={handleChallenge}
                   disabled={isChallenging}
-                  style={{ background: "linear-gradient(135deg,#6366f1,#22d3ee)", color: "#fff", border: "none" }}
+                  style={{ background: "linear-gradient(135deg,#7e5dbd,#d4a053)", color: "#fff", border: "none" }}
                 >
-                  {isChallenging ? "Sending..." : "⚔ Challenge"}
+                  {isChallenging ? "Sending..." : "âš” Challenge"}
                 </Button>
               )}
               {isOwnProfile && (
@@ -272,10 +272,10 @@ function PublicProfile() {
 
         <motion.div variants={itemVariants} style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: "16px" }}>
           {[
-            { label: "ELO Rating", value: profile.eloRating, color: "linear-gradient(135deg,#6366f1,#22d3ee)", textFill: "transparent" },
-            { label: "Wins", value: profile.wins, color: "#10b981" },
-            { label: "Losses", value: profile.losses, color: "#ef4444" },
-            { label: "Win Rate", value: `${profile.winPct}%`, color: profile.winPct >= 50 ? "#10b981" : "#ef4444" },
+            { label: "ELO Rating", value: profile.eloRating, color: "linear-gradient(135deg,#7e5dbd,#d4a053)", textFill: "transparent" },
+            { label: "Wins", value: profile.wins, color: "#5db885" },
+            { label: "Losses", value: profile.losses, color: "#c75c4a" },
+            { label: "Win Rate", value: `${profile.winPct}%`, color: profile.winPct >= 50 ? "#5db885" : "#c75c4a" },
           ].map(({ label, value, color, textFill }) => (
             <Card key={label}>
               <div style={{
@@ -289,7 +289,7 @@ function PublicProfile() {
               }}>
                 {value}
               </div>
-              <div style={{ fontSize: "11px", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em", marginTop: "4px" }}>
+              <div style={{ fontSize: "11px", color: "#7a6b94", textTransform: "uppercase", letterSpacing: "0.06em", marginTop: "4px" }}>
                 {label}
               </div>
             </Card>
@@ -300,7 +300,7 @@ function PublicProfile() {
           <Card>
             <div style={SECTION_HEAD}>ELO History</div>
             {chartData.length === 0 ? (
-              <div style={{ textAlign: "center", padding: "32px 0", color: "#64748b", fontSize: "13px" }}>
+              <div style={{ textAlign: "center", padding: "32px 0", color: "#7a6b94", fontSize: "13px" }}>
                 No matches played yet
               </div>
             ) : (
@@ -308,15 +308,15 @@ function PublicProfile() {
                 <AreaChart data={chartData} margin={{ top: 4, right: 4, left: -24, bottom: 0 }}>
                   <defs>
                     <linearGradient id="profileEloGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3} />
-                      <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+                      <stop offset="5%" stopColor="#7e5dbd" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#7e5dbd" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#1e1e2e" />
-                  <XAxis dataKey="match" tick={{ fill: "#64748b", fontSize: 10 }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fill: "#64748b", fontSize: 10 }} axisLine={false} tickLine={false} domain={["auto", "auto"]} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#2a1845" />
+                  <XAxis dataKey="match" tick={{ fill: "#7a6b94", fontSize: 10 }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fill: "#7a6b94", fontSize: 10 }} axisLine={false} tickLine={false} domain={["auto", "auto"]} />
                   <Tooltip content={<CustomTooltip />} />
-                  <Area type="monotone" dataKey="elo" stroke="#6366f1" strokeWidth={2} fill="url(#profileEloGrad)" dot={{ fill: "#6366f1", r: 2, strokeWidth: 0 }} />
+                  <Area type="monotone" dataKey="elo" stroke="#7e5dbd" strokeWidth={2} fill="url(#profileEloGrad)" dot={{ fill: "#7e5dbd", r: 2, strokeWidth: 0 }} />
                 </AreaChart>
               </ResponsiveContainer>
             )}
@@ -325,20 +325,20 @@ function PublicProfile() {
           <Card>
             <div style={SECTION_HEAD}>Recent Battles</div>
             {profile.recentMatches?.length === 0 ? (
-              <div style={{ textAlign: "center", padding: "32px 0", color: "#64748b", fontSize: "13px" }}>
+              <div style={{ textAlign: "center", padding: "32px 0", color: "#7a6b94", fontSize: "13px" }}>
                 No battles fought yet
               </div>
             ) : (
               <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
                 {profile.recentMatches?.map((m, i) => (
-                  <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 12px", backgroundColor: "#0a0a0f", borderRadius: "8px", border: "1px solid #1e1e2e" }}>
+                  <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 12px", backgroundColor: "#120b22", borderRadius: "8px", border: "1px solid #2a1845" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                       <span style={RESULT_BADGE(m.result)}>{m.result}</span>
-                      <span style={{ fontSize: "13px", color: "#94a3b8" }}>vs {m.opponent?.username || "Unknown"}</span>
+                      <span style={{ fontSize: "13px", color: "#a99bc2" }}>vs {m.opponent?.username || "Unknown"}</span>
                     </div>
                     <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                       {m.eloChange !== null && m.eloChange !== undefined && (
-                        <span style={{ fontFamily: "JetBrains Mono, monospace", fontSize: "12px", fontWeight: 700, color: m.eloChange >= 0 ? "#10b981" : "#ef4444" }}>
+                        <span style={{ fontFamily: "JetBrains Mono, monospace", fontSize: "12px", fontWeight: 700, color: m.eloChange >= 0 ? "#5db885" : "#c75c4a" }}>
                           {m.eloChange >= 0 ? "+" : ""}{m.eloChange}
                         </span>
                       )}
@@ -354,25 +354,25 @@ function PublicProfile() {
           <Card>
             <div style={SECTION_HEAD}>Problems Created</div>
             {profile.recentProblems?.length === 0 ? (
-              <div style={{ textAlign: "center", padding: "24px 0", color: "#64748b", fontSize: "13px" }}>
+              <div style={{ textAlign: "center", padding: "24px 0", color: "#7a6b94", fontSize: "13px" }}>
                 No problems created yet
               </div>
             ) : (
               <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                 {profile.recentProblems?.map((p, i) => (
-                  <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 14px", backgroundColor: "#0a0a0f", borderRadius: "8px", border: "1px solid #1e1e2e" }}>
+                  <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 14px", backgroundColor: "#120b22", borderRadius: "8px", border: "1px solid #2a1845" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                      <span style={{ fontSize: "14px", color: "#f8fafc", fontWeight: 500 }}>{p.title}</span>
+                      <span style={{ fontSize: "14px", color: "#eee8f5", fontWeight: 500 }}>{p.title}</span>
                       <span style={DIFF_BADGE(p.difficulty)}>{p.difficulty}</span>
                     </div>
                     <span
                       style={{
                         fontSize: "10px",
-                        color: "#64748b",
+                        color: "#7a6b94",
                         textTransform: "uppercase",
                         letterSpacing: "0.05em",
                         fontFamily: "JetBrains Mono, monospace",
-                        backgroundColor: "#1e1e2e",
+                        backgroundColor: "#2a1845",
                         padding: "2px 8px",
                         borderRadius: "4px",
                       }}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+﻿import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { notificationAPI } from "../../services/api";
@@ -12,7 +12,7 @@ const BELL_WRAP = {
 const BELL_BTN = {
   background: "none",
   border: "none",
-  color: "#94a3b8",
+  color: "#a99bc2",
   cursor: "pointer",
   fontSize: "18px",
   padding: "4px",
@@ -29,14 +29,14 @@ const BADGE = {
   width: "16px",
   height: "16px",
   borderRadius: "50%",
-  backgroundColor: "#ef4444",
+  backgroundColor: "#c75c4a",
   color: "#fff",
   fontSize: "9px",
   fontWeight: 800,
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
-  border: "2px solid #0a0a0f",
+  border: "2px solid #120b22",
 };
 
 const DROPDOWN = {
@@ -46,8 +46,8 @@ const DROPDOWN = {
   width: "340px",
   maxHeight: "400px",
   overflowY: "auto",
-  backgroundColor: "#111118",
-  border: "1px solid #1e1e2e",
+  backgroundColor: "#1a1030",
+  border: "1px solid #2a1845",
   borderRadius: "12px",
   boxShadow: "0 16px 48px rgba(0,0,0,0.5)",
   zIndex: 100,
@@ -58,13 +58,13 @@ const DROPDOWN_HEADER = {
   alignItems: "center",
   justifyContent: "space-between",
   padding: "14px 16px",
-  borderBottom: "1px solid #1e1e2e",
+  borderBottom: "1px solid #2a1845",
 };
 
 const NOTIF_ITEM = (read) => ({
   padding: "12px 16px",
-  borderBottom: "1px solid #1e1e2e",
-  backgroundColor: read ? "transparent" : "rgba(99,102,241,0.05)",
+  borderBottom: "1px solid #2a1845",
+  backgroundColor: read ? "transparent" : "rgba(126,93,189,0.05)",
   cursor: "pointer",
   transition: "background 0.15s",
   display: "flex",
@@ -76,16 +76,16 @@ const NOTIF_DOT = {
   width: "6px",
   height: "6px",
   borderRadius: "50%",
-  backgroundColor: "#6366f1",
+  backgroundColor: "#7e5dbd",
   marginTop: "6px",
   flexShrink: 0,
 };
 
 const ICON_MAP = {
-  match_result: "⚔️",
-  challenge_invite: "🎯",
-  tournament_invite: "🏆",
-  system: "🔔",
+  match_result: "âš”ï¸",
+  challenge_invite: "ðŸŽ¯",
+  tournament_invite: "ðŸ†",
+  system: "ðŸ””",
 };
 
 function NotificationBell() {
@@ -119,8 +119,8 @@ function NotificationBell() {
       if (notification.type === "challenge_invite") {
         toast((t) => (
           <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-            <div style={{ fontWeight: 700, color: "#f8fafc" }}>🎯 {notification.title}</div>
-            <div style={{ fontSize: "12px", color: "#94a3b8" }}>{notification.message}</div>
+            <div style={{ fontWeight: 700, color: "#eee8f5" }}>ðŸŽ¯ {notification.title}</div>
+            <div style={{ fontSize: "12px", color: "#a99bc2" }}>{notification.message}</div>
             <div style={{ display: "flex", gap: "8px", marginTop: "4px" }}>
               <button
                 onClick={() => {
@@ -128,7 +128,7 @@ function NotificationBell() {
                   navigate(`/room/${notification.payload?.roomId}`);
                 }}
                 style={{
-                  background: "linear-gradient(135deg,#6366f1,#818cf8)",
+                  background: "linear-gradient(135deg,#7e5dbd,#9478cc)",
                   color: "#fff",
                   border: "none",
                   borderRadius: "6px",
@@ -144,8 +144,8 @@ function NotificationBell() {
                 onClick={() => toast.dismiss(t.id)}
                 style={{
                   background: "transparent",
-                  border: "1px solid #1e1e2e",
-                  color: "#94a3b8",
+                  border: "1px solid #2a1845",
+                  color: "#a99bc2",
                   borderRadius: "6px",
                   padding: "6px 12px",
                   fontSize: "12px",
@@ -160,7 +160,7 @@ function NotificationBell() {
         ), { duration: 10000 });
       } else {
         toast(notification.message, {
-          icon: ICON_MAP[notification.type] || "🔔",
+          icon: ICON_MAP[notification.type] || "ðŸ””",
         });
       }
     };
@@ -225,7 +225,7 @@ function NotificationBell() {
         style={BELL_BTN}
         aria-label="Notifications"
       >
-        🔔
+        ðŸ””
         {unreadCount > 0 && (
           <span style={BADGE}>{unreadCount > 9 ? "9+" : unreadCount}</span>
         )}
@@ -234,7 +234,7 @@ function NotificationBell() {
       {isOpen && (
         <div style={DROPDOWN}>
           <div style={DROPDOWN_HEADER}>
-            <span style={{ fontSize: "13px", fontWeight: 700, color: "#f8fafc" }}>
+            <span style={{ fontSize: "13px", fontWeight: 700, color: "#eee8f5" }}>
               Notifications
             </span>
             {unreadCount > 0 && (
@@ -243,7 +243,7 @@ function NotificationBell() {
                 style={{
                   background: "none",
                   border: "none",
-                  color: "#6366f1",
+                  color: "#7e5dbd",
                   fontSize: "11px",
                   fontWeight: 600,
                   cursor: "pointer",
@@ -259,7 +259,7 @@ function NotificationBell() {
               style={{
                 padding: "32px 16px",
                 textAlign: "center",
-                color: "#64748b",
+                color: "#7a6b94",
                 fontSize: "13px",
               }}
             >
@@ -272,23 +272,23 @@ function NotificationBell() {
                 style={NOTIF_ITEM(notif.read)}
                 onClick={() => handleClickNotif(notif)}
                 onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "rgba(30,30,46,0.6)")}
-                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = notif.read ? "transparent" : "rgba(99,102,241,0.05)")}
+                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = notif.read ? "transparent" : "rgba(126,93,189,0.05)")}
               >
                 {!notif.read && <div style={NOTIF_DOT} />}
                 <div style={{ flex: 1 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "2px" }}>
-                    <span style={{ fontSize: "13px" }}>{ICON_MAP[notif.type] || "🔔"}</span>
-                    <span style={{ fontSize: "13px", fontWeight: 600, color: "#f8fafc" }}>
+                    <span style={{ fontSize: "13px" }}>{ICON_MAP[notif.type] || "ðŸ””"}</span>
+                    <span style={{ fontSize: "13px", fontWeight: 600, color: "#eee8f5" }}>
                       {notif.title}
                     </span>
                   </div>
-                  <div style={{ fontSize: "12px", color: "#94a3b8", lineHeight: 1.4 }}>
+                  <div style={{ fontSize: "12px", color: "#a99bc2", lineHeight: 1.4 }}>
                     {notif.message}
                   </div>
                   <div
                     style={{
                       fontSize: "10px",
-                      color: "#64748b",
+                      color: "#7a6b94",
                       marginTop: "4px",
                       fontFamily: "JetBrains Mono, monospace",
                     }}
