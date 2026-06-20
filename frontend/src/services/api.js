@@ -14,11 +14,18 @@ const api = axios.create({
 api.interceptors.response.use(
   (response) => response.data,
   (error) => {
+    if (error.response && error.response.status === 401) {
+      const url = error.config?.url || "";
+      if (!url.includes("/auth/login") && !url.includes("/auth/register") && !url.includes("/auth/me")) {
+        window.location.href = "/login";
+      }
+    }
     const message =
       error.response?.data?.message || "Something went wrong. Please try again.";
     return Promise.reject(new Error(message));
   }
 );
+
 
 export const authAPI = {
   register: (data) => api.post("/auth/register", data),

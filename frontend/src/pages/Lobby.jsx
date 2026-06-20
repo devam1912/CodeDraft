@@ -218,7 +218,7 @@ function Lobby() {
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [friendsLoading, setFriendsLoading] = useState(false);
   const [invitingFriend, setInvitingFriend] = useState(null);
-  const [showLanguageModal, setShowLanguageModal] = useState(false);
+
 
   const isCreator = room && user && (user._id === (room.creatorId?._id || room.creatorId));
   const maxPlayers = room ? (room.battleFormat === "2v2" ? 4 : 2) : 2;
@@ -277,10 +277,7 @@ function Lobby() {
         setTeamA(response.data.teamA || []);
         setTeamB(response.data.teamB || []);
 
-        const myLang = response.data.playerLanguages?.[user._id];
-        if (!myLang) {
-          setShowLanguageModal(true);
-        }
+
       } catch (err) {
         toast.error(err.message || "Failed to load lobby details");
         navigate("/dashboard");
@@ -296,6 +293,18 @@ function Lobby() {
     if (!socket || !room) return;
 
     socket.emit("room:join", { roomId });
+
+    // Auto-select JavaScript as default coding language if none chosen yet
+    if (user && (!room.playerLanguages || !room.playerLanguages[user._id])) {
+      socket.emit("room:selectLanguage", { roomId, language: "javascript" });
+      setRoom((prev) => {
+        if (!prev) return prev;
+        const updated = { ...prev };
+        if (!updated.playerLanguages) updated.playerLanguages = {};
+        updated.playerLanguages[user._id] = "javascript";
+        return updated;
+      });
+    }
 
     socket.on("room:playerJoined", ({ player, currentPlayers, teamA: tA, teamB: tB }) => {
       setPlayers(currentPlayers);
@@ -884,61 +893,7 @@ function Lobby() {
         )}
       </AnimatePresence>
 
-      {/* Initial Language Selector Modal */}
-      <AnimatePresence>
-        {showLanguageModal && (
-          <motion.div
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            style={{ position: "fixed", inset: 0, background: "rgba(5,5,8,0.9)", backdropFilter: "blur(12px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100 }}
-          >
-            <motion.div
-              initial={{ scale: 0.95, y: 15 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 15 }}
-              style={{
-                width: "400px", backgroundColor: "#1a1030", border: "1px solid #2a1845",
-                borderRadius: "24px", padding: "28px", display: "flex", flexDirection: "column", gap: "24px",
-                textAlign: "center", boxShadow: "0 20px 50px rgba(0,0,0,0.6)"
-              }}
-            >
-              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                <span style={{ fontSize: 24 }}>⚔️</span>
-                <h3 style={{ fontSize: "18px", fontWeight: 800, color: "#eee8f5", margin: 0 }}>Select Coding Language</h3>
-                <p style={{ fontSize: "12px", color: "#7a6b94", margin: 0, lineHeight: 1.5 }}>
-                  Choose your target language for this battle. Your opponent will see this to frame your challenge appropriately.
-                </p>
-              </div>
 
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
-                {[
-                  { id: "javascript", label: "JavaScript" },
-                  { id: "python", label: "Python" },
-                  { id: "cpp", label: "C++" },
-                  { id: "java", label: "Java" },
-                  { id: "go", label: "Go" },
-                  { id: "rust", label: "Rust" },
-                  { id: "c", label: "C" },
-                ].map((lang) => (
-                  <button
-                    key={lang.id}
-                    onClick={() => {
-                      handleSelectLanguage(lang.id);
-                      setShowLanguageModal(false);
-                    }}
-                    style={{
-                      padding: "12px", borderRadius: "12px", border: "1px solid #2a1845",
-                      backgroundColor: "#120b22", color: "#eee8f5", fontSize: "12px", fontWeight: 700,
-                      cursor: "pointer", transition: "all 0.2s",
-                    }}
-                    onMouseEnter={(e) => { e.target.style.borderColor = "#7e5dbd"; e.target.style.background = "rgba(126,93,189,0.05)"; }}
-                    onMouseLeave={(e) => { e.target.style.borderColor = "#2a1845"; e.target.style.background = "#120b22"; }}
-                  >
-                    {lang.label}
-                  </button>
-                ))}
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }
