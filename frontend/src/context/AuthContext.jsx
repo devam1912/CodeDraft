@@ -43,9 +43,14 @@ export function AuthProvider({ children }) {
   };
 
   const logout = async () => {
-    await authAPI.logout();
-    setUser(null);
-    setAuthState(AUTH_STATES.UNAUTHENTICATED);
+    try {
+      await authAPI.logout();
+    } catch (err) {
+      console.warn("Logout request failed, clearing session locally:", err);
+    } finally {
+      setUser(null);
+      setAuthState(AUTH_STATES.UNAUTHENTICATED);
+    }
   };
 
   const value = {

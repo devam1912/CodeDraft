@@ -16,8 +16,14 @@ api.interceptors.response.use(
   (error) => {
     if (error.response && error.response.status === 401) {
       const url = error.config?.url || "";
-      if (!url.includes("/auth/login") && !url.includes("/auth/register") && !url.includes("/auth/me")) {
+      if (
+        !url.includes("/auth/login") &&
+        !url.includes("/auth/register") &&
+        !url.includes("/auth/me") &&
+        !url.includes("/auth/logout")
+      ) {
         window.location.href = "/login";
+        return new Promise(() => {}); // Prevent component-level catches and toasts
       }
     }
     const message =
