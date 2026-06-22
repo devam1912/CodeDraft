@@ -17,6 +17,9 @@ export function AuthProvider({ children }) {
     try {
       const response = await authAPI.getMe();
       setUser(response.data.user);
+      if (response.data.token) {
+        setStoredToken(response.data.token);
+      }
       setAuthState(AUTH_STATES.AUTHENTICATED);
     } catch {
       setUser(null);

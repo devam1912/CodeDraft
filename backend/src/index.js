@@ -28,6 +28,7 @@ const adminRoutes = require("./routes/admin");
 validateEnv();
 
 const app = express();
+app.set("trust proxy", 1);
 const server = http.createServer(app);
 const io = configureSockets(server);
 app.set("io", io);

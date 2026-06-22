@@ -11,40 +11,21 @@ const api = axios.create({
   timeout: 15000,
 });
 
-// Token helpers for localStorage fallback (incognito/cross-origin)
-const TOKEN_KEY = "codedraft_token";
+// Token helpers (in-memory variable fallback for incognito/cross-origin)
 let inMemoryToken = null;
 
 export const setStoredToken = (token) => {
   if (token) {
     inMemoryToken = token;
-    try {
-      localStorage.setItem(TOKEN_KEY, token);
-    } catch (e) {
-      console.warn("localStorage setItem failed (e.g. incognito/disabled):", e);
-    }
   }
 };
 
 export const getStoredToken = () => {
-  if (inMemoryToken) {
-    return inMemoryToken;
-  }
-  try {
-    return localStorage.getItem(TOKEN_KEY);
-  } catch (e) {
-    console.warn("localStorage getItem failed (e.g. incognito/disabled):", e);
-    return null;
-  }
+  return inMemoryToken;
 };
 
 export const clearStoredToken = () => {
   inMemoryToken = null;
-  try {
-    localStorage.removeItem(TOKEN_KEY);
-  } catch (e) {
-    console.warn("localStorage removeItem failed (e.g. incognito/disabled):", e);
-  }
 };
 
 // Attach Authorization header from localStorage on every request

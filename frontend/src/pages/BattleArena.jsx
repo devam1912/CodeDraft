@@ -22,8 +22,14 @@ const CODE_TEMPLATES = {
 function BattleArena() {
   const { roomId } = useParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const socket = useSocket();
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate("/login");
+    }
+  }, [isAuthenticated, navigate]);
 
   const [room, setRoom] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -129,6 +135,13 @@ function BattleArena() {
       }, 1500);
     });
 
+    socket.on("battle:restoreCode", ({ savedCode }) => {
+      if (savedCode) {
+        setSourceCode(savedCode);
+        toast.success("Restored your code progress.");
+      }
+    });
+
     socket.on("error", ({ message }) => {
       toast.error(message);
       navigate("/dashboard");
@@ -140,6 +153,7 @@ function BattleArena() {
       socket.off("battle:submitResult");
       socket.off("battle:finished");
       socket.off("battle:codeSync");
+      socket.off("battle:restoreCode");
       socket.off("error");
 
       Object.values(typingTimeoutRefs.current).forEach((t) => clearTimeout(t));
@@ -191,7 +205,7 @@ function BattleArena() {
       lastTypingEmit.current = now;
       socket.emit("battle:keystroke", { roomId });
     }
-    if (socket && room?.battleFormat === "2v2") {
+    if (socket) {
       socket.emit("battle:codeUpdate", { roomId, sourceCode: val });
     }
   };
@@ -283,6 +297,8 @@ function BattleArena() {
     navigate(`/room/${roomId}`);
     return null;
   }
+
+  if (!user || !isAuthenticated) return null;
 
   const isCompetitor = room.players.some((p) => p && (p._id || p) === user._id);
 

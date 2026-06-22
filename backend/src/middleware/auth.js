@@ -19,6 +19,12 @@ const auth = async (req, res, next) => {
       return sendError(res, 401, "Authentication required. Please log in.");
     }
 
+    const TokenBlacklist = require("../models/TokenBlacklist");
+    const isBlacklisted = await TokenBlacklist.findOne({ token }).lean();
+    if (isBlacklisted) {
+      return sendError(res, 401, "Session invalidated. Please log in again.");
+    }
+
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.userId = decoded.userId;
     req.token = token;

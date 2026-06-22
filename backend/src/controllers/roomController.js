@@ -47,13 +47,10 @@ const createRoom = async (req, res, next) => {
       roomId,
       creatorId: req.userId,
       status: "waiting_for_players",
-      players: [req.userId],
-      teamA: [req.userId],
+      players: isCompeting ? [req.userId] : [],
+      teamA: isCompeting ? [req.userId] : [],
+      creatorCompeting: isCompeting,
     });
-
-    if (creatorCompeting !== undefined) {
-      room.creatorCompeting = isCompeting;
-    }
     if (battleFormat !== undefined) {
       room.battleFormat = battleFormat;
     }
@@ -113,7 +110,7 @@ const validateReferenceSolution = async (req, res, next) => {
       const expectedOutput = tc.expectedOutput.trim();
 
       if (language === "javascript") {
-        const localResult = executeJS(sourceCode, input);
+        const localResult = await executeJS(sourceCode, input);
         const actualOutput = (localResult.output || "").trim();
         const passed = localResult.success && actualOutput === expectedOutput;
         results.push({
@@ -164,7 +161,7 @@ const validateReferenceSolution = async (req, res, next) => {
           logger.error(`Judge0 API error: ${apiError.message}`);
           // Fallback: try local execution
           if (language === "python") {
-            const localResult = executePython(sourceCode, input);
+            const localResult = await executePython(sourceCode, input);
             const actualOutput = (localResult.output || "").trim();
             const passed = localResult.success && actualOutput === expectedOutput;
             results.push({
@@ -175,7 +172,7 @@ const validateReferenceSolution = async (req, res, next) => {
               error: localResult.error,
             });
           } else if (language === "cpp") {
-            const localResult = executeCPP(sourceCode, input);
+            const localResult = await executeCPP(sourceCode, input);
             const actualOutput = (localResult.output || "").trim();
             const passed = localResult.success && actualOutput === expectedOutput;
             results.push({
@@ -186,7 +183,7 @@ const validateReferenceSolution = async (req, res, next) => {
               error: localResult.error,
             });
           } else if (language === "c") {
-            const localResult = executeC(sourceCode, input);
+            const localResult = await executeC(sourceCode, input);
             const actualOutput = (localResult.output || "").trim();
             const passed = localResult.success && actualOutput === expectedOutput;
             results.push({
@@ -225,6 +222,13 @@ const submitProblem = async (req, res, next) => {
       return sendError(res, 400, "Missing required parameters for problem submission.");
     }
 
+    if (typeof title !== "string" || title.trim().length > 100) {
+      return sendError(res, 400, "Problem title must be a string not exceeding 100 characters.");
+    }
+    if (typeof statement !== "string" || statement.trim().length > 5000) {
+      return sendError(res, 400, "Problem statement must be a string not exceeding 5000 characters.");
+    }
+
     const room = await Room.findOne({ roomId });
     if (!room) {
       return sendError(res, 404, "Room not found.");
@@ -239,11 +243,33 @@ const submitProblem = async (req, res, next) => {
       return sendError(res, 400, "Room is not in lobby phase.");
     }
 
+    const escapeHTML = (str) => {
+      if (typeof str !== "string") return str;
+      return str
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#x27;")
+        .replace(/\//g, "&#x2F;");
+    };
+
+    const sanitizedVisibleExamples = (visibleExamples || []).map(ex => ({
+      input: escapeHTML(ex.input),
+      output: escapeHTML(ex.output),
+      explanation: escapeHTML(ex.explanation || ""),
+    }));
+
+    const sanitizedHiddenTestCases = (hiddenTestCases || []).map(tc => ({
+      input: escapeHTML(tc.input),
+      expectedOutput: escapeHTML(tc.expectedOutput),
+    }));
+
     const newProblem = {
-      title,
-      statement,
-      visibleExamples,
-      hiddenTestCases,
+      title: escapeHTML(title.trim()),
+      statement: escapeHTML(statement.trim()),
+      visibleExamples: sanitizedVisibleExamples,
+      hiddenTestCases: sanitizedHiddenTestCases,
       timeLimit,
       difficulty,
       allowedLanguages,
@@ -317,6 +343,12 @@ const getRoom = async (req, res, next) => {
         await room.save();
       }
       return sendError(res, 400, "Room has expired");
+    }
+
+    const isParticipant = room.players.some((p) => getUserId(p) === req.userId.toString());
+    const isCreator = getUserId(room.creatorId) === req.userId.toString();
+    if (!isParticipant && !isCreator && (room.status === "active" || room.status === "finished")) {
+      return sendError(res, 403, "Access denied. You are not a participant in this match.");
     }
 
     const roomObj = room.toObject();

@@ -118,6 +118,22 @@ const login = async (req, res, next) => {
 
 const logout = async (req, res, next) => {
   try {
+    const TokenBlacklist = require("../models/TokenBlacklist");
+    if (req.token) {
+      let expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7d default
+      try {
+        const decoded = jwt.decode(req.token);
+        if (decoded && decoded.exp) {
+          expiresAt = new Date(decoded.exp * 1000);
+        }
+      } catch (_) {}
+
+      await TokenBlacklist.create({
+        token: req.token,
+        expiresAt,
+      });
+    }
+
     res.clearCookie(TOKEN_COOKIE_NAME, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
@@ -140,7 +156,7 @@ const getMe = async (req, res, next) => {
 
     const { passwordHash, __v, ...publicUser } = user;
 
-    return sendSuccess(res, 200, { user: publicUser }, "User retrieved successfully");
+    return sendSuccess(res, 200, { user: publicUser, token: req.token }, "User retrieved successfully");
   } catch (error) {
     next(error);
   }

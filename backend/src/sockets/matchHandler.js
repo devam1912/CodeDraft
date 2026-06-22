@@ -92,6 +92,13 @@ const registerMatchHandlers = (io, socket) => {
         return socket.emit("error", { message: "This battle has already finished" });
       }
 
+      if (room.status === "active") {
+        const isCompetitor = room.players.some((p) => p.toString() === socket.userId.toString());
+        if (!isCompetitor) {
+          return socket.emit("error", { message: "You are not a registered participant in this active match." });
+        }
+      }
+
       const maxPlayers = room.battleFormat === "2v2" ? 4 : 2;
       const isAlreadyJoined = room.players.some(
         (p) => p.toString() === socket.userId.toString()
@@ -160,10 +167,19 @@ const registerMatchHandlers = (io, socket) => {
           problemB: updatedRoom.problemB,
           problem: updatedRoom.problem,
           submissions: new Map(),
+          playerCodes: new Map(),
         });
       }
 
-      activeRooms.get(roomId).players.set(socket.userId.toString(), socket.id);
+      const roomState = activeRooms.get(roomId);
+      roomState.players.set(socket.userId.toString(), socket.id);
+
+      if (updatedRoom.status === "active") {
+        const savedCode = roomState.playerCodes?.get(socket.userId.toString());
+        if (savedCode) {
+          socket.emit("battle:restoreCode", { savedCode });
+        }
+      }
 
       const joinedPlayer = updatedRoom.players.find(
         (p) => p._id.toString() === socket.userId.toString()
@@ -394,8 +410,15 @@ const registerMatchHandlers = (io, socket) => {
       if (!roomId || typeof sourceCode !== "string") return;
       if (!activeRooms.has(roomId)) return;
       const roomState = activeRooms.get(roomId);
+      
+      // Persist the code in-memory on the server
+      if (!roomState.playerCodes) {
+        roomState.playerCodes = new Map();
+      }
+      roomState.playerCodes.set(socket.userId.toString(), sourceCode);
+
       const room = await Room.findOne({ roomId });
-      if (!room || room.battleFormat !== "2v2" || room.status !== "active") return;
+      if (!room || room.status !== "active") return;
       const userIdStr = socket.userId.toString();
       const inTeamA = room.teamA.some((id) => id.toString() === userIdStr);
       const inTeamB = room.teamB.some((id) => id.toString() === userIdStr);
@@ -456,7 +479,7 @@ const registerMatchHandlers = (io, socket) => {
         const expectedOutput = tc.expectedOutput.trim();
 
         if (language === "javascript") {
-          const localResult = executeJS(sourceCode, input);
+          const localResult = await executeJS(sourceCode, input);
           const actualOutput = (localResult.output || "").trim();
           const passed = localResult.success && actualOutput === expectedOutput;
           if (!passed) allPassed = false;
@@ -491,25 +514,25 @@ const registerMatchHandlers = (io, socket) => {
           } catch (apiError) {
             logger.error(`Judge0 API error during battle submit: ${apiError.message}`);
             if (language === "javascript") {
-              const localResult = executeJS(sourceCode, input);
+              const localResult = await executeJS(sourceCode, input);
               const actualOutput = (localResult.output || "").trim();
               const passed = localResult.success && actualOutput === expectedOutput;
               if (!passed) allPassed = false;
               results.push({ passed });
             } else if (language === "python") {
-              const localResult = executePython(sourceCode, input);
+              const localResult = await executePython(sourceCode, input);
               const actualOutput = (localResult.output || "").trim();
               const passed = localResult.success && actualOutput === expectedOutput;
               if (!passed) allPassed = false;
               results.push({ passed });
             } else if (language === "cpp") {
-              const localResult = executeCPP(sourceCode, input);
+              const localResult = await executeCPP(sourceCode, input);
               const actualOutput = (localResult.output || "").trim();
               const passed = localResult.success && actualOutput === expectedOutput;
               if (!passed) allPassed = false;
               results.push({ passed });
             } else if (language === "c") {
-              const localResult = executeC(sourceCode, input);
+              const localResult = await executeC(sourceCode, input);
               const actualOutput = (localResult.output || "").trim();
               const passed = localResult.success && actualOutput === expectedOutput;
               if (!passed) allPassed = false;
