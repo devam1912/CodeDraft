@@ -13,9 +13,9 @@ import toast from "react-hot-toast";
 const PAGE_STYLE = { minHeight: "100vh", display: "flex", flexDirection: "column", backgroundColor: "#120b22", color: "#eee8f5", fontFamily: "Inter, sans-serif" };
 const NAV_STYLE = { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "20px 40px", borderBottom: "1px solid #2a1845", backdropFilter: "blur(12px)", backgroundColor: "rgba(13, 8, 24, 0.8)", position: "relative", zIndex: 100 };
 const LOGO_STYLE = { fontSize: "24px", fontWeight: 800, background: "linear-gradient(135deg, #7e5dbd, #d4a053)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", letterSpacing: "-0.02em" };
-const CONTENT_STYLE = { flex: 1, padding: "40px", maxWidth: "1200px", margin: "0 auto", width: "100%" };
-const GREETING_STYLE = { fontSize: "28px", fontWeight: 700, marginBottom: "8px" };
-const SUBTEXT_STYLE = { fontSize: "14px", color: "#a99bc2", marginBottom: "32px" };
+const CONTENT_STYLE = { flex: 1, padding: "clamp(16px, 4vw, 40px)", maxWidth: "1200px", margin: "0 auto", width: "100%", boxSizing: "border-box" };
+const GREETING_STYLE = { fontSize: "clamp(20px, 4vw, 28px)", fontWeight: 700, marginBottom: "8px" };
+const SUBTEXT_STYLE = { fontSize: "14px", color: "#a99bc2", marginBottom: "16px" };
 const ELO_DISPLAY = { fontSize: "56px", fontWeight: 800, fontFamily: "JetBrains Mono, monospace", background: "linear-gradient(135deg, #7e5dbd, #d4a053)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", lineHeight: 1 };
 const ELO_LABEL = { fontSize: "12px", color: "#7a6b94", textTransform: "uppercase", letterSpacing: "0.08em", marginTop: "6px" };
 const RANK_BADGE = { display: "inline-block", fontSize: "11px", fontWeight: 700, color: "#7e5dbd", backgroundColor: "rgba(126,93,189,0.12)", border: "1px solid rgba(126,93,189,0.3)", borderRadius: "6px", padding: "2px 8px", marginTop: "8px" };
@@ -854,8 +854,8 @@ function Dashboard() {
       </motion.div>
 
       {showAvatarModal && (
-        <div style={{ position: "fixed", inset: 0, backgroundColor: "rgba(5,3,12,0.85)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", zIndex: 100, justifyContent: "center" }}>
-          <div style={{ backgroundColor: "#1a1030", border: "1px solid #2a1845", borderRadius: "16px", padding: "24px", maxWidth: "360px", width: "100%", textAlign: "center" }}>
+        <div style={{ position: "fixed", inset: 0, backgroundColor: "rgba(5,3,12,0.85)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", zIndex: 100, justifyContent: "center", padding: "16px" }}>
+          <div style={{ backgroundColor: "#1a1030", border: "1px solid #2a1845", borderRadius: "16px", padding: "clamp(20px, 4vw, 32px)", maxWidth: "360px", width: "100%", textAlign: "center" }}>
             <h3 style={{ fontSize: "18px", fontWeight: 700, marginBottom: "16px", color: "#eee8f5" }}>Select Gaming Avatar</h3>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "14px", marginBottom: "20px" }}>
               {["💻", "🔥", "⚡", "🏆", "💀", "👾", "🤖", "🐼"].map((avatar) => (
@@ -883,8 +883,8 @@ function Dashboard() {
       )}
 
       {showJoinModal && (
-        <div style={{ position: "fixed", inset: 0, backgroundColor: "rgba(5,3,12,0.85)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", zIndex: 100, justifyContent: "center" }}>
-          <div style={{ backgroundColor: "#1a1030", border: "1px solid #2a1845", borderRadius: "16px", padding: "32px", maxWidth: "420px", width: "100%" }}>
+        <div style={{ position: "fixed", inset: 0, backgroundColor: "rgba(5,3,12,0.85)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", zIndex: 100, justifyContent: "center", padding: "16px" }}>
+          <div style={{ backgroundColor: "#1a1030", border: "1px solid #2a1845", borderRadius: "16px", padding: "clamp(20px, 4vw, 32px)", maxWidth: "420px", width: "100%" }}>
             <div style={{ textAlign: "center", marginBottom: "24px" }}>
               <div style={{ fontSize: "40px", marginBottom: "12px" }}>🎮</div>
               <h3 style={{ fontSize: "20px", fontWeight: 700, color: "#eee8f5", marginBottom: "6px" }}>Join Battle Room</h3>
@@ -929,7 +929,7 @@ function Dashboard() {
       )}
 
       {showCreateModal && (
-        <div style={{ position: "fixed", inset: 0, backgroundColor: "rgba(5,3,12,0.85)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", zIndex: 100, justifyContent: "center" }}>
+        <div style={{ position: "fixed", inset: 0, backgroundColor: "rgba(5,3,12,0.85)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", zIndex: 100, justifyContent: "center", padding: "16px" }}>
           <div style={{ backgroundColor: "#1a1030", border: "1px solid #2a1845", borderRadius: "16px", padding: "24px", maxWidth: "420px", width: "100%" }}>
             <h3 style={{ fontSize: "18px", fontWeight: 700, marginBottom: "16px", color: "#eee8f5", textAlign: "center" }}>Create Coding Battle</h3>
             

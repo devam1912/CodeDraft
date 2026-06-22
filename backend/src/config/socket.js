@@ -20,13 +20,19 @@ const configureSockets = (server) => {
 
   io.use((socket, next) => {
     try {
-      const cookieHeader = socket.handshake.headers.cookie;
-      if (!cookieHeader) {
-        return next(new Error("Authentication error: No cookies found"));
+      let token = socket.handshake.auth?.token;
+
+      if (!token) {
+        token = socket.handshake.query?.token;
       }
 
-      const cookies = cookie.parse(cookieHeader);
-      const token = cookies.codedraft_token;
+      if (!token) {
+        const cookieHeader = socket.handshake.headers.cookie;
+        if (cookieHeader) {
+          const cookies = cookie.parse(cookieHeader);
+          token = cookies.codedraft_token;
+        }
+      }
 
       if (!token) {
         return next(new Error("Authentication error: Token not found"));

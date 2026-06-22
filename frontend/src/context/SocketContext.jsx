@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import { io } from "socket.io-client";
 import { useAuth } from "./AuthContext";
+import { getStoredToken } from "../services/api";
 
 const SocketContext = createContext(null);
 
@@ -16,6 +17,9 @@ export function SocketProvider({ children }) {
       activeSocket = io(wsUrl, {
         withCredentials: true,
         autoConnect: true,
+        auth: {
+          token: getStoredToken(),
+        },
       });
 
       setSocket(activeSocket);

@@ -80,7 +80,7 @@ const register = async (req, res, next) => {
 
     logger.info(`New user registered: ${username}`);
 
-    return sendSuccess(res, 201, { user: user.toPublicJSON() }, "Registration successful");
+    return sendSuccess(res, 201, { user: user.toPublicJSON(), token }, "Registration successful");
   } catch (error) {
     next(error);
   }
@@ -110,7 +110,7 @@ const login = async (req, res, next) => {
 
     logger.info(`User logged in: ${user.username}`);
 
-    return sendSuccess(res, 200, { user: user.toPublicJSON() }, "Login successful");
+    return sendSuccess(res, 200, { user: user.toPublicJSON(), token }, "Login successful");
   } catch (error) {
     next(error);
   }

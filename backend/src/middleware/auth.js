@@ -5,7 +5,15 @@ const TOKEN_COOKIE_NAME = "codedraft_token";
 
 const auth = async (req, res, next) => {
   try {
-    const token = req.cookies[TOKEN_COOKIE_NAME];
+    // Check Authorization header first (for incognito/cross-origin), then fall back to cookie
+    let token = null;
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      token = authHeader.slice(7);
+    }
+    if (!token) {
+      token = req.cookies[TOKEN_COOKIE_NAME];
+    }
 
     if (!token) {
       return sendError(res, 401, "Authentication required. Please log in.");
@@ -24,3 +32,4 @@ const auth = async (req, res, next) => {
 };
 
 module.exports = { auth, TOKEN_COOKIE_NAME };
+

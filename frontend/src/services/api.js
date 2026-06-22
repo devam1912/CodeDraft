@@ -11,6 +11,51 @@ const api = axios.create({
   timeout: 15000,
 });
 
+// Token helpers for localStorage fallback (incognito/cross-origin)
+const TOKEN_KEY = "codedraft_token";
+let inMemoryToken = null;
+
+export const setStoredToken = (token) => {
+  if (token) {
+    inMemoryToken = token;
+    try {
+      localStorage.setItem(TOKEN_KEY, token);
+    } catch (e) {
+      console.warn("localStorage setItem failed (e.g. incognito/disabled):", e);
+    }
+  }
+};
+
+export const getStoredToken = () => {
+  if (inMemoryToken) {
+    return inMemoryToken;
+  }
+  try {
+    return localStorage.getItem(TOKEN_KEY);
+  } catch (e) {
+    console.warn("localStorage getItem failed (e.g. incognito/disabled):", e);
+    return null;
+  }
+};
+
+export const clearStoredToken = () => {
+  inMemoryToken = null;
+  try {
+    localStorage.removeItem(TOKEN_KEY);
+  } catch (e) {
+    console.warn("localStorage removeItem failed (e.g. incognito/disabled):", e);
+  }
+};
+
+// Attach Authorization header from localStorage on every request
+api.interceptors.request.use((config) => {
+  const token = getStoredToken();
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
 api.interceptors.response.use(
   (response) => response.data,
   (error) => {
@@ -22,6 +67,7 @@ api.interceptors.response.use(
         !url.includes("/auth/me") &&
         !url.includes("/auth/logout")
       ) {
+        clearStoredToken();
         window.location.href = "/login";
         return new Promise(() => {}); // Prevent component-level catches and toasts
       }

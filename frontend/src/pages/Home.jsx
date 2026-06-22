@@ -604,9 +604,9 @@ function HERO_DUEL_SIMULATOR({ simCodeA, simCodeB, testA, testB }) {
         <span style={{ width: "32px" }} />
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", borderBottom: "1px solid rgba(126, 93, 189, 0.08)", height: "340px", overflow: "hidden" }}>
+      <div className="duel-editor-grid">
         {/* Player A Editor */}
-        <div style={{ borderRight: "1px solid rgba(126, 93, 189, 0.08)", padding: "16px", display: "flex", flexDirection: "column" }}>
+        <div className="duel-editor-pane-left">
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
             <span style={{ fontSize: "13px", fontWeight: 800, color: "#9478cc" }}>👾 alpha_coder</span>
             <span style={{ fontSize: "10px", padding: "2px 6px", borderRadius: "4px", backgroundColor: "rgba(126, 93, 189, 0.1)", color: "#b49fdb", fontFamily: "JetBrains Mono, monospace" }}>JS</span>
@@ -643,9 +643,9 @@ function HERO_DUEL_SIMULATOR({ simCodeA, simCodeB, testA, testB }) {
       </div>
 
       {/* Telemetry Testing Panels */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", padding: "18px", backgroundColor: "rgba(13, 8, 24, 0.5)" }}>
+      <div className="duel-telemetry-grid">
         {/* Test cases A */}
-        <div style={{ borderRight: "1px solid rgba(126, 93, 189, 0.08)", paddingRight: "16px" }}>
+        <div className="duel-telemetry-left">
           <div style={{ fontSize: "11px", fontWeight: 700, color: "#7a6b94", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "10px" }}>Test Status</div>
           <div style={{ display: "flex", gap: "8px", flexDirection: "column" }}>
             {testA.map(t => (
@@ -670,7 +670,7 @@ function HERO_DUEL_SIMULATOR({ simCodeA, simCodeB, testA, testB }) {
         </div>
 
         {/* Test cases B */}
-        <div style={{ paddingLeft: "16px" }}>
+        <div className="duel-telemetry-right">
           <div style={{ fontSize: "11px", fontWeight: 700, color: "#7a6b94", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "10px" }}>Test Status</div>
           <div style={{ display: "flex", gap: "8px", flexDirection: "column" }}>
             {testB.map(t => (

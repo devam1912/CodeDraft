@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, useCallback } from "react";
-import { authAPI } from "../services/api";
+import { authAPI, setStoredToken, clearStoredToken } from "../services/api";
 
 const AuthContext = createContext(null);
 
@@ -21,6 +21,7 @@ export function AuthProvider({ children }) {
     } catch {
       setUser(null);
       setAuthState(AUTH_STATES.UNAUTHENTICATED);
+      clearStoredToken();
     }
   }, []);
 
@@ -30,6 +31,9 @@ export function AuthProvider({ children }) {
 
   const login = async (credentials) => {
     const response = await authAPI.login(credentials);
+    if (response.data.token) {
+      setStoredToken(response.data.token);
+    }
     setUser(response.data.user);
     setAuthState(AUTH_STATES.AUTHENTICATED);
     return response;
@@ -37,6 +41,9 @@ export function AuthProvider({ children }) {
 
   const register = async (userData) => {
     const response = await authAPI.register(userData);
+    if (response.data.token) {
+      setStoredToken(response.data.token);
+    }
     setUser(response.data.user);
     setAuthState(AUTH_STATES.AUTHENTICATED);
     return response;
@@ -48,6 +55,7 @@ export function AuthProvider({ children }) {
     } catch (err) {
       console.warn("Logout request failed, clearing session locally:", err);
     } finally {
+      clearStoredToken();
       setUser(null);
       setAuthState(AUTH_STATES.UNAUTHENTICATED);
     }
