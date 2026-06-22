@@ -4,14 +4,7 @@ const logger = require("../utils/logger");
 
 const callGeminiWithFallback = async (prompt, temperature = 0.15) => {
   const apiKey = process.env.GEMINI_API_KEY;
-  
-  // List of models to try in sequence
-  const models = [
-    "gemini-flash-latest",
-    "gemini-2.5-flash-lite",
-    "gemini-2.0-flash-lite",
-    "gemini-2.5-flash"
-  ];
+  const models = ["gemini-1.5-flash", "gemini-1.5-pro"];
 
   let lastError = null;
 

@@ -167,7 +167,7 @@ function ProblemEditor() {
       return;
     }
     setIsGeneratingSolution(true);
-    const toastId = toast.loading(`Generating solution in ${activeLanguage.toUpperCase()} using Gemini AI...`);
+    const toastId = toast.loading("Generating using Gemini AI...");
     try {
       const res = await userAPI.generateSolution({
         title,
