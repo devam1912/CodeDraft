@@ -167,7 +167,7 @@ function ProblemEditor() {
       return;
     }
     setIsGeneratingSolution(true);
-    const toastId = toast.loading("Generating using Gemini AI...");
+    const toastId = toast.loading("Generating using AI...");
     try {
       const res = await userAPI.generateSolution({
         title,
@@ -176,7 +176,7 @@ function ProblemEditor() {
       });
       const solution = res.data?.solution || res.solution || "";
       if (!solution) {
-        throw new Error("Gemini returned an empty solution.");
+        throw new Error("AI returned an empty solution.");
       }
       setReferenceSolution(solution);
       setIsValidated(false);
