@@ -49,12 +49,21 @@ function BattleArena() {
   const lastTypingEmit = useRef(0);
   const typingTimeoutRefs = useRef({});
   const isRemoteChange = useRef(false);
+  const codeUpdateTimeoutRef = useRef(null);
   const [teammateTyping, setTeammateTyping] = useState(false);
   const teammateTypingTimeoutRef = useRef(null);
   const [userRating, setUserRating] = useState(0);
   const [hasRated, setHasRated] = useState(false);
   const [showAiHelper, setShowAiHelper] = useState(false);
   const [mobileTab, setMobileTab] = useState("description");
+
+  useEffect(() => {
+    return () => {
+      if (codeUpdateTimeoutRef.current) {
+        clearTimeout(codeUpdateTimeoutRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     const fetchRoom = async () => {
@@ -206,7 +215,12 @@ function BattleArena() {
       socket.emit("battle:keystroke", { roomId });
     }
     if (socket) {
-      socket.emit("battle:codeUpdate", { roomId, sourceCode: val });
+      if (codeUpdateTimeoutRef.current) {
+        clearTimeout(codeUpdateTimeoutRef.current);
+      }
+      codeUpdateTimeoutRef.current = setTimeout(() => {
+        socket.emit("battle:codeUpdate", { roomId, sourceCode: val });
+      }, 500);
     }
   };
 
