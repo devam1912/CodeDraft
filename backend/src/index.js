@@ -8,7 +8,7 @@ const cookieParser = require("cookie-parser");
 const morgan = require("morgan");
 const configureSockets = require("./config/socket");
 const initExpiryCron = require("./config/expiryCron");
-const initTournamentCron = require("./config/tournamentCron");
+
 
 const connectDB = require("./config/db");
 const validateEnv = require("./config/validateEnv");
@@ -19,7 +19,7 @@ const { sendSuccess } = require("./utils/response");
 const authRoutes = require("./routes/auth");
 const roomRoutes = require("./routes/rooms");
 const userRoutes = require("./routes/users");
-const tournamentRoutes = require("./routes/tournaments");
+
 const matchRoutes = require("./routes/matches");
 const profileRoutes = require("./routes/profiles");
 const notificationRoutes = require("./routes/notifications");
@@ -66,7 +66,7 @@ app.get("/api/health", (req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/rooms", roomRoutes);
 app.use("/api/users", userRoutes);
-app.use("/api/tournaments", tournamentRoutes);
+
 app.use("/api/matches", matchRoutes);
 app.use("/api/profiles", profileRoutes);
 app.use("/api/notifications", notificationRoutes);
@@ -80,7 +80,7 @@ const startServer = async () => {
   try {
     await connectDB();
     initExpiryCron(io);
-    initTournamentCron();
+
 
     server.listen(PORT, "0.0.0.0", () => {
       logger.info(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);

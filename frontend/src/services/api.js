@@ -98,13 +98,7 @@ export const userAPI = {
   generateSolution: (data) => api.post("/users/ai/generate-solution", data),
 };
 
-export const tournamentAPI = {
-  createTournament: (data) => api.post("/tournaments", data),
-  getTournaments: () => api.get("/tournaments"),
-  getTournamentDetails: (id) => api.get(`/tournaments/${id}`),
-  registerForTournament: (id) => api.post(`/tournaments/${id}/register`),
-  startTournament: (id) => api.post(`/tournaments/${id}/start`),
-};
+
 
 export const matchAPI = {
   getMatchReplay: (roomId) => api.get(`/matches/${roomId}`),

@@ -11,7 +11,6 @@ import ProblemEditor from "./pages/ProblemEditor";
 import Lobby from "./pages/Lobby";
 import BattleArena from "./pages/BattleArena";
 import Leaderboard from "./pages/Leaderboard";
-import TournamentArena from "./pages/TournamentArena";
 import PublicProfile from "./pages/PublicProfile";
 
 
@@ -88,14 +87,7 @@ function App() {
               </ProtectedRoute>
             }
           />
-          <Route
-            path="/tournament/:id"
-            element={
-              <ProtectedRoute>
-                <TournamentArena />
-              </ProtectedRoute>
-            }
-          />
+
           <Route
             path="/u/:username"
             element={

@@ -340,7 +340,6 @@ function Home() {
           </Link>
           <div className="nav-links">
             <Link to="/leaderboard" style={{ textDecoration: "none", color: "#a99bc2", fontSize: "14px", fontWeight: 500 }}>Leaderboard</Link>
-            <Link to="/dashboard" style={{ textDecoration: "none", color: "#a99bc2", fontSize: "14px", fontWeight: 500 }}>Tournaments</Link>
           </div>
         </div>
         <div className="nav-actions">

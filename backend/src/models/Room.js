@@ -73,13 +73,6 @@ const roomSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
-    tournamentId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Tournament",
-    },
-    tournamentRound: {
-      type: Number,
-    },
     status: {
       type: String,
       enum: ["setting_up", "waiting_for_players", "active", "finished", "expired"],
