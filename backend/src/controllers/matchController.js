@@ -1,43 +1,6 @@
 const Room = require("../models/Room");
-const { sendSuccess, sendError } = require("../utils/response");
+const { sendSuccess } = require("../utils/response");
 const logger = require("../utils/logger");
-
-const getMatchReplay = async (req, res, next) => {
-  try {
-    const { roomId } = req.params;
-
-    const room = await Room.findOne({ roomId, status: "finished" })
-      .populate("players", "username eloRating avatar college")
-      .populate("winnerId", "username avatar")
-      .lean();
-
-    if (!room) {
-      return sendError(res, 404, "Match replay not found or battle is still in progress");
-    }
-
-    return sendSuccess(
-      res,
-      200,
-      {
-        roomId: room.roomId,
-        players: room.players,
-        winnerId: room.winnerId,
-        eloChanges: room.eloChanges || {},
-        startedAt: room.startedAt,
-        finishedAt: room.finishedAt,
-        problem: {
-          title: room.problem?.title,
-          difficulty: room.problem?.difficulty,
-        },
-        eventTimeline: room.eventTimeline || [],
-      },
-      "Match replay loaded successfully"
-    );
-  } catch (error) {
-    logger.error(`Error in getMatchReplay: ${error.message}`);
-    next(error);
-  }
-};
 
 const getMatchHistory = async (req, res, next) => {
   try {
@@ -107,6 +70,5 @@ const getMatchHistory = async (req, res, next) => {
 };
 
 module.exports = {
-  getMatchReplay,
   getMatchHistory,
 };

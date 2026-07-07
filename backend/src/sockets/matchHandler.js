@@ -449,7 +449,7 @@ const registerMatchHandlers = (io, socket) => {
         return socket.emit("error", { message: "Missing submission parameters" });
       }
 
-      const room = await Room.findOne({ roomId })
+      let room = await Room.findOne({ roomId })
         .populate("players", "username eloRating wins losses matchesPlayed")
         .populate("teamA", "username eloRating wins losses matchesPlayed eloHistory")
         .populate("teamB", "username eloRating wins losses matchesPlayed eloHistory");
@@ -563,6 +563,28 @@ const registerMatchHandlers = (io, socket) => {
       }
 
       const winnerId = socket.userId;
+
+      // Attempt to atomically transition status to 'finished' to claim victory and prevent race conditions
+      const updatedRoom = await Room.findOneAndUpdate(
+        { roomId, status: "active" },
+        {
+          $set: {
+            status: "finished",
+            finishedAt: new Date(),
+            winnerId: winnerId,
+          }
+        },
+        { new: true }
+      )
+        .populate("players", "username eloRating wins losses matchesPlayed")
+        .populate("teamA", "username eloRating wins losses matchesPlayed eloHistory")
+        .populate("teamB", "username eloRating wins losses matchesPlayed eloHistory");
+
+      if (!updatedRoom) {
+        return socket.emit("error", { message: "This battle has already been won by someone else!" });
+      }
+
+      room = updatedRoom;
       let eloChanges = {};
 
       if (room.battleFormat === "2v2") {
@@ -654,9 +676,6 @@ const registerMatchHandlers = (io, socket) => {
         }
       }
 
-      room.status = "finished";
-      room.finishedAt = new Date();
-      room.winnerId = winnerId;
       room.eloChanges = eloChanges;
       room.eventTimeline.push({
         eventType: "submission_attempt",
