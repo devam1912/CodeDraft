@@ -2,12 +2,10 @@ services:
   # ── Backend API ──
   - type: web
     name: codedraft-backend
-    runtime: node
+    runtime: docker
     region: oregon
     plan: free
     rootDir: backend
-    buildCommand: npm install
-    startCommand: node src/index.js
     envVars:
       - key: NODE_ENV
         value: production
