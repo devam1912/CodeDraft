@@ -6,6 +6,35 @@ const { executeJS, executePython, executeCPP, executeC } = require("../utils/cod
 const axios = require("axios");
 const generateRoomId = require("../utils/generateRoomId");
 
+/**
+ * runLocally — local sandbox fallback when Judge0 is unavailable.
+ *
+ * Supported languages and their local executors:
+ *   javascript → executeJS()  (always local, Node child process + permission sandbox)
+ *   python     → executePython() (python3 installed in Dockerfile)
+ *   cpp        → executeCPP()    (g++ installed in Dockerfile)
+ *   c          → executeC()      (gcc installed in Dockerfile)
+ *
+ * Java, Go, Rust have NO local fallback — they require heavy runtimes
+ * (JDK, Go toolchain, Rust compiler) which are not installed in the Docker image.
+ * If Judge0 goes down for those languages, we return an error to the user
+ * rather than silently marking correct submissions as failed.
+ *
+ * @param {string} language  - One of: javascript, python, cpp, c
+ * @param {string} code      - User-submitted source code
+ * @param {string} input     - stdin for the test case
+ * @returns {{ success, output, error }} — same shape as codeExecutor functions
+ */
+const runLocally = async (language, code, input) => {
+  switch (language) {
+    case "javascript": return executeJS(code, input);
+    case "python":     return executePython(code, input);
+    case "cpp":        return executeCPP(code, input);
+    case "c":          return executeC(code, input);
+    default:           return null; // language has no local runtime installed
+  }
+};
+
 const LANGUAGE_IDS = {
   javascript: 63,
   python: 71,
@@ -478,12 +507,14 @@ const registerMatchHandlers = (io, socket) => {
         const expectedOutput = tc.expectedOutput.trim();
 
         if (language === "javascript") {
+          // JavaScript always runs locally — no Judge0 needed
           const localResult = await executeJS(sourceCode, input);
           const actualOutput = (localResult.output || "").trim();
           const passed = localResult.success && actualOutput === expectedOutput;
           if (!passed) allPassed = false;
           results.push({ passed });
         } else {
+          // All other languages go through Judge0 first
           const langId = LANGUAGE_IDS[language];
           if (!langId) {
             return socket.emit("error", { message: "Unsupported programming language" });
@@ -511,35 +542,28 @@ const registerMatchHandlers = (io, socket) => {
             if (!passed) allPassed = false;
             results.push({ passed });
           } catch (apiError) {
+            // ─── Judge0 failed (rate-limited, timeout, API down) ───────────────
+            // Try local fallback for languages that have a runtime in the Docker image.
+            // javascript, python, cpp, c → have local executors installed.
+            // java, go, rust → no local runtime; emit a clear error instead of
+            //                   silently returning false (which would wrongly
+            //                   mark correct code as failing).
             logger.error(`Judge0 API error during battle submit: ${apiError.message}`);
-            if (language === "javascript") {
-              const localResult = await executeJS(sourceCode, input);
-              const actualOutput = (localResult.output || "").trim();
-              const passed = localResult.success && actualOutput === expectedOutput;
-              if (!passed) allPassed = false;
-              results.push({ passed });
-            } else if (language === "python") {
-              const localResult = await executePython(sourceCode, input);
-              const actualOutput = (localResult.output || "").trim();
-              const passed = localResult.success && actualOutput === expectedOutput;
-              if (!passed) allPassed = false;
-              results.push({ passed });
-            } else if (language === "cpp") {
-              const localResult = await executeCPP(sourceCode, input);
-              const actualOutput = (localResult.output || "").trim();
-              const passed = localResult.success && actualOutput === expectedOutput;
-              if (!passed) allPassed = false;
-              results.push({ passed });
-            } else if (language === "c") {
-              const localResult = await executeC(sourceCode, input);
-              const actualOutput = (localResult.output || "").trim();
-              const passed = localResult.success && actualOutput === expectedOutput;
-              if (!passed) allPassed = false;
-              results.push({ passed });
-            } else {
-              allPassed = false;
-              results.push({ passed: false });
+
+            const localResult = await runLocally(language, sourceCode, input);
+
+            if (!localResult) {
+              // Language has no local fallback runtime (java, go, rust)
+              return socket.emit("error", {
+                message: `Judge0 is currently unavailable and ${language} has no local fallback. Please try again in a moment or switch to JavaScript, Python, C++, or C.`,
+              });
             }
+
+            logger.info(`Judge0 unavailable — fell back to local executor for language: ${language}`);
+            const actualOutput = (localResult.output || "").trim();
+            const passed = localResult.success && actualOutput === expectedOutput;
+            if (!passed) allPassed = false;
+            results.push({ passed });
           }
         }
       }

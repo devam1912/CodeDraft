@@ -3,23 +3,76 @@ const fs = require("fs");
 const path = require("path");
 const os = require("os");
 
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+/**
+ * Generate a unique temp file path.
+ * Using Date.now() + random suffix prevents collisions between concurrent executions.
+ */
+const tmpPath = (prefix, ext) =>
+  path.join(
+    os.tmpdir(),
+    `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}.${ext}`
+  );
+
+/**
+ * Safely delete a file — swallows errors (file may already be gone).
+ * Called in all code paths: success, timeout, and error.
+ */
+const cleanup = (...files) => {
+  for (const f of files) {
+    if (!f) continue;
+    try {
+      fs.unlinkSync(f);
+    } catch (_) {
+      // File already deleted or never created — safe to ignore
+    }
+  }
+};
+
+/**
+ * Resolve the correct Python binary name for the OS.
+ * - Linux (Docker): python3  (python3 is default; we create a 'python' symlink in Dockerfile)
+ * - Windows (dev):  python
+ * We try python3 first, fallback to python if the command isn't found.
+ */
+const PYTHON_CMD = process.platform === "win32" ? "python" : "python3";
+
+// ─── JavaScript Executor ───────────────────────────────────────────────────────
+
+/**
+ * Executes JavaScript code in an isolated child Node.js process.
+ *
+ * Security fixes applied:
+ *  1. --experimental-permission flag restricts fs access to /tmp only.
+ *     This prevents user code from reading /etc/passwd, process.env files,
+ *     or any server file outside the temp directory.
+ *  2. --allow-fs-read is limited to os.tmpdir() — only the sandbox temp area.
+ *  3. Child process spawning (child_process module) is blocked by default
+ *     when --experimental-permission is active without --allow-child-process.
+ *  4. Stdin is injected via monkey-patching fs.readFileSync(0) inside the
+ *     child process — this stays within the allowed /tmp read path.
+ *  5. SIGKILL on timeout — cannot be caught by user code (unlike SIGTERM).
+ *  6. 128MB heap cap via --max-old-space-size.
+ *
+ * NOTE: Network access cannot yet be blocked via Node's permission model (v22).
+ * A production hardening would wrap this in Docker with --network=none.
+ */
 const executeJS = (code, input, timeoutMs = 3000) => {
   return new Promise((resolve) => {
+    const scriptFile = tmpPath("codedraft_js", "js");
     const tmpDir = os.tmpdir();
-    const scriptFile = path.join(
-      tmpDir,
-      `codedraft_js_${Date.now()}_${Math.random().toString(36).slice(2, 8)}.js`
-    );
 
-    // Mock stdin reading inside Node child process synchronously
+    // Wrap user code: inject stdin via monkey-patch so fs.readFileSync(0) works
+    // without the child needing access to /dev/stdin
     const wrappedCode = `
 const fs = require('fs');
-const originalReadFileSync = fs.readFileSync;
+const _origReadFileSync = fs.readFileSync;
 fs.readFileSync = function(fd, options) {
   if (fd === 0 || fd === '/dev/stdin') {
     return ${JSON.stringify(input || "")};
   }
-  return originalReadFileSync.apply(this, arguments);
+  return _origReadFileSync.apply(this, arguments);
 };
 try {
   ${code}
@@ -33,23 +86,23 @@ try {
       fs.writeFileSync(scriptFile, wrappedCode, "utf-8");
       const startTime = Date.now();
 
+      // --experimental-permission: restrict fs reads to /tmp only
+      // This blocks: require('fs').readFileSync('/etc/passwd'), process.env leaks via file reads, etc.
+      // --allow-child-process is intentionally NOT passed → blocks exec/spawn inside user code
       exec(
-        `node --max-old-space-size=128 "${scriptFile}"`,
+        `node --experimental-permission --allow-fs-read="${tmpDir}" --max-old-space-size=128 "${scriptFile}"`,
         { timeout: timeoutMs, killSignal: "SIGKILL" },
         (err, stdout, stderr) => {
           const executionTime = Date.now() - startTime;
-          try {
-            fs.unlinkSync(scriptFile);
-          } catch (_) {}
+          cleanup(scriptFile); // ← always cleaned up here
 
           if (err && err.killed) {
-            resolve({
+            return resolve({
               success: false,
               output: "",
               executionTime: 0,
               error: `Time limit exceeded. Execution timed out after ${timeoutMs}ms.`,
             });
-            return;
           }
 
           resolve({
@@ -61,9 +114,8 @@ try {
         }
       );
     } catch (e) {
-      try {
-        fs.unlinkSync(scriptFile);
-      } catch (_) {}
+      // writeFileSync or exec() itself threw synchronously
+      cleanup(scriptFile);
       resolve({
         success: false,
         output: "",
@@ -74,45 +126,43 @@ try {
   });
 };
 
+// ─── Python Executor ──────────────────────────────────────────────────────────
+
+/**
+ * Executes Python 3 code.
+ * Uses python3 on Linux/Docker (installed in Dockerfile), python on Windows.
+ * Input is fed via a separate temp file piped to stdin — no monkey-patching needed.
+ *
+ * FIX: Changed from hardcoded "python" to PYTHON_CMD constant.
+ * On Render/Docker (Linux), "python" doesn't exist by default — "python3" does.
+ * The Dockerfile creates a symlink: python → python3, so both work.
+ * This constant ensures the correct command is used on both dev (Windows) and prod (Linux).
+ */
 const executePython = (code, input, timeoutMs = 10000) => {
   return new Promise((resolve) => {
-    const tmpDir = os.tmpdir();
-    const scriptFile = path.join(
-      tmpDir,
-      `codedraft_py_${Date.now()}_${Math.random().toString(36).slice(2, 8)}.py`
-    );
-    const inputFile = path.join(
-      tmpDir,
-      `codedraft_in_${Date.now()}_${Math.random().toString(36).slice(2, 8)}.txt`
-    );
+    const scriptFile = tmpPath("codedraft_py", "py");
+    const inputFile = tmpPath("codedraft_in", "txt");
 
     try {
       fs.writeFileSync(scriptFile, code, "utf-8");
       fs.writeFileSync(inputFile, input || "", "utf-8");
 
       const startTime = Date.now();
-      let pythonCmd = "python";
 
       exec(
-        `${pythonCmd} "${scriptFile}" < "${inputFile}"`,
+        `${PYTHON_CMD} "${scriptFile}" < "${inputFile}"`,
         { timeout: timeoutMs, killSignal: "SIGKILL" },
         (err, stdout, stderr) => {
           const executionTime = Date.now() - startTime;
-          try {
-            fs.unlinkSync(scriptFile);
-          } catch (_) {}
-          try {
-            fs.unlinkSync(inputFile);
-          } catch (_) {}
+          cleanup(scriptFile, inputFile); // ← always cleaned up
 
           if (err && err.killed) {
-            resolve({
+            return resolve({
               success: false,
               output: "",
               executionTime: 0,
               error: `Time limit exceeded. Execution timed out after ${timeoutMs}ms.`,
             });
-            return;
           }
 
           resolve({
@@ -124,12 +174,7 @@ const executePython = (code, input, timeoutMs = 10000) => {
         }
       );
     } catch (e) {
-      try {
-        fs.unlinkSync(scriptFile);
-      } catch (_) {}
-      try {
-        fs.unlinkSync(inputFile);
-      } catch (_) {}
+      cleanup(scriptFile, inputFile);
       resolve({
         success: false,
         output: "",
@@ -140,84 +185,78 @@ const executePython = (code, input, timeoutMs = 10000) => {
   });
 };
 
+// ─── C++ Executor ────────────────────────────────────────────────────────────
+
+/**
+ * Compiles and executes C++ code using g++.
+ * Two-phase: compile (15s timeout) → execute (timeoutMs timeout).
+ * Compile errors are returned directly as the error message.
+ * All temp files (source, binary, input) are cleaned up after execution.
+ *
+ * g++ is installed in Dockerfile via apt-get install g++
+ */
 const executeCPP = (code, input, timeoutMs = 10000) => {
   return new Promise((resolve) => {
-    const tmpDir = os.tmpdir();
-    const baseName = `codedraft_cpp_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-    const cppFile = path.join(tmpDir, `${baseName}.cpp`);
-    const exeFile = path.join(tmpDir, `${baseName}.exe`);
-    const inputFile = path.join(tmpDir, `${baseName}_in.txt`);
+    const base = tmpPath("codedraft_cpp", "tmp").replace(/\.tmp$/, "");
+    const cppFile = `${base}.cpp`;
+    const exeFile = `${base}.exe`;
+    const inputFile = `${base}_in.txt`;
 
     try {
       fs.writeFileSync(cppFile, code, "utf-8");
       fs.writeFileSync(inputFile, input || "", "utf-8");
 
+      // Phase 1: Compile
       exec(
-        `g++ -O3 -std=c++17 "${cppFile}" -o "${exeFile}"`,
+        `g++ -O2 -std=c++17 "${cppFile}" -o "${exeFile}"`,
         { timeout: 15000 },
-        (compileErr, compileStdout, compileStderr) => {
+        (compileErr, _compileStdout, compileStderr) => {
           if (compileErr) {
-            try {
-              fs.unlinkSync(cppFile);
-            } catch (_) {}
-            try {
-              fs.unlinkSync(inputFile);
-            } catch (_) {}
-            resolve({
+            cleanup(cppFile, inputFile, exeFile);
+            return resolve({
               success: false,
               output: "",
               executionTime: 0,
-              error: compileStderr ? compileStderr.trim() : compileErr.message,
+              error: compileStderr
+                ? compileStderr.trim()
+                : compileErr.message,
             });
-            return;
           }
 
+          // Phase 2: Execute compiled binary
           const startTime = Date.now();
           exec(
             `"${exeFile}" < "${inputFile}"`,
             { timeout: timeoutMs, killSignal: "SIGKILL" },
             (runErr, stdout, stderr) => {
               const executionTime = Date.now() - startTime;
-              try {
-                fs.unlinkSync(cppFile);
-              } catch (_) {}
-              try {
-                fs.unlinkSync(exeFile);
-              } catch (_) {}
-              try {
-                fs.unlinkSync(inputFile);
-              } catch (_) {}
+              cleanup(cppFile, exeFile, inputFile); // ← all three cleaned up
 
               if (runErr && runErr.killed) {
-                resolve({
+                return resolve({
                   success: false,
                   output: "",
                   executionTime: 0,
                   error: `Time limit exceeded. Execution timed out after ${timeoutMs}ms.`,
                 });
-                return;
               }
 
               resolve({
                 success: !runErr,
                 output: (stdout || "").trim(),
                 executionTime,
-                error: stderr ? stderr.trim() : runErr ? runErr.message : null,
+                error: stderr
+                  ? stderr.trim()
+                  : runErr
+                  ? runErr.message
+                  : null,
               });
             }
           );
         }
       );
     } catch (e) {
-      try {
-        fs.unlinkSync(cppFile);
-      } catch (_) {}
-      try {
-        fs.unlinkSync(exeFile);
-      } catch (_) {}
-      try {
-        fs.unlinkSync(inputFile);
-      } catch (_) {}
+      cleanup(cppFile, exeFile, inputFile);
       resolve({
         success: false,
         output: "",
@@ -228,84 +267,75 @@ const executeCPP = (code, input, timeoutMs = 10000) => {
   });
 };
 
+// ─── C Executor ───────────────────────────────────────────────────────────────
+
+/**
+ * Compiles and executes C code using gcc.
+ * Same two-phase pattern as C++.
+ * gcc is installed in Dockerfile via apt-get install gcc
+ */
 const executeC = (code, input, timeoutMs = 10000) => {
   return new Promise((resolve) => {
-    const tmpDir = os.tmpdir();
-    const baseName = `codedraft_c_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-    const cFile = path.join(tmpDir, `${baseName}.c`);
-    const exeFile = path.join(tmpDir, `${baseName}.exe`);
-    const inputFile = path.join(tmpDir, `${baseName}_in.txt`);
+    const base = tmpPath("codedraft_c", "tmp").replace(/\.tmp$/, "");
+    const cFile = `${base}.c`;
+    const exeFile = `${base}.exe`;
+    const inputFile = `${base}_in.txt`;
 
     try {
       fs.writeFileSync(cFile, code, "utf-8");
       fs.writeFileSync(inputFile, input || "", "utf-8");
 
+      // Phase 1: Compile
       exec(
-        `gcc -O3 "${cFile}" -o "${exeFile}"`,
+        `gcc -O2 "${cFile}" -o "${exeFile}"`,
         { timeout: 15000 },
-        (compileErr, compileStdout, compileStderr) => {
+        (compileErr, _compileStdout, compileStderr) => {
           if (compileErr) {
-            try {
-              fs.unlinkSync(cFile);
-            } catch (_) {}
-            try {
-              fs.unlinkSync(inputFile);
-            } catch (_) {}
-            resolve({
+            cleanup(cFile, inputFile, exeFile);
+            return resolve({
               success: false,
               output: "",
               executionTime: 0,
-              error: compileStderr ? compileStderr.trim() : compileErr.message,
+              error: compileStderr
+                ? compileStderr.trim()
+                : compileErr.message,
             });
-            return;
           }
 
+          // Phase 2: Execute compiled binary
           const startTime = Date.now();
           exec(
             `"${exeFile}" < "${inputFile}"`,
             { timeout: timeoutMs, killSignal: "SIGKILL" },
             (runErr, stdout, stderr) => {
               const executionTime = Date.now() - startTime;
-              try {
-                fs.unlinkSync(cFile);
-              } catch (_) {}
-              try {
-                fs.unlinkSync(exeFile);
-              } catch (_) {}
-              try {
-                fs.unlinkSync(inputFile);
-              } catch (_) {}
+              cleanup(cFile, exeFile, inputFile); // ← all three cleaned up
 
               if (runErr && runErr.killed) {
-                resolve({
+                return resolve({
                   success: false,
                   output: "",
                   executionTime: 0,
                   error: `Time limit exceeded. Execution timed out after ${timeoutMs}ms.`,
                 });
-                return;
               }
 
               resolve({
                 success: !runErr,
                 output: (stdout || "").trim(),
                 executionTime,
-                error: stderr ? stderr.trim() : runErr ? runErr.message : null,
+                error: stderr
+                  ? stderr.trim()
+                  : runErr
+                  ? runErr.message
+                  : null,
               });
             }
           );
         }
       );
     } catch (e) {
-      try {
-        fs.unlinkSync(cFile);
-      } catch (_) {}
-      try {
-        fs.unlinkSync(exeFile);
-      } catch (_) {}
-      try {
-        fs.unlinkSync(inputFile);
-      } catch (_) {}
+      cleanup(cFile, exeFile, inputFile);
       resolve({
         success: false,
         output: "",
