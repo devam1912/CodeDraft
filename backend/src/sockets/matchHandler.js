@@ -3,14 +3,14 @@ const Notification = require("../models/Notification");
 const activeRooms = require("./roomManager");
 const logger = require("../utils/logger");
 const { executeJS, executePython, executeCPP, executeC } = require("../utils/codeExecutor");
-const axios = require("axios");
+const { executeWithJudge0 } = require("../utils/judge0Executor");
 const generateRoomId = require("../utils/generateRoomId");
 
 /**
  * runLocally — local sandbox fallback when Judge0 is unavailable.
  *
  * Supported languages and their local executors:
- *   javascript → executeJS()  (always local, Node child process + permission sandbox)
+ *   javascript → executeJS()  (Node child process + permission sandbox)
  *   python     → executePython() (python3 installed in Dockerfile)
  *   cpp        → executeCPP()    (g++ installed in Dockerfile)
  *   c          → executeC()      (gcc installed in Dockerfile)
@@ -33,16 +33,6 @@ const runLocally = async (language, code, input) => {
     case "c":          return executeC(code, input);
     default:           return null; // language has no local runtime installed
   }
-};
-
-const LANGUAGE_IDS = {
-  javascript: 63,
-  python: 71,
-  cpp: 54,
-  java: 62,
-  go: 60,
-  rust: 73,
-  c: 50,
 };
 
 const FALLBACK_CHALLENGES = {
@@ -506,65 +496,44 @@ const registerMatchHandlers = (io, socket) => {
         const input = tc.input;
         const expectedOutput = tc.expectedOutput.trim();
 
-        if (language === "javascript") {
-          // JavaScript always runs locally — no Judge0 needed
-          const localResult = await executeJS(sourceCode, input);
+        try {
+          const judgeResult = await executeWithJudge0(sourceCode, language, input);
+          const actualOutput = (judgeResult.output || "").trim();
+          const passed = judgeResult.success && actualOutput === expectedOutput;
+          if (!passed) allPassed = false;
+          results.push({ passed });
+        } catch (apiError) {
+          if (apiError.code === "UNSUPPORTED_LANGUAGE") {
+            return socket.emit("error", { message: "Unsupported programming language" });
+          }
+
+          // Judge0 failed (rate-limited, timeout, API down). Try local fallback
+          // only for runtimes installed and sandboxed on the backend host.
+          logger.error(`Judge0 API error during battle submit: ${apiError.message}`);
+
+          const localResult = await runLocally(language, sourceCode, input);
+
+          if (!localResult) {
+            return socket.emit("error", {
+              message: `Judge0 is currently unavailable and ${language} has no local fallback. Please try again in a moment or switch to JavaScript, Python, C++, or C.`,
+            });
+          }
+
+          if (
+            language === "javascript" &&
+            localResult.error &&
+            localResult.error.includes("permission sandbox")
+          ) {
+            return socket.emit("error", {
+              message: localResult.error,
+            });
+          }
+
+          logger.info(`Judge0 unavailable — fell back to local executor for language: ${language}`);
           const actualOutput = (localResult.output || "").trim();
           const passed = localResult.success && actualOutput === expectedOutput;
           if (!passed) allPassed = false;
           results.push({ passed });
-        } else {
-          // All other languages go through Judge0 first
-          const langId = LANGUAGE_IDS[language];
-          if (!langId) {
-            return socket.emit("error", { message: "Unsupported programming language" });
-          }
-          try {
-            const response = await axios.post(
-              `${process.env.JUDGE0_BASE_URL}/submissions?base64_encoded=false&wait=true`,
-              {
-                source_code: sourceCode,
-                language_id: langId,
-                stdin: input,
-              },
-              {
-                headers: {
-                  "x-rapidapi-key": process.env.JUDGE0_API_KEY,
-                  "x-rapidapi-host": "judge0-ce.p.rapidapi.com",
-                  "Content-Type": "application/json",
-                },
-                timeout: Number(process.env.JUDGE0_TIMEOUT_MS) || 15000,
-              }
-            );
-            const { stdout, status } = response.data;
-            const actualOutput = (stdout || "").trim();
-            const passed = status.id === 3 && actualOutput === expectedOutput;
-            if (!passed) allPassed = false;
-            results.push({ passed });
-          } catch (apiError) {
-            // ─── Judge0 failed (rate-limited, timeout, API down) ───────────────
-            // Try local fallback for languages that have a runtime in the Docker image.
-            // javascript, python, cpp, c → have local executors installed.
-            // java, go, rust → no local runtime; emit a clear error instead of
-            //                   silently returning false (which would wrongly
-            //                   mark correct code as failing).
-            logger.error(`Judge0 API error during battle submit: ${apiError.message}`);
-
-            const localResult = await runLocally(language, sourceCode, input);
-
-            if (!localResult) {
-              // Language has no local fallback runtime (java, go, rust)
-              return socket.emit("error", {
-                message: `Judge0 is currently unavailable and ${language} has no local fallback. Please try again in a moment or switch to JavaScript, Python, C++, or C.`,
-              });
-            }
-
-            logger.info(`Judge0 unavailable — fell back to local executor for language: ${language}`);
-            const actualOutput = (localResult.output || "").trim();
-            const passed = localResult.success && actualOutput === expectedOutput;
-            if (!passed) allPassed = false;
-            results.push({ passed });
-          }
         }
       }
 

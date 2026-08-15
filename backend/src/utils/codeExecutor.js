@@ -1,4 +1,4 @@
-const { exec } = require("child_process");
+const { exec, execFile } = require("child_process");
 const fs = require("fs");
 const path = require("path");
 const os = require("os");
@@ -38,6 +38,22 @@ const cleanup = (...files) => {
  */
 const PYTHON_CMD = process.platform === "win32" ? "python" : "python3";
 
+let nodePermissionSupportPromise = null;
+
+const supportsNodePermissionSandbox = () => {
+  if (!nodePermissionSupportPromise) {
+    nodePermissionSupportPromise = new Promise((resolve) => {
+      execFile(
+        "node",
+        ["--experimental-permission", "-e", ""],
+        { timeout: 2000 },
+        (err) => resolve(!err)
+      );
+    });
+  }
+  return nodePermissionSupportPromise;
+};
+
 // ─── JavaScript Executor ───────────────────────────────────────────────────────
 
 /**
@@ -58,7 +74,18 @@ const PYTHON_CMD = process.platform === "win32" ? "python" : "python3";
  * NOTE: Network access cannot yet be blocked via Node's permission model (v22).
  * A production hardening would wrap this in Docker with --network=none.
  */
-const executeJS = (code, input, timeoutMs = 3000) => {
+const executeJS = async (code, input, timeoutMs = 3000) => {
+  const canUsePermissionSandbox = await supportsNodePermissionSandbox();
+  if (!canUsePermissionSandbox) {
+    return {
+      success: false,
+      output: "",
+      executionTime: 0,
+      error:
+        "Local JavaScript fallback is disabled because this Node.js runtime does not support the required permission sandbox flag.",
+    };
+  }
+
   return new Promise((resolve) => {
     const scriptFile = tmpPath("codedraft_js", "js");
     const tmpDir = os.tmpdir();
@@ -351,4 +378,5 @@ module.exports = {
   executePython,
   executeCPP,
   executeC,
+  supportsNodePermissionSandbox,
 };

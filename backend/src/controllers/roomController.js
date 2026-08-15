@@ -2,18 +2,8 @@ const Room = require("../models/Room");
 const generateRoomId = require("../utils/generateRoomId");
 const { sendSuccess, sendError } = require("../utils/response");
 const { executeJS, executePython, executeCPP, executeC } = require("../utils/codeExecutor");
+const { executeWithJudge0 } = require("../utils/judge0Executor");
 const logger = require("../utils/logger");
-const axios = require("axios");
-
-const LANGUAGE_IDS = {
-  javascript: 63,
-  python: 71,
-  cpp: 54,
-  java: 62,
-  go: 60,
-  rust: 73,
-  c: 50,
-};
 
 const getUserId = (p) => {
   if (!p) return "";
@@ -22,6 +12,20 @@ const getUserId = (p) => {
   return p.toString();
 };
 
+const runLocalFallback = async (language, sourceCode, input) => {
+  switch (language) {
+    case "javascript":
+      return executeJS(sourceCode, input);
+    case "python":
+      return executePython(sourceCode, input);
+    case "cpp":
+      return executeCPP(sourceCode, input);
+    case "c":
+      return executeC(sourceCode, input);
+    default:
+      return null;
+  }
+};
 
 const createRoom = async (req, res, next) => {
   try {
@@ -109,99 +113,42 @@ const validateReferenceSolution = async (req, res, next) => {
       const input = tc.input;
       const expectedOutput = tc.expectedOutput.trim();
 
-      if (language === "javascript") {
-        const localResult = await executeJS(sourceCode, input);
-        const actualOutput = (localResult.output || "").trim();
-        const passed = localResult.success && actualOutput === expectedOutput;
+      try {
+        const judgeResult = await executeWithJudge0(sourceCode, language, input);
+        const actualOutput = (judgeResult.output || "").trim();
+        const passed = judgeResult.success && actualOutput === expectedOutput;
         results.push({
           passed,
           output: actualOutput,
           expectedOutput,
-          executionTime: localResult.executionTime,
-          error: localResult.error,
+          executionTime: judgeResult.executionTime,
+          error: judgeResult.error,
         });
-      } else {
-        const langId = LANGUAGE_IDS[language];
-        if (!langId) {
+      } catch (apiError) {
+        if (apiError.code === "UNSUPPORTED_LANGUAGE") {
           return sendError(res, 400, "Unsupported programming language.");
         }
 
-        try {
-          const response = await axios.post(
-            `${process.env.JUDGE0_BASE_URL}/submissions?base64_encoded=false&wait=true`,
-            {
-              source_code: sourceCode,
-              language_id: langId,
-              stdin: input,
-            },
-            {
-              headers: {
-                "x-rapidapi-key": process.env.JUDGE0_API_KEY,
-                "x-rapidapi-host": "judge0-ce.p.rapidapi.com",
-                "Content-Type": "application/json",
-              },
-              timeout: Number(process.env.JUDGE0_TIMEOUT_MS) || 15000,
-            }
-          );
-
-          const { stdout, stderr, compile_output, status } = response.data;
-          const actualOutput = (stdout || "").trim();
-          const passed = status.id === 3 && actualOutput === expectedOutput;
-          const errorMsg =
-            stderr || compile_output || (status.id !== 3 ? status.description : null);
-
+        logger.error(`Judge0 API error: ${apiError.message}`);
+        const localResult = await runLocalFallback(language, sourceCode, input);
+        if (localResult) {
+          const actualOutput = (localResult.output || "").trim();
+          const passed = localResult.success && actualOutput === expectedOutput;
           results.push({
             passed,
             output: actualOutput,
             expectedOutput,
-            executionTime: response.data.time ? Math.round(response.data.time * 1000) : 0,
-            error: errorMsg,
+            executionTime: localResult.executionTime,
+            error: localResult.error,
           });
-        } catch (apiError) {
-          logger.error(`Judge0 API error: ${apiError.message}`);
-          // Fallback: try local execution
-          if (language === "python") {
-            const localResult = await executePython(sourceCode, input);
-            const actualOutput = (localResult.output || "").trim();
-            const passed = localResult.success && actualOutput === expectedOutput;
-            results.push({
-              passed,
-              output: actualOutput,
-              expectedOutput,
-              executionTime: localResult.executionTime,
-              error: localResult.error,
-            });
-          } else if (language === "cpp") {
-            const localResult = await executeCPP(sourceCode, input);
-            const actualOutput = (localResult.output || "").trim();
-            const passed = localResult.success && actualOutput === expectedOutput;
-            results.push({
-              passed,
-              output: actualOutput,
-              expectedOutput,
-              executionTime: localResult.executionTime,
-              error: localResult.error,
-            });
-          } else if (language === "c") {
-            const localResult = await executeC(sourceCode, input);
-            const actualOutput = (localResult.output || "").trim();
-            const passed = localResult.success && actualOutput === expectedOutput;
-            results.push({
-              passed,
-              output: actualOutput,
-              expectedOutput,
-              executionTime: localResult.executionTime,
-              error: localResult.error,
-            });
-          } else {
-            results.push({
-              passed: false,
-              output: "",
-              expectedOutput,
-              executionTime: 0,
-              error: `Code compilation server temporarily unavailable for ${language}. Try using JavaScript, Python, C++, or C for local execution.`,
-            });
-          }
+        } else {
+          results.push({
+            passed: false,
+            output: "",
+            expectedOutput,
+            executionTime: 0,
+            error: `Code compilation server temporarily unavailable for ${language}. Try again shortly or switch to JavaScript, Python, C++, or C.`,
+          });
         }
       }
     }
